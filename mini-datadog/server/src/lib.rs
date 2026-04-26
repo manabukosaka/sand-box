@@ -14,13 +14,13 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
-use futures::stream::{self, Stream};
+use futures::stream::{self};
 use rust_embed::RustEmbed;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tower_http::cors::CorsLayer;
-use tracing::{error, info, warn};
+use tracing::{debug, error, info, warn};
 
 #[derive(RustEmbed)]
 #[folder = "../web/dist/"]
@@ -251,7 +251,7 @@ pub fn start_workers(
 
 async fn stream_logs(
     State(state): State<Arc<AppState>>,
-) -> Sse<impl Stream<Item = Result<Event, AppError>>> {
+) -> impl IntoResponse {
     let rx = state.log_broadcast_tx.subscribe();
 
     let stream = stream::unfold(rx, |mut rx| async move {
@@ -271,7 +271,15 @@ async fn stream_logs(
         }
     });
 
-    Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::default())
+    (
+        [
+            (
+                header::HeaderName::from_static("x-accel-buffering"),
+                header::HeaderValue::from_static("no"),
+            ),
+        ],
+        Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::default()),
+    )
 }
 
 async fn ingest_logs(
@@ -283,6 +291,8 @@ async fn ingest_logs(
         IngestPayload::Batch(v) => v,
     };
     for record in records {
+        debug!("Broadcasting log record: message={}", record.message);
+
         // リアルタイム配信のために、DB書き込み待ち行列に入れる前にブロードキャストを実行。
         // 受信者がいない場合は Error が返るが、ここでは無視して良い。
         let _ = state.log_broadcast_tx.send(record.clone());

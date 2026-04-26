@@ -82,8 +82,10 @@ Agentic-coding環境において、以下のペルソナをタスク・開発フ
    - ADRが正式に承認された後、エンジニアはその決定事項に沿って実装を完了させる。
 
 1. **要件分析・定義 (Requirements Analysis):** ユーザーのラフな要求をヒアリング・分析し、`docs/requirements.md` を作成する。
+1.5. **UI/UX Spec Review (Phase 1.5):** 要件定義直後、基本設計の段階で「画面遷移図」および「画面構成案（ワイヤーフレーム）」をユーザーに提示する。承認を得るまで実装フェーズに移行してはならない。
 2. **基本設計とADR作成 (Basic Design & ADRs):** `docs/basic_design.md` を作成し、アーキテクチャ、インフラ構成、技術選定（フレームワーク決定等）を決定する。決定事項の背景や理由については、`docs/adr/` ディレクトリにADR（Architecture Decision Records）として必ず文書化し、第三者への説明責任を果たす。
 3. **詳細設計 (Detailed Design):** `docs/detailed_design.md` を作成し、API仕様(OpenAPI等)、DBスキーマ、コンポーネント設計を定義する。
+3.5. **デザイン・スプリントの導入 (Design Sprint):** 小さな機能追加であっても、必ず「仕様レビュー → プロトタイプ確認 → 実装」のサイクルを守るよう徹底し、後出しのデザイン修正を防ぐこと。
 4. **実装 (Implementation):** 設計に基づき、RustとTypeScriptを用いた実際のコーディングを行う。
 5. **テスト (Testing):** テストコードの実装と実行。CIでの実行を想定したスクリプトを用意する。
 6. **V&V (Verification & Validation):** テスト結果の評価、仕様書との突合、およびユーザー要求が満たされているかの最終検証レポートを作成する。

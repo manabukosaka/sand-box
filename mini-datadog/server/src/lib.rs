@@ -249,9 +249,7 @@ pub fn start_workers(
 
 // --- Handlers ---
 
-async fn stream_logs(
-    State(state): State<Arc<AppState>>,
-) -> impl IntoResponse {
+async fn stream_logs(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     let rx = state.log_broadcast_tx.subscribe();
 
     let stream = stream::unfold(rx, |mut rx| async move {
@@ -272,12 +270,10 @@ async fn stream_logs(
     });
 
     (
-        [
-            (
-                header::HeaderName::from_static("x-accel-buffering"),
-                header::HeaderValue::from_static("no"),
-            ),
-        ],
+        [(
+            header::HeaderName::from_static("x-accel-buffering"),
+            header::HeaderValue::from_static("no"),
+        )],
         Sse::new(stream).keep_alive(axum::response::sse::KeepAlive::default()),
     )
 }

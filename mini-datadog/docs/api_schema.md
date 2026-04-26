@@ -42,50 +42,26 @@
 エージェントが収集したログを送信します。
 
 - **Endpoint:** `POST /api/v1/ingest/logs`
-- **Request Body:** 配列形式でのバルク送信。
+- **Request Body:** 単一のログオブジェクト、またはログオブジェクトの配列（バルク）。
   ```json
+  // 単一レコードまたは配列を受け付け
   [
     {
       "timestamp": "2023-10-27T10:00:00.123Z",
       "level": "info",
       "service": "payment-api",
       "message": "Processed transaction successfully",
-      "tags": {
-        "env": "production",
-        "region": "ap-northeast-1"
-      },
-      "attributes": {
-        "amount": 1500,
-        "currency": "JPY"
-      }
+      "tags": { "env": "production" }
     }
   ]
   ```
 - **Response:**
-  - `202 Accepted`: 正常受け入れ（バッファへの追加完了）。
-  - `400 Bad Request`: JSON 形式が不正、または必須フィールドの欠落。
-  - `401 Unauthorized`: APIキーが不正。
+  - `202 Accepted`: 正常受け入れ。
+  - `400 Bad Request`: 不正な形式。
 
 ### 3.2 メトリクス受信 (Metric Ingestion)
-システム指標やアプリケーション固有の指標を送信します。
-
 - **Endpoint:** `POST /api/v1/ingest/metrics`
-- **Request Body:**
-  ```json
-  [
-    {
-      "timestamp": "2023-10-27T10:00:00.000Z",
-      "name": "system.cpu.usage",
-      "value": 45.2,
-      "type": "gauge",
-      "service": "payment-api",
-      "tags": {
-        "env": "production",
-        "host": "ip-10-0-1-5"
-      }
-    }
-  ]
-  ```
+- **Request Body:** 単一のメトリクスオブジェクト、またはメトリクスオブジェクトの配列。
 - **Response:**
   - `202 Accepted`: 正常受け入れ。
   - `400 Bad Request`: 指標データの形式が不正。

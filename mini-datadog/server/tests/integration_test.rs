@@ -1,21 +1,22 @@
-use axum::http::{StatusCode, HeaderName, HeaderValue};
+use axum::http::{HeaderName, HeaderValue, StatusCode};
 use axum_test::TestServer;
+use chrono::Utc;
+use dashmap::DashMap;
 use mini_datadog_server::{
-    create_app, start_workers, AppState,
-    db::init_db,
     auth::AuthState,
+    create_app,
+    db::init_db,
     models::{LogQueryRequest, LogQueryResponse},
+    start_workers, AppState,
 };
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, broadcast};
-use dashmap::DashMap;
-use chrono::Utc;
+use tokio::sync::{broadcast, mpsc};
 
 #[tokio::test]
 async fn test_full_log_lifecycle() {
     // 1. セットアップ: 一時的なDBパスを作成
     let db_path = format!("test_{}.db", uuid::Uuid::new_v4());
-    
+
     struct Cleanup(String);
     impl Drop for Cleanup {
         fn drop(&mut self) {
@@ -31,7 +32,8 @@ async fn test_full_log_lifecycle() {
         api_keys: DashMap::new(),
     });
     let test_key = "test-key-123";
-    auth.api_keys.insert(test_key.to_string(), "test-service".to_string());
+    auth.api_keys
+        .insert(test_key.to_string(), "test-service".to_string());
 
     let (log_tx, log_rx) = mpsc::channel(100);
     let (metric_tx, metric_rx) = mpsc::channel(100);
@@ -55,7 +57,7 @@ async fn test_full_log_lifecycle() {
         .post("/api/v1/ingest/logs")
         .add_header(
             "X-API-Key".parse::<HeaderName>().unwrap(),
-            "invalid-key".parse::<HeaderValue>().unwrap()
+            "invalid-key".parse::<HeaderValue>().unwrap(),
         )
         .json(&vec![serde_json::json!({
             "timestamp": Utc::now(),
@@ -73,7 +75,7 @@ async fn test_full_log_lifecycle() {
         .post("/api/v1/ingest/logs")
         .add_header(
             "X-API-Key".parse::<HeaderName>().unwrap(),
-            test_key.parse::<HeaderValue>().unwrap()
+            test_key.parse::<HeaderValue>().unwrap(),
         )
         .json(&serde_json::json!({
             "timestamp": now,
@@ -99,9 +101,13 @@ async fn test_full_log_lifecycle() {
 
     let response = server
         .post("/api/v1/query/logs")
+        .add_header(
+            "X-API-Key".parse::<HeaderName>().unwrap(),
+            test_key.parse::<HeaderValue>().unwrap(),
+        )
         .json(&query_req)
         .await;
-    
+
     response.assert_status(StatusCode::OK);
     let body: LogQueryResponse = response.json();
     assert!(!body.hits.is_empty());

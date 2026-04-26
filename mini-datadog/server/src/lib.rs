@@ -205,34 +205,32 @@ async fn query_logs(
                    FROM logs WHERE timestamp >= ? AND timestamp <= ?"
         .to_string();
 
-    let hits: Vec<LogRecord> = if let Some(ref q) = req.query {
-        sql.push_str(" AND (message LIKE ? OR service LIKE ?)");
-        sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
-        let search_pattern = format!("%{}%", q);
-        let mut stmt = conn.prepare(&sql)?;
-        let rows = stmt.query_map(
-            duckdb::params![
-                req.start,
-                req.end,
-                search_pattern,
-                search_pattern,
-                limit,
-                offset
-            ],
-            map_row_to_log,
-        )?;
-        rows.filter_map(|r| r.ok()).collect()
-    } else {
-        sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
-        let mut stmt = conn.prepare(&sql)?;
-        let rows = stmt.query_map(
-            duckdb::params![req.start, req.end, limit, offset],
-            map_row_to_log,
-        )?;
-        rows.filter_map(|r| r.ok()).collect()
-    };
+    let level_filter = req.level.as_deref().unwrap_or("%");
+    sql.push_str(" AND level LIKE ?");
 
-    let total = hits.len();
+    let query_pattern = req
+        .query
+        .as_ref()
+        .map(|q| format!("%{}%", q))
+        .unwrap_or_else(|| "%".to_string());
+    sql.push_str(" AND (message LIKE ? OR service LIKE ?)");
+
+    sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
+
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query(duckdb::params![
+        req.start,
+        req.end,
+        level_filter,
+        query_pattern,
+        query_pattern,
+        limit,
+        offset
+    ])?;
+
+    let hits: Vec<LogRecord> = rows.mapped(map_row_to_log).filter_map(|r| r.ok()).collect();
+
+    let total = hits.len(); // In a real system, we would do a COUNT query for total
 
     Ok((StatusCode::OK, Json(LogQueryResponse { total, hits })))
 }
@@ -415,14 +413,14 @@ mod tests {
         let conn = duckdb::Connection::open_in_memory().unwrap();
         // Use VARCHAR instead of JSON to bypass DuckDB's native validation for this test.
         conn.execute("CREATE TABLE logs (timestamp TIMESTAMP, received_at TIMESTAMP, level VARCHAR, service VARCHAR, message TEXT, tags VARCHAR, attributes VARCHAR)", []).unwrap();
-        
+
         // This is not valid JSON
         conn.execute("INSERT INTO logs VALUES ('2023-01-01 00:00:00', '2023-01-01 00:00:00', 'info', 'test', 'msg', '{bad json}', '{{ more bad json }}')", []).unwrap();
-        
+
         let mut stmt = conn.prepare("SELECT * FROM logs").unwrap();
         let mut rows = stmt.query([]).unwrap();
         let row = rows.next().unwrap().unwrap();
-        
+
         let log = map_row_to_log(row).unwrap();
         assert_eq!(log.message, "msg");
         assert!(log.tags.is_none()); // Failed parsing returns None
@@ -436,7 +434,9 @@ mod tests {
         let (tx, _) = mpsc::channel(1);
         let (mtx, _) = mpsc::channel(1);
         let (btx, _) = tokio::sync::broadcast::channel(1);
-        let auth = Arc::new(AuthState { api_keys: dashmap::DashMap::new() });
+        let auth = Arc::new(AuthState {
+            api_keys: dashmap::DashMap::new(),
+        });
         let state = Arc::new(AppState {
             log_tx: tx,
             metric_tx: mtx,
@@ -448,6 +448,7 @@ mod tests {
         let req = LogQueryRequest {
             start: Utc::now() - chrono::Duration::hours(1),
             end: Utc::now(),
+            level: None,
             query: None,
             limit: Some(10),
             offset: Some(0),
@@ -455,8 +456,8 @@ mod tests {
 
         // This is a direct handler call test
         let response = query_logs(State(state), Json(req)).await.unwrap();
-        // Since we can't easily inspect axum::response::Response without extra traits, 
-        // we'll just check it doesn't error. 
+        // Since we can't easily inspect axum::response::Response without extra traits,
+        // we'll just check it doesn't error.
         // In a real scenario, we'd use TestServer as in integration_test.rs.
     }
 }

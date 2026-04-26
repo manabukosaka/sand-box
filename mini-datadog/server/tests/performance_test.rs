@@ -3,11 +3,7 @@ use axum_test::TestServer;
 use chrono::Utc;
 use dashmap::DashMap;
 use mini_datadog_server::{
-    auth::AuthState,
-    create_app,
-    db::init_db,
-    models::LogRecord,
-    start_workers, AppState,
+    auth::AuthState, create_app, db::init_db, models::LogRecord, start_workers, AppState,
 };
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
@@ -25,7 +21,8 @@ async fn test_performance_and_stability() {
         api_keys: DashMap::new(),
     });
     let test_key = "perf-key";
-    auth.api_keys.insert(test_key.to_string(), "perf-service".to_string());
+    auth.api_keys
+        .insert(test_key.to_string(), "perf-service".to_string());
 
     // Channel capacity to handle high load
     let (log_tx, log_rx) = mpsc::channel(10000);
@@ -69,8 +66,11 @@ async fn test_performance_and_stability() {
     let total_logs = 50000;
     let batch_size = 1000;
     let num_batches = total_logs / batch_size;
-    
-    println!("Starting load test: {} logs, {} logs/sec target", total_logs, 5000);
+
+    println!(
+        "Starting load test: {} logs, {} logs/sec target",
+        total_logs, 5000
+    );
     let start_time = Instant::now();
     let mut latencies = vec![];
 
@@ -98,9 +98,9 @@ async fn test_performance_and_stability() {
             .json(&batch)
             .await;
         latencies.push(batch_start.elapsed());
-        
+
         response.assert_status(StatusCode::ACCEPTED);
-        
+
         // Control throughput to roughly 5000/sec
         let elapsed_so_far = start_time.elapsed();
         let expected_time = Duration::from_millis((i as u64 + 1) * 200);
@@ -118,13 +118,15 @@ async fn test_performance_and_stability() {
     // 4. Wait for database flush
     println!("Waiting for DB flush...");
     tokio::time::sleep(Duration::from_secs(5)).await;
-    
+
     let conn_check = db.lock().expect("Lock failed");
-    let mut stmt = conn_check.prepare("SELECT count(*) FROM logs").expect("Prepare failed");
+    let mut stmt = conn_check
+        .prepare("SELECT count(*) FROM logs")
+        .expect("Prepare failed");
     let count: i64 = stmt.query_row([], |row| row.get(0)).expect("Query failed");
-    
+
     println!("Logs successfully persisted in DB: {}", count);
-    
+
     // p99 latency calculation
     latencies.sort();
     let p99 = latencies[(latencies.len() as f64 * 0.99) as usize];
@@ -141,5 +143,10 @@ async fn test_performance_and_stability() {
     drop(conn_check);
     let _ = std::fs::remove_file(db_path);
 
-    assert!(count >= total_logs as i64, "Data loss detected: expected {}, got {}", total_logs, count);
+    assert!(
+        count >= total_logs as i64,
+        "Data loss detected: expected {}, got {}",
+        total_logs,
+        count
+    );
 }

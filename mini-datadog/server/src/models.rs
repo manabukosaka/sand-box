@@ -37,6 +37,7 @@ pub struct LogQueryRequest {
     pub start: DateTime<Utc>,
     pub end: DateTime<Utc>,
     pub query: Option<String>,
+    pub level: Option<String>,
     pub limit: Option<usize>,
     pub offset: Option<usize>,
 }

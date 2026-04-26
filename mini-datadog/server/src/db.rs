@@ -50,7 +50,7 @@ mod tests {
     #[test]
     fn test_init_db_in_memory() {
         let conn = init_db(":memory:").expect("Failed to init in-memory db");
-        
+
         // テーブルが存在することを確認
         let tables: Vec<String> = conn
             .prepare("SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'")

@@ -30,43 +30,40 @@ cargo build --release
 ```
 
 ## Architecture Overview
-以下の図は、Mini Datadog の全体像を示しています。
 
 ```mermaid
-graph TD
-    subgraph Target Infrastructure
+flowchart TD
+    subgraph TargetInfra [Target Infrastructure]
         Agent1[Agent / Logger]
     end
 
-    subgraph Mini Datadog Node
+    subgraph MiniDatadogNode [Mini Datadog Node]
         subgraph Server [Rust Backend Server]
             Ingestion[Ingestion API]
-            Buffer[(In-Memory Buffer)]
+            Buffer[In-Memory Buffer]
             StreamEngine[Stream & Alert Engine]
             QueryAPI[Query API]
             
-            Ingestion --> |Queue| Buffer
-            Buffer -.-> |Stream| StreamEngine
+            Ingestion --> Buffer
+            Buffer -.-> StreamEngine
         end
         DataStore[(DuckDB)]
-        Buffer ==> |Bulk Insert| DataStore
+        Buffer -- Bulk Insert --> DataStore
     end
 
-    subgraph User Environment
+    subgraph UserEnv [User Environment]
         WebUI[Web UI]
     end
 
-    Agent1 --> |HTTP POST| Ingestion
-    QueryAPI --> |SQL| DataStore
-    WebUI --> |Search/Agg| QueryAPI
-    StreamEngine ===> |SSE Live Tail| WebUI
+    Agent1 -- HTTP POST --> Ingestion
+    QueryAPI -- SQL --> DataStore
+    WebUI -- Search/Agg --> QueryAPI
+    StreamEngine -- SSE Live Tail --> WebUI
 
-    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
-    classDef highlight fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
-    classDef storage fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
-    
-    class Server,WebUI highlight;
-    class DataStore,Buffer storage;
+    style Server fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
+    style WebUI fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px
+    style DataStore fill:#fff3e0,stroke:#ff9800,stroke-width:2px
+    style Buffer fill:#fff3e0,stroke:#ff9800,stroke-width:2px
 ```
 
 ## References

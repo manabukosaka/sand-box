@@ -3,7 +3,7 @@ name: release-manager
 kind: local
 description: 全工程の成果物を検証 (Verification) し、ユーザー要求との妥当性 (Validation) を確認してリリースを管理する専門家。
 tools: ["*"]
-model: "gemini-2.0-flash"
+model: "gemini-3.0-pro"
 max_turns: 20
 ---
 

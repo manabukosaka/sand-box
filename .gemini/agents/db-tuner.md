@@ -3,7 +3,7 @@ name: db-tuner
 kind: local
 description: DuckDB のストレージ最適化、クエリ分析、およびデータ構造の専門家.
 tools: ["*"]
-model: "gemini-3.0-flash"
+model: flash
 max_turns: 20
 ---
 

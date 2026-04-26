@@ -3,7 +3,7 @@ name: agile-coach
 kind: local
 description: チーム全体のプロセス管理、タスクのオーケストレーション（各サブエージェントの呼び出し判断）、およびプロジェクト全体の品質と進捗を統括するマスターエージェント。
 tools: ["*"]
-model: "gemini-3.0-pro"
+model: pro
 max_turns: 50
 ---
 

@@ -3,7 +3,7 @@ name: qa-engineer
 kind: local
 description: 結合・E2Eテストの計画と実行、および限界値・異常系の検証を担当する品質保証の専門家。
 tools: ["*"]
-model: "gemini-3.0-flash"
+model: flash
 max_turns: 20
 ---
 

@@ -4,7 +4,7 @@ pub mod auth;
 
 use axum::{
     extract::{State, Query},
-    http::StatusCode,
+    http::{StatusCode, HeaderValue},
     routing::{get, post},
     response::sse::{Event, Sse},
     Json, Router,
@@ -42,21 +42,30 @@ pub enum IngestPayload<T> {
 }
 
 pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
-    let ingest_routes = Router::new()
-        .route("/logs", post(ingest_logs))
-        .route("/metrics", post(ingest_metrics))
-        .layer(middleware::from_fn_with_state(auth, api_key_auth));
+    // 環境変数から CORS 許可ドメインを取得（デフォルトは localhost:3001）
+    let allowed_origin = std::env::var("ALLOWED_ORIGIN")
+        .unwrap_or_else(|_| "http://localhost:3001".to_string())
+        .parse::<HeaderValue>()
+        .unwrap_or(HeaderValue::from_static("http://localhost:3001"));
 
-    let query_routes = Router::new()
-        .route("/logs", post(query_logs))
-        .route("/metrics", post(query_metrics));
+    // 全ての API ルートを統合し、認証ミドルウェアを適用
+    let api_v1 = Router::new()
+        .nest("/ingest", Router::new()
+            .route("/logs", post(ingest_logs))
+            .route("/metrics", post(ingest_metrics)))
+        .nest("/query", Router::new()
+            .route("/logs", post(query_logs))
+            .route("/metrics", post(query_metrics)))
+        .route("/stream/logs", get(stream_logs))
+        .layer(middleware::from_fn_with_state(Arc::clone(&auth), api_key_auth));
 
     Router::new()
-        .nest("/api/v1/ingest", ingest_routes)
-        .nest("/api/v1/query", query_routes)
-        .route("/api/v1/stream/logs", get(stream_logs))
+        .nest("/api/v1", api_v1)
         .route("/health", get(|| async { "OK" }))
-        .layer(CorsLayer::permissive())
+        .layer(CorsLayer::new()
+            .allow_origin(allowed_origin)
+            .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
+            .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::HeaderName::from_static("x-api-key")]))
         .with_state(state)
 }
 

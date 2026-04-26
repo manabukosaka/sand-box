@@ -5,7 +5,7 @@ pub mod models;
 
 use axum::{
     extract::State,
-    http::{header, HeaderValue, StatusCode},
+    http::{header, StatusCode},
     middleware,
     response::{
         sse::{Event, Sse},
@@ -114,13 +114,6 @@ pub enum IngestPayload<T> {
 }
 
 pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
-    // 環境変数から CORS 許可ドメインを取得（デフォルトは localhost:3001）
-    let default_origin = HeaderValue::from_static("http://localhost:3001");
-    let allowed_origin = std::env::var("ALLOWED_ORIGIN")
-        .ok()
-        .and_then(|v| v.parse::<HeaderValue>().ok())
-        .unwrap_or(default_origin);
-
     // 全ての API ルートを統合し、認証ミドルウェアを適用
     let api_v1 = Router::new()
         .nest(
@@ -147,7 +140,7 @@ pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
         .fallback(static_handler)
         .layer(
             CorsLayer::new()
-                .allow_origin(allowed_origin)
+                .allow_origin(tower_http::cors::Any)
                 .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
                 .allow_headers([
                     axum::http::header::CONTENT_TYPE,

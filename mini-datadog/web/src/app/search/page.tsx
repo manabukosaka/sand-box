@@ -64,7 +64,7 @@ export default function LogSearch() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:3000/api/v1/query/logs', {
+      const response = await fetch('/api/v1/query/logs', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

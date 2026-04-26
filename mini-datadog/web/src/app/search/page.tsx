@@ -1,6 +1,16 @@
 'use client';
 
 import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { SelectNative } from "@/components/ui/select-native";
+import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { Search, Calendar, Filter, Terminal, Copy } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface LogRecord {
   timestamp: string;
@@ -8,6 +18,25 @@ interface LogRecord {
   service: string;
   message: string;
 }
+
+const getLogLevelVariant = (level: string) => {
+  switch (level.toLowerCase()) {
+    case 'info': return 'outline';
+    case 'warn': return 'warning'; // Custom logic or just style
+    case 'error': return 'destructive';
+    default: return 'secondary';
+  }
+};
+
+const getLogLevelColor = (level: string) => {
+  switch (level.toLowerCase()) {
+    case 'info': return 'text-blue-400 border-blue-400/30 bg-blue-400/10';
+    case 'warn': return 'text-yellow-400 border-yellow-400/30 bg-yellow-400/10';
+    case 'error': return 'text-red-400 border-red-400/30 bg-red-400/10';
+    case 'debug': return 'text-slate-400 border-slate-400/30 bg-slate-400/10';
+    default: return 'text-slate-400 border-slate-400/30 bg-slate-400/10';
+  }
+};
 
 export default function LogSearch() {
   const [start, setStart] = useState(new Date(Date.now() - 3600000).toISOString().slice(0, 16));
@@ -42,86 +71,159 @@ export default function LogSearch() {
 
       const data = await response.json();
       setResults(data.hits || []);
+      toast.success(`Found ${data.hits?.length || 0} logs`);
     } catch (error) {
       console.error('Search failed', error);
-      alert('Search failed. Check console for details.');
+      toast.error("Search failed. Please check the backend connection.");
     } finally {
       setLoading(false);
     }
   };
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast.success("Copied message to clipboard");
+  };
+
   return (
-    <div>
-      <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem', gap: '1rem' }}>
-        <h2 style={{ fontSize: '1.5rem' }}>Logs Search</h2>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold tracking-tight">Logs Search</h2>
       </div>
       
-      <div className="card">
-        <form onSubmit={handleSearch} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#8b949e' }}>Start Time</label>
-            <input 
-              type="datetime-local" 
-              value={start} 
-              onChange={(e) => setStart(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)', background: '#0d1117', color: 'white' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#8b949e' }}>End Time</label>
-            <input 
-              type="datetime-local" 
-              value={end} 
-              onChange={(e) => setEnd(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)', background: '#0d1117', color: 'white' }}
-            />
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#8b949e' }}>Level</label>
-            <select 
-              value={level} 
-              onChange={(e) => setLevel(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)', background: '#0d1117', color: 'white' }}
-            >
-              <option value="">ALL LEVELS</option>
-              <option value="info">INFO</option>
-              <option value="warn">WARN</option>
-              <option value="error">ERROR</option>
-              <option value="debug">DEBUG</option>
-            </select>
-          </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.8rem', color: '#8b949e' }}>Keyword Search</label>
-            <input 
-              type="text" 
-              placeholder="e.g. database, connection" 
-              value={query} 
-              onChange={(e) => setQuery(e.target.value)}
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '4px', border: '1px solid var(--border)', background: '#0d1117', color: 'white' }}
-            />
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button type="submit" disabled={loading} style={{ width: '100%', height: '38px' }}>
-              {loading ? 'Searching...' : 'Search Logs'}
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <div className="card" style={{ padding: '0' }}>
-        <div className="log-viewer" style={{ height: 'calc(100vh - 400px)', minHeight: '400px' }}>
-          {results.length === 0 && !loading && (
-            <div style={{ color: '#8b949e', padding: '1rem' }}>No results found. Adjust your filters and try again.</div>
-          )}
-          {results.map((log, i) => (
-            <div key={i} className="log-entry">
-              <span className="log-timestamp">{new Date(log.timestamp).toLocaleString()}</span>
-              <span className={`log-level ${log.level.toLowerCase()}`}>{log.level.toUpperCase()}</span>
-              <span className="log-service">{log.service}</span>
-              <span className="log-message">{log.message}</span>
+      <Card className="border-slate-800 bg-slate-900/50 shadow-xl">
+        <CardContent className="pt-6">
+          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="start" className="flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5 text-slate-400" /> Start Time
+              </Label>
+              <Input 
+                id="start"
+                type="datetime-local" 
+                value={start} 
+                onChange={(e) => setStart(e.target.value)}
+                className="bg-slate-950 border-slate-800"
+              />
             </div>
-          ))}
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="end" className="flex items-center gap-2">
+                <Calendar className="h-3.5 w-3.5 text-slate-400" /> End Time
+              </Label>
+              <Input 
+                id="end"
+                type="datetime-local" 
+                value={end} 
+                onChange={(e) => setEnd(e.target.value)}
+                className="bg-slate-950 border-slate-800"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="level" className="flex items-center gap-2">
+                <Filter className="h-3.5 w-3.5 text-slate-400" /> Level
+              </Label>
+              <SelectNative 
+                id="level"
+                value={level} 
+                onChange={(e) => setLevel(e.target.value)}
+                className="bg-slate-950 border-slate-800"
+              >
+                <option value="">ALL LEVELS</option>
+                <option value="info">INFO</option>
+                <option value="warn">WARN</option>
+                <option value="error">ERROR</option>
+                <option value="debug">DEBUG</option>
+              </SelectNative>
+            </div>
+            <div className="space-y-2 lg:col-span-1">
+              <Label htmlFor="query" className="flex items-center gap-2">
+                <Search className="h-3.5 w-3.5 text-slate-400" /> Keyword
+              </Label>
+              <Input 
+                id="query"
+                type="text" 
+                placeholder="e.g. error, auth..." 
+                value={query} 
+                onChange={(e) => setQuery(e.target.value)}
+                className="bg-slate-950 border-slate-800"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button type="submit" disabled={loading} className="w-full">
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                    Searching...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <Search className="h-4 w-4" />
+                    Search Logs
+                  </span>
+                )}
+              </Button>
+            </div>
+          </form>
+        </CardContent>
+      </Card>
+
+      <div className="space-y-4">
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i} className="border-slate-800 bg-slate-900/30">
+                <CardContent className="p-4 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-32" />
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : results.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3 border-2 border-dashed border-slate-800 rounded-lg">
+            <Terminal className="h-10 w-10 opacity-20" />
+            <p>No results found. Adjust your filters and try again.</p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {results.map((log, i) => (
+              <Card key={i} className="group border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 transition-colors shadow-sm overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-2 border-b border-slate-800/50 bg-slate-950/30">
+                    <span className="text-xs font-mono text-slate-500">
+                      {new Date(log.timestamp).toLocaleString()}
+                    </span>
+                    <div className="flex items-center gap-2 ml-auto sm:ml-4">
+                      <Badge 
+                        variant="outline" 
+                        className={cn("text-[10px] px-1.5 py-0", getLogLevelColor(log.level))}
+                      >
+                        {log.level.toUpperCase()}
+                      </Badge>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-800">
+                        {log.service}
+                      </Badge>
+                      <button 
+                        onClick={() => copyToClipboard(log.message)}
+                        className="ml-2 p-1 hover:bg-slate-700 rounded transition-colors text-slate-500"
+                        title="Copy message"
+                      >
+                        <Copy className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                  <div className="px-4 py-3 font-mono text-sm text-slate-200 break-all">
+                    {log.message}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

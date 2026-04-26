@@ -43,6 +43,39 @@ pub fn init_db<P: AsRef<Path>>(path: P) -> Result<Connection> {
     Ok(conn)
 }
 
+pub fn get_oldest_timestamp(
+    conn: &Connection,
+    table: &str,
+) -> Result<Option<chrono::DateTime<chrono::Utc>>> {
+    let sql = format!("SELECT MIN(timestamp) FROM {}", table);
+    let mut stmt = conn.prepare(&sql)?;
+    let mut rows = stmt.query([])?;
+    if let Some(row) = rows.next()? {
+        let ts: Option<chrono::DateTime<chrono::Utc>> = row.get(0)?;
+        Ok(ts)
+    } else {
+        Ok(None)
+    }
+}
+
+pub fn delete_data_range(
+    conn: &Connection,
+    table: &str,
+    start: chrono::DateTime<chrono::Utc>,
+    end: chrono::DateTime<chrono::Utc>,
+) -> Result<usize> {
+    let sql = format!(
+        "DELETE FROM {} WHERE timestamp >= ? AND timestamp < ?",
+        table
+    );
+    conn.execute(&sql, duckdb::params![start, end])
+}
+
+pub fn checkpoint(conn: &Connection) -> Result<()> {
+    conn.execute("CHECKPOINT", [])?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -63,6 +96,33 @@ mod tests {
         assert!(tables.contains(&"logs".to_string()));
         assert!(tables.contains(&"metrics".to_string()));
         assert!(tables.contains(&"api_keys".to_string()));
+    }
+
+    #[test]
+    fn test_delete_data_range() {
+        let conn = init_db(":memory:").expect("Failed to init in-memory db");
+        let now = chrono::Utc::now();
+        let old = now - chrono::Duration::days(10);
+        let older = now - chrono::Duration::days(20);
+
+        conn.execute(
+            "INSERT INTO logs (timestamp, message) VALUES (?, ?), (?, ?)",
+            duckdb::params![old, "old message", older, "older message"],
+        )
+        .unwrap();
+
+        let count = delete_data_range(
+            &conn,
+            "logs",
+            older - chrono::Duration::days(1),
+            older + chrono::Duration::minutes(1),
+        )
+        .unwrap();
+        assert_eq!(count, 1);
+
+        let oldest = get_oldest_timestamp(&conn, "logs").unwrap().unwrap();
+        // oldest should now be 'old' (10 days ago), not 'older' (20 days ago)
+        assert!(oldest > older);
     }
 
     #[test]

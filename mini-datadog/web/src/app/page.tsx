@@ -4,8 +4,9 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Pause, Play, Trash2, Copy, Terminal } from "lucide-react";
+import { Pause, Play, Trash2, Copy, Terminal, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogRecord {
@@ -27,10 +28,17 @@ const getLogLevelColor = (level: string) => {
 
 export default function LiveTail() {
   const [logs, setLogs] = useState<LogRecord[]>([]);
+  const [filter, setFilter] = useState('');
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error'>('connecting');
   const [isAutoScroll, setIsAutoScroll] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const filteredLogs = logs.filter(log => 
+    log.message.toLowerCase().includes(filter.toLowerCase()) ||
+    log.service.toLowerCase().includes(filter.toLowerCase()) ||
+    log.level.toLowerCase().includes(filter.toLowerCase())
+  );
 
   useEffect(() => {
     const eventSource = new EventSource('http://localhost:3000/api/v1/stream/logs');
@@ -86,7 +94,7 @@ export default function LiveTail() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
         <div className="flex items-center gap-3">
           <h2 className="text-2xl font-bold tracking-tight">Live Tail</h2>
           <Badge 
@@ -103,18 +111,28 @@ export default function LiveTail() {
             {status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting...' : 'Disconnected'}
           </Badge>
         </div>
+
+        <div className="flex flex-1 max-w-md relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <Input
+            placeholder="Filter logs in memory..."
+            className="pl-9 bg-slate-900 border-slate-800 focus-visible:ring-emerald-500/50"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
         
         <div className="flex items-center gap-2">
           <Button 
             variant="outline" 
             size="sm" 
             onClick={() => setIsAutoScroll(!isAutoScroll)}
-            className="hidden sm:flex"
+            className="hidden sm:flex border-slate-800"
           >
             {isAutoScroll ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
             {isAutoScroll ? "Pause Scroll" : "Resume Scroll"}
           </Button>
-          <Button variant="outline" size="sm" onClick={clearLogs}>
+          <Button variant="outline" size="sm" onClick={clearLogs} className="border-slate-800">
             <Trash2 className="h-4 w-4 mr-2" />
             Clear
           </Button>
@@ -127,14 +145,14 @@ export default function LiveTail() {
           onScroll={handleScroll}
           className="h-full overflow-y-auto font-mono text-[13px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
         >
-          {logs.length === 0 && (
+          {filteredLogs.length === 0 && (
             <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-3">
               <Terminal className="h-8 w-8 animate-pulse-slow" />
-              <p>Waiting for incoming logs...</p>
+              <p>{logs.length === 0 ? "Waiting for incoming logs..." : "No logs matching filter."}</p>
             </div>
           )}
           <div className="py-2">
-            {logs.map((log, i) => (
+            {filteredLogs.map((log, i) => (
               <div 
                 key={i} 
                 className="group flex items-start gap-4 px-4 py-1 hover:bg-slate-900/80 transition-colors border-l-2 border-transparent hover:border-slate-700"
@@ -169,11 +187,11 @@ export default function LiveTail() {
           </div>
         </div>
 
-        {!isAutoScroll && logs.length > 0 && (
+        {!isAutoScroll && filteredLogs.length > 0 && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10">
             <Button 
               size="sm" 
-              className="rounded-full shadow-lg bg-primary hover:bg-primary/90 text-white animate-bounce"
+              className="rounded-full shadow-lg bg-emerald-600 hover:bg-emerald-500 text-white animate-bounce"
               onClick={() => setIsAutoScroll(true)}
             >
               <Play className="h-4 w-4 mr-2" />

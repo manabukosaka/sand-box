@@ -93,49 +93,59 @@ export default function LiveTail() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)]">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-4">
-        <div className="flex items-center gap-3">
-          <h2 className="text-2xl font-bold tracking-tight">Live Tail</h2>
-          <Badge 
-            variant="outline" 
-            className={cn(
-              "flex items-center gap-1.5 px-2.5 py-0.5 transition-colors",
-              status === 'connected' ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" : "text-destructive border-destructive/30 bg-destructive/10"
-            )}
-          >
-            <span className={cn(
-              "h-2 w-2 rounded-full",
-              status === 'connected' ? "bg-emerald-400 animate-pulse" : "bg-destructive"
-            )} />
-            {status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting...' : 'Disconnected'}
-          </Badge>
+    <div className="flex flex-col h-[calc(100vh-10rem)]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
+        <div className="flex items-center gap-4">
+          <div className="bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+            <Terminal className="h-5 w-5 text-emerald-500" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-slate-100">Live Tail</h2>
+            <div className="flex items-center gap-2 mt-0.5">
+              <Badge 
+                variant="outline" 
+                className={cn(
+                  "flex items-center gap-1.5 px-2 py-0 h-5 text-[10px] font-semibold transition-colors uppercase tracking-wider",
+                  status === 'connected' ? "text-emerald-400 border-emerald-400/30 bg-emerald-400/10" : "text-destructive border-destructive/30 bg-destructive/10"
+                )}
+              >
+                <span className={cn(
+                  "h-1.5 w-1.5 rounded-full",
+                  status === 'connected' ? "bg-emerald-400 animate-pulse" : "bg-destructive"
+                )} />
+                {status === 'connected' ? 'Connected' : status === 'connecting' ? 'Connecting...' : 'Disconnected'}
+              </Badge>
+              <span className="text-[11px] text-slate-500 font-medium">Viewing last 200 logs</span>
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-1 max-w-md relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
-          <Input
-            placeholder="Filter logs in memory..."
-            className="pl-9 bg-slate-900 border-slate-800 focus-visible:ring-emerald-500/50"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          />
-        </div>
-        
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsAutoScroll(!isAutoScroll)}
-            className="hidden sm:flex border-slate-800"
-          >
-            {isAutoScroll ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
-            {isAutoScroll ? "Pause Scroll" : "Resume Scroll"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={clearLogs} className="border-slate-800">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Clear
-          </Button>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          <div className="relative w-full sm:w-80">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              placeholder="Search in stream..."
+              className="pl-9 h-10 bg-slate-900/50 border-slate-800 focus-visible:ring-emerald-500/50 text-slate-100"
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setIsAutoScroll(!isAutoScroll)}
+              className="flex-1 sm:flex-none h-10 border-slate-800 bg-slate-900/50 text-slate-300 hover:text-slate-100"
+            >
+              {isAutoScroll ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+              {isAutoScroll ? "Pause" : "Resume"}
+            </Button>
+            <Button variant="outline" size="sm" onClick={clearLogs} className="flex-1 sm:flex-none h-10 border-slate-800 bg-slate-900/50 text-slate-300 hover:text-slate-100">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -146,9 +156,9 @@ export default function LiveTail() {
           className="h-full overflow-y-auto font-mono text-[13px] leading-relaxed scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent"
         >
           {filteredLogs.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-full text-slate-500 gap-3">
-              <Terminal className="h-8 w-8 animate-pulse-slow" />
-              <p>{logs.length === 0 ? "Waiting for incoming logs..." : "No logs matching filter."}</p>
+            <div className="flex flex-col items-center justify-center h-full text-slate-400 gap-3">
+              <Terminal className="h-8 w-8 animate-pulse-slow opacity-50" />
+              <p className="font-medium">{logs.length === 0 ? "Waiting for incoming logs..." : "No logs matching filter."}</p>
             </div>
           )}
           <div className="py-2">

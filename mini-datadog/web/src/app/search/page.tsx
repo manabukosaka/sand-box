@@ -100,76 +100,81 @@ export default function LogSearch() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h2 className="text-3xl font-bold tracking-tight">Logs Search</h2>
-        <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
-          <Button variant="ghost" size="sm" onClick={() => setQuickRange(15)} className="text-xs h-8 hover:bg-slate-800">Last 15m</Button>
-          <Button variant="ghost" size="sm" onClick={() => setQuickRange(60)} className="text-xs h-8 hover:bg-slate-800">Last 1h</Button>
-          <Button variant="ghost" size="sm" onClick={() => setQuickRange(1440)} className="text-xs h-8 hover:bg-slate-800">Last 24h</Button>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-800 pb-6">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight text-slate-100">Explorer</h2>
+          <p className="text-slate-400 mt-1">Query and analyze logs across your infrastructure.</p>
+        </div>
+        <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800 self-start md:self-auto">
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(15)} className="text-[11px] h-7 hover:bg-slate-800 text-slate-400 hover:text-slate-100 px-3">15m</Button>
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(60)} className="text-[11px] h-7 hover:bg-slate-800 text-slate-400 hover:text-slate-100 px-3">1h</Button>
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(1440)} className="text-[11px] h-7 hover:bg-slate-800 text-slate-400 hover:text-slate-100 px-3">24h</Button>
         </div>
       </div>
       
-      <Card className="border-slate-800 bg-slate-900/50 shadow-xl overflow-hidden">
-        <div className="h-1 bg-gradient-to-r from-emerald-500/50 via-sky-500/50 to-indigo-500/50" />
+      <Card className="border-slate-800 bg-slate-900/40 shadow-xl overflow-hidden backdrop-blur-sm">
+        <div className="h-1 bg-gradient-to-r from-emerald-500/40 via-sky-500/40 to-indigo-500/40" />
         <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="start" className="flex items-center gap-2 text-slate-400">
-                <Calendar className="h-3.5 w-3.5" /> Start Time
-              </Label>
-              <Input 
-                id="start"
-                type="datetime-local" 
-                value={start} 
-                onChange={(e) => setStart(e.target.value)}
-                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
-              />
+          <form onSubmit={handleSearch} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="space-y-2">
+                <Label htmlFor="start" className="flex items-center gap-2 text-slate-300 font-semibold">
+                  <Calendar className="h-3.5 w-3.5 text-emerald-500/70" /> Start Time
+                </Label>
+                <Input 
+                  id="start"
+                  type="datetime-local" 
+                  value={start} 
+                  onChange={(e) => setStart(e.target.value)}
+                  className="bg-slate-950/80 border-slate-800 focus:ring-emerald-500/30 transition-all h-10 text-slate-100"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="end" className="flex items-center gap-2 text-slate-300 font-semibold">
+                  <Calendar className="h-3.5 w-3.5 text-emerald-500/70" /> End Time
+                </Label>
+                <Input 
+                  id="end"
+                  type="datetime-local" 
+                  value={end} 
+                  onChange={(e) => setEnd(e.target.value)}
+                  className="bg-slate-950/80 border-slate-800 focus:ring-emerald-500/30 transition-all h-10 text-slate-100"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="level" className="flex items-center gap-2 text-slate-300 font-semibold">
+                  <Filter className="h-3.5 w-3.5 text-emerald-500/70" /> Log Level
+                </Label>
+                <SelectNative 
+                  id="level"
+                  value={level} 
+                  onChange={(e) => setLevel(e.target.value)}
+                  className="bg-slate-950/80 border-slate-800 focus:ring-emerald-500/30 transition-all h-10 text-slate-100"
+                >
+                  <option value="">ALL LEVELS</option>
+                  <option value="info">INFO</option>
+                  <option value="warn">WARN</option>
+                  <option value="error">ERROR</option>
+                  <option value="debug">DEBUG</option>
+                </SelectNative>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="query" className="flex items-center gap-2 text-slate-300 font-semibold">
+                  <Search className="h-3.5 w-3.5 text-emerald-500/70" /> Keyword
+                </Label>
+                <Input 
+                  id="query"
+                  type="text" 
+                  placeholder="e.g. error, auth..." 
+                  value={query} 
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="bg-slate-950/80 border-slate-800 focus:ring-emerald-500/30 transition-all h-10 text-slate-100"
+                />
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="end" className="flex items-center gap-2 text-slate-400">
-                <Calendar className="h-3.5 w-3.5" /> End Time
-              </Label>
-              <Input 
-                id="end"
-                type="datetime-local" 
-                value={end} 
-                onChange={(e) => setEnd(e.target.value)}
-                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="level" className="flex items-center gap-2 text-slate-400">
-                <Filter className="h-3.5 w-3.5" /> Level
-              </Label>
-              <SelectNative 
-                id="level"
-                value={level} 
-                onChange={(e) => setLevel(e.target.value)}
-                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
-              >
-                <option value="">ALL LEVELS</option>
-                <option value="info">INFO</option>
-                <option value="warn">WARN</option>
-                <option value="error">ERROR</option>
-                <option value="debug">DEBUG</option>
-              </SelectNative>
-            </div>
-            <div className="space-y-2 lg:col-span-1">
-              <Label htmlFor="query" className="flex items-center gap-2 text-slate-400">
-                <Search className="h-3.5 w-3.5" /> Keyword
-              </Label>
-              <Input 
-                id="query"
-                type="text" 
-                placeholder="e.g. error, auth..." 
-                value={query} 
-                onChange={(e) => setQuery(e.target.value)}
-                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
-              />
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
+            <div className="flex justify-end pt-2">
+              <Button type="submit" disabled={loading} className="w-full md:w-48 bg-emerald-600 hover:bg-emerald-500 text-white font-bold h-11 transition-all shadow-lg shadow-emerald-900/20">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -178,7 +183,7 @@ export default function LogSearch() {
                 ) : (
                   <span className="flex items-center gap-2">
                     <Search className="h-4 w-4" />
-                    Search Logs
+                    Run Query
                   </span>
                 )}
               </Button>
@@ -204,14 +209,14 @@ export default function LogSearch() {
             ))}
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3 border-2 border-dashed border-slate-800 rounded-lg bg-slate-900/10">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 gap-3 border-2 border-dashed border-slate-800 rounded-lg bg-slate-900/10">
             <Terminal className="h-10 w-10 opacity-20" />
             <p className="text-sm font-medium">No results found. Adjust your filters and try again.</p>
           </div>
         ) : (
           <div className="grid gap-2">
             <div className="flex items-center justify-between px-2 mb-2">
-              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Results ({results.length})</span>
+              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Results ({results.length})</span>
             </div>
             {results.map((log, i) => (
               <Card key={i} className="group border-slate-800 bg-slate-950 hover:bg-slate-900 transition-all shadow-sm overflow-hidden border-l-2 border-l-transparent hover:border-l-emerald-500">

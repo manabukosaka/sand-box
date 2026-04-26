@@ -204,7 +204,7 @@ pub fn start_workers(
     db: Arc<Mutex<duckdb::Connection>>,
     mut log_rx: mpsc::Receiver<LogRecord>,
     mut metric_rx: mpsc::Receiver<MetricRecord>,
-    log_broadcast_tx: tokio::sync::broadcast::Sender<LogRecord>,
+    _log_broadcast_tx: tokio::sync::broadcast::Sender<LogRecord>,
 ) {
     let db_logs = Arc::clone(&db);
     tokio::spawn(async move {
@@ -212,7 +212,6 @@ pub fn start_workers(
         loop {
             tokio::select! {
                 Some(record) = log_rx.recv() => {
-                    let _ = log_broadcast_tx.send(record.clone());
                     buffer.push(record);
                     if buffer.len() >= 1000 {
                         flush_logs(&db_logs, &mut buffer).await;
@@ -284,6 +283,10 @@ async fn ingest_logs(
         IngestPayload::Batch(v) => v,
     };
     for record in records {
+        // リアルタイム配信のために、DB書き込み待ち行列に入れる前にブロードキャストを実行。
+        // 受信者がいない場合は Error が返るが、ここでは無視して良い。
+        let _ = state.log_broadcast_tx.send(record.clone());
+
         if state.log_tx.try_send(record).is_err() {
             return StatusCode::TOO_MANY_REQUESTS;
         }

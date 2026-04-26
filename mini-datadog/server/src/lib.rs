@@ -28,6 +28,71 @@ use crate::models::{
     MetricRecord, MetricValue,
 };
 
+pub fn start_cleanup_worker(db: Arc<Mutex<duckdb::Connection>>, retention_days: u64) {
+    tokio::spawn(async move {
+        loop {
+            info!(
+                "Starting scheduled data cleanup (retention: {} days)...",
+                retention_days
+            );
+            if let Err(e) = run_cleanup_cycle(&db, retention_days).await {
+                error!("Data cleanup cycle failed: {}", e);
+            }
+            info!("Cleanup cycle completed. Next run in 24 hours.");
+            tokio::time::sleep(Duration::from_secs(24 * 60 * 60)).await;
+        }
+    });
+}
+
+pub async fn run_cleanup_cycle(
+    db: &Arc<Mutex<duckdb::Connection>>,
+    retention_days: u64,
+) -> anyhow::Result<()> {
+    let cutoff = chrono::Utc::now() - chrono::Duration::days(retention_days as i64);
+
+    for table in &["logs", "metrics"] {
+        loop {
+            let current_oldest = {
+                let conn = db.lock().map_err(|_| anyhow::anyhow!("Lock error"))?;
+                crate::db::get_oldest_timestamp(&conn, table)?
+            };
+
+            if let Some(oldest) = current_oldest {
+                if oldest >= cutoff {
+                    break;
+                }
+
+                // 1日分進める（または最大でもcutoffまで）
+                let next_target = (oldest + chrono::Duration::days(1)).min(cutoff);
+
+                info!(
+                    "Deleting data from {} between {} and {}",
+                    table, oldest, next_target
+                );
+
+                {
+                    let conn = db.lock().map_err(|_| anyhow::anyhow!("Lock error"))?;
+                    crate::db::delete_data_range(&conn, table, oldest, next_target)?;
+                }
+
+                // インジェストへの割り込みを許可するために少し待つ
+                tokio::time::sleep(Duration::from_millis(100)).await;
+            } else {
+                break;
+            }
+        }
+    }
+
+    // 最適化
+    {
+        let conn = db.lock().map_err(|_| anyhow::anyhow!("Lock error"))?;
+        crate::db::checkpoint(&conn)?;
+        info!("Database checkpoint completed.");
+    }
+
+    Ok(())
+}
+
 pub struct AppState {
     pub log_tx: mpsc::Sender<LogRecord>,
     pub metric_tx: mpsc::Sender<MetricRecord>,

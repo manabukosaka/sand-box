@@ -43,6 +43,13 @@ async fn main() -> anyhow::Result<()> {
 
     start_workers(Arc::clone(&db), log_rx, metric_rx, log_broadcast_tx.clone());
 
+    // データクリーンアップジョブの開始
+    let retention_days = std::env::var("DATA_RETENTION_DAYS")
+        .ok()
+        .and_then(|v| v.parse::<u64>().ok())
+        .unwrap_or(30);
+    mini_datadog_server::start_cleanup_worker(Arc::clone(&db), retention_days);
+
     let state = Arc::new(AppState {
         log_tx,
         metric_tx,

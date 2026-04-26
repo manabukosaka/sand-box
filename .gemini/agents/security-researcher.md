@@ -3,7 +3,7 @@ name: security-researcher
 kind: local
 description: セキュリティ脆弱性診断、ペネトレーションテスト、および監査の専門家.
 tools: ["*"]
-model: "gemini-3.0-flash"
+model: flash
 max_turns: 20
 ---
 

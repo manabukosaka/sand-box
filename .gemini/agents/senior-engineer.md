@@ -3,7 +3,7 @@ name: senior-engineer
 kind: local
 description: RustとTypeScriptを用いた高品質な実装、単体テスト、およびコード品質の維持を担当する専門家。
 tools: ["*"]
-model: "gemini-3.0-pro"
+model: flash
 max_turns: 30
 ---
 

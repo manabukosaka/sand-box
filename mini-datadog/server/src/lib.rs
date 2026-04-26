@@ -1,30 +1,28 @@
+pub mod auth;
 pub mod db;
 pub mod models;
-pub mod auth;
 
 use axum::{
-    extract::{State, Query},
-    http::{StatusCode, HeaderValue},
-    routing::{get, post},
-    response::sse::{Event, Sse},
-    Json, Router,
+    extract::State,
+    http::{HeaderValue, StatusCode},
     middleware,
+    response::sse::{Event, Sse},
+    routing::{get, post},
+    Json, Router,
 };
 use futures::stream::{self, Stream};
 use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
-use tokio::sync::mpsc;
-use tracing::{info, error, warn};
 use std::time::{Duration, Instant};
-use dashmap::DashMap;
+use tokio::sync::mpsc;
 use tower_http::cors::CorsLayer;
+use tracing::{error, info, warn};
 
-use crate::models::{
-    LogRecord, MetricRecord, LogQueryRequest, LogQueryResponse, 
-    MetricQueryRequest, MetricQueryResponse, MetricValue
-};
-use crate::db::init_db;
 use crate::auth::{api_key_auth, AuthState};
+use crate::models::{
+    LogQueryRequest, LogQueryResponse, LogRecord, MetricQueryRequest, MetricQueryResponse,
+    MetricRecord, MetricValue,
+};
 
 pub struct AppState {
     pub log_tx: mpsc::Sender<LogRecord>,
@@ -50,22 +48,36 @@ pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
 
     // 全ての API ルートを統合し、認証ミドルウェアを適用
     let api_v1 = Router::new()
-        .nest("/ingest", Router::new()
-            .route("/logs", post(ingest_logs))
-            .route("/metrics", post(ingest_metrics)))
-        .nest("/query", Router::new()
-            .route("/logs", post(query_logs))
-            .route("/metrics", post(query_metrics)))
+        .nest(
+            "/ingest",
+            Router::new()
+                .route("/logs", post(ingest_logs))
+                .route("/metrics", post(ingest_metrics)),
+        )
+        .nest(
+            "/query",
+            Router::new()
+                .route("/logs", post(query_logs))
+                .route("/metrics", post(query_metrics)),
+        )
         .route("/stream/logs", get(stream_logs))
-        .layer(middleware::from_fn_with_state(Arc::clone(&auth), api_key_auth));
+        .layer(middleware::from_fn_with_state(
+            Arc::clone(&auth),
+            api_key_auth,
+        ));
 
     Router::new()
         .nest("/api/v1", api_v1)
         .route("/health", get(|| async { "OK" }))
-        .layer(CorsLayer::new()
-            .allow_origin(allowed_origin)
-            .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
-            .allow_headers([axum::http::header::CONTENT_TYPE, axum::http::header::HeaderName::from_static("x-api-key")]))
+        .layer(
+            CorsLayer::new()
+                .allow_origin(allowed_origin)
+                .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
+                .allow_headers([
+                    axum::http::header::CONTENT_TYPE,
+                    axum::http::header::HeaderName::from_static("x-api-key"),
+                ]),
+        )
         .with_state(state)
 }
 
@@ -150,7 +162,7 @@ async fn ingest_logs(
         IngestPayload::Batch(v) => v,
     };
     for record in records {
-        if let Err(_) = state.log_tx.try_send(record) {
+        if state.log_tx.try_send(record).is_err() {
             return StatusCode::TOO_MANY_REQUESTS;
         }
     }
@@ -166,7 +178,7 @@ async fn ingest_metrics(
         IngestPayload::Batch(v) => v,
     };
     for record in records {
-        if let Err(_) = state.metric_tx.try_send(record) {
+        if state.metric_tx.try_send(record).is_err() {
             return StatusCode::TOO_MANY_REQUESTS;
         }
     }
@@ -180,25 +192,43 @@ async fn query_logs(
     let conn = state.db.lock().unwrap();
     let limit = req.limit.unwrap_or(100);
     let offset = req.offset.unwrap_or(0);
-    
+
     let mut sql = "SELECT timestamp, received_at, level, service, message, tags, attributes 
-                   FROM logs WHERE timestamp >= ? AND timestamp <= ?".to_string();
-    
+                   FROM logs WHERE timestamp >= ? AND timestamp <= ?"
+        .to_string();
+
     let hits: Vec<LogRecord> = if let Some(ref q) = req.query {
         sql.push_str(" AND (message LIKE ? OR service LIKE ?)");
         sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
         let search_pattern = format!("%{}%", q);
         let mut stmt = conn.prepare(&sql).unwrap();
-        let rows = stmt.query_map(duckdb::params![req.start, req.end, search_pattern, search_pattern, limit, offset], map_row_to_log).unwrap();
+        let rows = stmt
+            .query_map(
+                duckdb::params![
+                    req.start,
+                    req.end,
+                    search_pattern,
+                    search_pattern,
+                    limit,
+                    offset
+                ],
+                map_row_to_log,
+            )
+            .unwrap();
         rows.filter_map(|r| r.ok()).collect()
     } else {
         sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
         let mut stmt = conn.prepare(&sql).unwrap();
-        let rows = stmt.query_map(duckdb::params![req.start, req.end, limit, offset], map_row_to_log).unwrap();
+        let rows = stmt
+            .query_map(
+                duckdb::params![req.start, req.end, limit, offset],
+                map_row_to_log,
+            )
+            .unwrap();
         rows.filter_map(|r| r.ok()).collect()
     };
 
-    let total = hits.len(); 
+    let total = hits.len();
 
     (StatusCode::OK, Json(LogQueryResponse { total, hits }))
 }
@@ -223,7 +253,7 @@ async fn query_metrics(
 ) -> (StatusCode, Json<MetricQueryResponse>) {
     let conn = state.db.lock().unwrap();
     let interval = req.interval.unwrap_or_else(|| "1m".to_string());
-    
+
     let sql = format!(
         "SELECT time_bucket(INTERVAL '{}', timestamp) as bucket, AVG(value) 
          FROM metrics 
@@ -233,19 +263,27 @@ async fn query_metrics(
     );
 
     let mut stmt = conn.prepare(&sql).unwrap();
-    let rows = stmt.query_map(duckdb::params![req.metric_name, req.start, req.end], |row| {
-        Ok(MetricValue {
-            timestamp: row.get(0)?,
-            value: row.get(1)?,
-        })
-    }).unwrap();
+    let rows = stmt
+        .query_map(
+            duckdb::params![req.metric_name, req.start, req.end],
+            |row| {
+                Ok(MetricValue {
+                    timestamp: row.get(0)?,
+                    value: row.get(1)?,
+                })
+            },
+        )
+        .unwrap();
 
     let results: Vec<MetricValue> = rows.filter_map(|r| r.ok()).collect();
 
-    (StatusCode::OK, Json(MetricQueryResponse {
-        metric_name: req.metric_name,
-        results,
-    }))
+    (
+        StatusCode::OK,
+        Json(MetricQueryResponse {
+            metric_name: req.metric_name,
+            results,
+        }),
+    )
 }
 
 async fn flush_logs(db: &Arc<Mutex<duckdb::Connection>>, buffer: &mut Vec<LogRecord>) {

@@ -3,7 +3,7 @@ name: sre-specialist
 kind: local
 description: インフラの信頼性、スケーラビリティ、およびデプロイメントの専門家.
 tools: ["*"]
-model: "gemini-3.0-flash"
+model: flash
 max_turns: 20
 ---
 

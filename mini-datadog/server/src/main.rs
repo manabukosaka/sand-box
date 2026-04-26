@@ -1,13 +1,14 @@
+use dashmap::DashMap;
 use mini_datadog_server::{
-    create_app, start_workers, AppState,
-    db::init_db,
     auth::AuthState,
+    create_app,
+    db::init_db,
     models::{LogRecord, MetricRecord},
+    start_workers, AppState,
 };
 use std::sync::{Arc, Mutex};
-use tokio::sync::{mpsc, broadcast};
+use tokio::sync::{broadcast, mpsc};
 use tracing::{info, warn};
-use dashmap::DashMap;
 
 #[tokio::main]
 async fn main() {
@@ -21,9 +22,11 @@ async fn main() {
     });
 
     if let Ok(default_key) = std::env::var("DEFAULT_API_KEY") {
-        auth.api_keys.insert(default_key, "default-service".to_string());
+        auth.api_keys
+            .insert(default_key, "default-service".to_string());
     } else {
-        auth.api_keys.insert("minidog-test-key".to_string(), "test-service".to_string());
+        auth.api_keys
+            .insert("minidog-test-key".to_string(), "test-service".to_string());
         warn!("No DEFAULT_API_KEY env var found. Using insecure test key.");
     }
 
@@ -34,15 +37,15 @@ async fn main() {
 
     let (log_tx, log_rx) = mpsc::channel::<LogRecord>(buffer_size);
     let (metric_tx, metric_rx) = mpsc::channel::<MetricRecord>(buffer_size);
-    
+
     // ブロードキャスト・チャネルの初期化
     let (log_broadcast_tx, _) = broadcast::channel::<LogRecord>(buffer_size);
 
     start_workers(Arc::clone(&db), log_rx, metric_rx, log_broadcast_tx.clone());
 
-    let state = Arc::new(AppState { 
-        log_tx, 
-        metric_tx, 
+    let state = Arc::new(AppState {
+        log_tx,
+        metric_tx,
         log_broadcast_tx,
         db,
         auth: Arc::clone(&auth),

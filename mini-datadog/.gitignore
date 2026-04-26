@@ -1,1 +1,25 @@
+# Rust
 /target/
+**/*.rs.bk
+Cargo.lock
+
+# Next.js / Node
+/web/node_modules/
+/web/.next/
+/web/dist/
+/web/out/
+.npm
+.eslintcache
+
+# Logs
+/server/server.log
+**/*.log
+
+# Databases
+/server/*.db
+/server/*.db-wal
+/server/*.db-shm
+
+# OS
+.DS_Store
+Thumbs.db

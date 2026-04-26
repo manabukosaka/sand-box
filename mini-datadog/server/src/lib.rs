@@ -5,21 +5,26 @@ pub mod models;
 
 use axum::{
     extract::State,
-    http::{HeaderValue, StatusCode},
+    http::{header, HeaderValue, StatusCode},
     middleware,
     response::{
         sse::{Event, Sse},
-        IntoResponse,
+        IntoResponse, Response,
     },
     routing::{get, post},
     Json, Router,
 };
 use futures::stream::{self, Stream};
+use rust_embed::RustEmbed;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
 use tower_http::cors::CorsLayer;
 use tracing::{error, info, warn};
+
+#[derive(RustEmbed)]
+#[folder = "../web/dist/"]
+struct Assets;
 
 use crate::auth::{api_key_auth, AuthState};
 use crate::error::AppError;
@@ -139,6 +144,7 @@ pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
     Router::new()
         .nest("/api/v1", api_v1)
         .route("/health", get(|| async { "OK" }))
+        .fallback(static_handler)
         .layer(
             CorsLayer::new()
                 .allow_origin(allowed_origin)
@@ -149,6 +155,56 @@ pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
                 ]),
         )
         .with_state(state)
+}
+
+// --- Handlers ---
+
+async fn static_handler(uri: axum::http::Uri) -> impl IntoResponse {
+    let path_str = uri.path();
+
+    // API パスに対してはフォールバック（index.html）を行わず 404 を返す
+    if path_str.starts_with("/api/") {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+
+    let mut path = path_str.trim_start_matches('/').to_string();
+
+    if path.is_empty() {
+        path = "index.html".to_string();
+    }
+
+    match Assets::get(&path) {
+        Some(content) => {
+            let mime = mime_guess::from_path(&path).first_or_octet_stream();
+            Response::builder()
+                .header(header::CONTENT_TYPE, mime.as_ref())
+                .body(axum::body::Body::from(content.data))
+                .unwrap()
+        }
+        None => {
+            // Next.js の静的エクスポートでは、/search は /search.html になることがある。
+            // また、SPA フォールバックとして index.html を返す必要がある。
+            let html_path = format!("{}.html", path);
+            if let Some(content) = Assets::get(&html_path) {
+                Response::builder()
+                    .header(header::CONTENT_TYPE, "text/html")
+                    .body(axum::body::Body::from(content.data))
+                    .unwrap()
+            } else {
+                // フォールバック: index.html
+                match Assets::get("index.html") {
+                    Some(index) => Response::builder()
+                        .header(header::CONTENT_TYPE, "text/html")
+                        .body(axum::body::Body::from(index.data))
+                        .unwrap(),
+                    None => Response::builder()
+                        .status(StatusCode::NOT_FOUND)
+                        .body(axum::body::Body::from("404 Not Found"))
+                        .unwrap(),
+                }
+            }
+        }
+    }
 }
 
 pub fn start_workers(

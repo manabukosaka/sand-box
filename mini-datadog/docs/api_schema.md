@@ -1,4 +1,4 @@
-# API 仕様書 (Draft): Mini Datadog API Schema
+# API 仕様書 (V1): Mini Datadog API Schema
 
 ## 1. 概要 (Overview)
 本ドキュメントは、Mini Datadog Server が提供する API のインターフェース定義を記述します。
@@ -10,9 +10,29 @@
 ---
 
 ## 2. 共通仕様 (Common Specifications)
-- **Base URL:** `http://<server-host>:3000` (デフォルト)
-- **認証:** `X-API-Key` ヘッダーによる簡易認証を予定。
-- **データフォーマット:** 全て JSON (UTF-8)。
+
+### 2.1 Base URL
+- `http://<server-host>:3000` (デフォルト)
+
+### 2.2 認証 (Authentication)
+- `X-API-Key` ヘッダーによる簡易認証。
+- 不正なキーの場合は `401 Unauthorized` を返却。
+
+### 2.3 データフォーマット
+- Content-Type: `application/json` (UTF-8)
+- Timestamp Format: ISO 8601 (例: `2023-10-27T10:00:00.123Z`)
+
+### 2.4 共通エラーレスポンス (Common Error Response)
+全てのエンドポイントで、エラー時は以下の JSON 構造を返却します。
+```json
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "Human readable message",
+    "details": {}
+  }
+}
+```
 
 ---
 
@@ -22,7 +42,7 @@
 エージェントが収集したログを送信します。
 
 - **Endpoint:** `POST /api/v1/ingest/logs`
-- **Request Body:** 配列形式でのバルク送信を推奨。
+- **Request Body:** 配列形式でのバルク送信。
   ```json
   [
     {
@@ -32,8 +52,7 @@
       "message": "Processed transaction successfully",
       "tags": {
         "env": "production",
-        "region": "ap-northeast-1",
-        "request_id": "req-12345"
+        "region": "ap-northeast-1"
       },
       "attributes": {
         "amount": 1500,
@@ -43,11 +62,12 @@
   ]
   ```
 - **Response:**
-  - `202 Accepted`: サーバーのインメモリバッファへの受け入れ完了。
+  - `202 Accepted`: 正常受け入れ（バッファへの追加完了）。
+  - `400 Bad Request`: JSON 形式が不正、または必須フィールドの欠落。
   - `401 Unauthorized`: APIキーが不正。
 
 ### 3.2 メトリクス受信 (Metric Ingestion)
-システム指標（CPU, メモリ等）やアプリケーション固有の指標を送信します。
+システム指標やアプリケーション固有の指標を送信します。
 
 - **Endpoint:** `POST /api/v1/ingest/metrics`
 - **Request Body:**
@@ -63,20 +83,12 @@
         "env": "production",
         "host": "ip-10-0-1-5"
       }
-    },
-    {
-      "timestamp": "2023-10-27T10:00:00.000Z",
-      "name": "http.request.count",
-      "value": 1,
-      "type": "counter",
-      "service": "payment-api",
-      "tags": {
-        "env": "production",
-        "status": "200"
-      }
     }
   ]
   ```
+- **Response:**
+  - `202 Accepted`: 正常受け入れ。
+  - `400 Bad Request`: 指標データの形式が不正。
 
 ---
 
@@ -85,7 +97,7 @@
 ### 4.1 ログ検索 (Log Query)
 保存されたログを検索・フィルタリングします。
 
-- **Endpoint:** `POST /api/v1/query/logs` (複雑なフィルタリング条件を考慮し POST を採用)
+- **Endpoint:** `POST /api/v1/query/logs`
 - **Request Body:**
   ```json
   {
@@ -96,7 +108,7 @@
     "offset": 0
   }
   ```
-- **Response:**
+- **Response Body:**
   ```json
   {
     "total": 1250,
@@ -105,14 +117,15 @@
         "timestamp": "2023-10-27T09:55:00.000Z",
         "level": "error",
         "message": "Database connection timeout",
-        "tags": { ... }
+        "tags": { ... },
+        "attributes": { ... }
       }
     ]
   }
   ```
 
 ### 4.2 メトリクス集計 (Metric Query)
-時系列データの集計結果（グラフ表示用）を取得します。
+時系列データの集計結果を取得します。
 
 - **Endpoint:** `POST /api/v1/query/metrics`
 - **Request Body:**
@@ -130,7 +143,7 @@
     "interval": "1m"
   }
   ```
-- **Response:**
+- **Response Body:**
   ```json
   {
     "results": [
@@ -151,18 +164,19 @@
 ## 5. Stream API (Live Tail)
 
 ### 5.1 ログストリーミング (Log Stream)
-リアルタイムでログを受信し続けます。
+リアルタイムでログを配信します。
 
 - **Endpoint:** `GET /api/v1/stream/logs`
-- **Protocol:** Server-Sent Events (SSE) 推奨
+- **Protocol:** Server-Sent Events (SSE)
 - **Query Parameters:**
   - `query`: フィルタリング条件（例: `service:payment-api`）
-- **Data Format (Event Data):**
+- **Data Format (Event Data):** ログ受信データと同一。
   ```json
   {
     "timestamp": "2023-10-27T10:05:00.000Z",
     "level": "info",
     "message": "New log message arrived",
-    ...
+    "service": "...",
+    "tags": { ... }
   }
   ```

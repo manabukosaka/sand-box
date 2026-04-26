@@ -60,7 +60,11 @@ async fn main() -> anyhow::Result<()> {
 
     let app = create_app(state, auth);
 
-    let addr = "0.0.0.0:3000";
+    let port = std::env::var("PORT")
+        .ok()
+        .and_then(|v| v.parse::<u16>().ok())
+        .unwrap_or(3000);
+    let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
     let listener = tokio::net::TcpListener::bind(addr).await?;
     info!("Mini Datadog Server listening on {}", addr);
     axum::serve(listener, app).await?;

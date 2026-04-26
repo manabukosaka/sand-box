@@ -18,7 +18,7 @@ export default function RootLayout({
           <h1 style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>🐕 Mini Datadog</h1>
           <nav style={{ marginLeft: 'auto', display: 'flex', gap: '1.5rem' }}>
             <a href="/" style={{ color: 'inherit', textDecoration: 'none' }}>Live Tail</a>
-            <a href="/explorer" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.6 }}>Log Explorer</a>
+            <a href="/search" style={{ color: 'inherit', textDecoration: 'none' }}>Logs Search</a>
             <a href="/metrics" style={{ color: 'inherit', textDecoration: 'none', opacity: 0.6 }}>Metrics</a>
           </nav>
         </header>

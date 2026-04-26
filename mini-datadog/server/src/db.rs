@@ -42,3 +42,38 @@ pub fn init_db<P: AsRef<Path>>(path: P) -> Result<Connection> {
 
     Ok(conn)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_init_db_in_memory() {
+        let conn = init_db(":memory:").expect("Failed to init in-memory db");
+
+        // テーブルが存在することを確認
+        let tables: Vec<String> = conn
+            .prepare("SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'")
+            .unwrap()
+            .query_map([], |row| row.get(0))
+            .unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+
+        assert!(tables.contains(&"logs".to_string()));
+        assert!(tables.contains(&"metrics".to_string()));
+        assert!(tables.contains(&"api_keys".to_string()));
+    }
+
+    #[test]
+    fn test_init_db_idempotency() {
+        let path = "test_idempotency.db";
+        {
+            let _conn = init_db(path).expect("First init failed");
+        }
+        {
+            let _conn = init_db(path).expect("Second init failed");
+        }
+        let _ = std::fs::remove_file(path);
+    }
+}

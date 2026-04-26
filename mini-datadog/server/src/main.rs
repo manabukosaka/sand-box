@@ -11,10 +11,10 @@ use tokio::sync::{broadcast, mpsc};
 use tracing::{info, warn};
 
 #[tokio::main]
-async fn main() {
+async fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
 
-    let conn = init_db("mini_datadog.db").expect("Failed to initialize database");
+    let conn = init_db("mini_datadog.db")?;
     let db = Arc::new(Mutex::new(conn));
 
     let auth = Arc::new(AuthState {
@@ -31,8 +31,8 @@ async fn main() {
     }
 
     let buffer_size = std::env::var("BUFFER_SIZE")
-        .unwrap_or_else(|_| "10000".to_string())
-        .parse::<usize>()
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(10000);
 
     let (log_tx, log_rx) = mpsc::channel::<LogRecord>(buffer_size);
@@ -54,7 +54,9 @@ async fn main() {
     let app = create_app(state, auth);
 
     let addr = "0.0.0.0:3000";
-    let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+    let listener = tokio::net::TcpListener::bind(addr).await?;
     info!("Mini Datadog Server listening on {}", addr);
-    axum::serve(listener, app).await.unwrap();
+    axum::serve(listener, app).await?;
+
+    Ok(())
 }

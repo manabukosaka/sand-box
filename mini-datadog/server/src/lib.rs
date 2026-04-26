@@ -1,17 +1,20 @@
 pub mod auth;
 pub mod db;
+pub mod error;
 pub mod models;
 
 use axum::{
     extract::State,
     http::{HeaderValue, StatusCode},
     middleware,
-    response::sse::{Event, Sse},
+    response::{
+        sse::{Event, Sse},
+        IntoResponse,
+    },
     routing::{get, post},
     Json, Router,
 };
 use futures::stream::{self, Stream};
-use std::convert::Infallible;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::sync::mpsc;
@@ -19,6 +22,7 @@ use tower_http::cors::CorsLayer;
 use tracing::{error, info, warn};
 
 use crate::auth::{api_key_auth, AuthState};
+use crate::error::AppError;
 use crate::models::{
     LogQueryRequest, LogQueryResponse, LogRecord, MetricQueryRequest, MetricQueryResponse,
     MetricRecord, MetricValue,
@@ -41,10 +45,11 @@ pub enum IngestPayload<T> {
 
 pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
     // 環境変数から CORS 許可ドメインを取得（デフォルトは localhost:3001）
+    let default_origin = HeaderValue::from_static("http://localhost:3001");
     let allowed_origin = std::env::var("ALLOWED_ORIGIN")
-        .unwrap_or_else(|_| "http://localhost:3001".to_string())
-        .parse::<HeaderValue>()
-        .unwrap_or(HeaderValue::from_static("http://localhost:3001"));
+        .ok()
+        .and_then(|v| v.parse::<HeaderValue>().ok())
+        .unwrap_or(default_origin);
 
     // 全ての API ルートを統合し、認証ミドルウェアを適用
     let api_v1 = Router::new()
@@ -133,13 +138,16 @@ pub fn start_workers(
 
 async fn stream_logs(
     State(state): State<Arc<AppState>>,
-) -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+) -> Sse<impl Stream<Item = Result<Event, AppError>>> {
     let rx = state.log_broadcast_tx.subscribe();
 
     let stream = stream::unfold(rx, |mut rx| async move {
         match rx.recv().await {
             Ok(record) => {
-                let event = Event::default().json_data(record).unwrap();
+                let event = match Event::default().json_data(record) {
+                    Ok(e) => e,
+                    Err(e) => return Some((Err(AppError::AxumError(e)), rx)),
+                };
                 Some((Ok(event), rx))
             }
             Err(tokio::sync::broadcast::error::RecvError::Lagged(_)) => {
@@ -156,7 +164,7 @@ async fn stream_logs(
 async fn ingest_logs(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<IngestPayload<LogRecord>>,
-) -> StatusCode {
+) -> impl IntoResponse {
     let records = match payload {
         IngestPayload::Single(r) => vec![r],
         IngestPayload::Batch(v) => v,
@@ -172,7 +180,7 @@ async fn ingest_logs(
 async fn ingest_metrics(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<IngestPayload<MetricRecord>>,
-) -> StatusCode {
+) -> impl IntoResponse {
     let records = match payload {
         IngestPayload::Single(r) => vec![r],
         IngestPayload::Batch(v) => v,
@@ -188,8 +196,8 @@ async fn ingest_metrics(
 async fn query_logs(
     State(state): State<Arc<AppState>>,
     Json(req): Json<LogQueryRequest>,
-) -> (StatusCode, Json<LogQueryResponse>) {
-    let conn = state.db.lock().unwrap();
+) -> Result<impl IntoResponse, AppError> {
+    let conn = state.db.lock().map_err(|_| AppError::LockError)?;
     let limit = req.limit.unwrap_or(100);
     let offset = req.offset.unwrap_or(0);
 
@@ -197,40 +205,34 @@ async fn query_logs(
                    FROM logs WHERE timestamp >= ? AND timestamp <= ?"
         .to_string();
 
-    let hits: Vec<LogRecord> = if let Some(ref q) = req.query {
-        sql.push_str(" AND (message LIKE ? OR service LIKE ?)");
-        sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
-        let search_pattern = format!("%{}%", q);
-        let mut stmt = conn.prepare(&sql).unwrap();
-        let rows = stmt
-            .query_map(
-                duckdb::params![
-                    req.start,
-                    req.end,
-                    search_pattern,
-                    search_pattern,
-                    limit,
-                    offset
-                ],
-                map_row_to_log,
-            )
-            .unwrap();
-        rows.filter_map(|r| r.ok()).collect()
-    } else {
-        sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
-        let mut stmt = conn.prepare(&sql).unwrap();
-        let rows = stmt
-            .query_map(
-                duckdb::params![req.start, req.end, limit, offset],
-                map_row_to_log,
-            )
-            .unwrap();
-        rows.filter_map(|r| r.ok()).collect()
-    };
+    let level_filter = req.level.as_deref().unwrap_or("%");
+    sql.push_str(" AND level LIKE ?");
 
-    let total = hits.len();
+    let query_pattern = req
+        .query
+        .as_ref()
+        .map(|q| format!("%{}%", q))
+        .unwrap_or_else(|| "%".to_string());
+    sql.push_str(" AND (message LIKE ? OR service LIKE ?)");
 
-    (StatusCode::OK, Json(LogQueryResponse { total, hits }))
+    sql.push_str(" ORDER BY timestamp DESC LIMIT ? OFFSET ?");
+
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query(duckdb::params![
+        req.start,
+        req.end,
+        level_filter,
+        query_pattern,
+        query_pattern,
+        limit,
+        offset
+    ])?;
+
+    let hits: Vec<LogRecord> = rows.mapped(map_row_to_log).filter_map(|r| r.ok()).collect();
+
+    let total = hits.len(); // In a real system, we would do a COUNT query for total
+
+    Ok((StatusCode::OK, Json(LogQueryResponse { total, hits })))
 }
 
 fn map_row_to_log(row: &duckdb::Row) -> duckdb::Result<LogRecord> {
@@ -250,8 +252,8 @@ fn map_row_to_log(row: &duckdb::Row) -> duckdb::Result<LogRecord> {
 async fn query_metrics(
     State(state): State<Arc<AppState>>,
     Json(req): Json<MetricQueryRequest>,
-) -> (StatusCode, Json<MetricQueryResponse>) {
-    let conn = state.db.lock().unwrap();
+) -> Result<impl IntoResponse, AppError> {
+    let conn = state.db.lock().map_err(|_| AppError::LockError)?;
     let interval = req.interval.unwrap_or_else(|| "1m".to_string());
 
     let sql = format!(
@@ -262,33 +264,37 @@ async fn query_metrics(
         interval
     );
 
-    let mut stmt = conn.prepare(&sql).unwrap();
-    let rows = stmt
-        .query_map(
-            duckdb::params![req.metric_name, req.start, req.end],
-            |row| {
-                Ok(MetricValue {
-                    timestamp: row.get(0)?,
-                    value: row.get(1)?,
-                })
-            },
-        )
-        .unwrap();
+    let mut stmt = conn.prepare(&sql)?;
+    let rows = stmt.query_map(
+        duckdb::params![req.metric_name, req.start, req.end],
+        |row| {
+            Ok(MetricValue {
+                timestamp: row.get(0)?,
+                value: row.get(1)?,
+            })
+        },
+    )?;
 
     let results: Vec<MetricValue> = rows.filter_map(|r| r.ok()).collect();
 
-    (
+    Ok((
         StatusCode::OK,
         Json(MetricQueryResponse {
             metric_name: req.metric_name,
             results,
         }),
-    )
+    ))
 }
 
 async fn flush_logs(db: &Arc<Mutex<duckdb::Connection>>, buffer: &mut Vec<LogRecord>) {
     let start = Instant::now();
-    let conn = db.lock().unwrap();
+    let conn = match db.lock() {
+        Ok(c) => c,
+        Err(e) => {
+            error!("Failed to acquire database lock for logs: {}", e);
+            return;
+        }
+    };
     let mut appender = match conn.appender("logs") {
         Ok(a) => a,
         Err(e) => {
@@ -309,13 +315,22 @@ async fn flush_logs(db: &Arc<Mutex<duckdb::Connection>>, buffer: &mut Vec<LogRec
             record.attributes.map(|v| v.to_string()),
         ]);
     }
-    let _ = appender.flush();
-    info!("Flushed {} logs in {:?}", count, start.elapsed());
+    if let Err(e) = appender.flush() {
+        error!("Failed to flush logs to database: {}", e);
+    } else {
+        info!("Flushed {} logs in {:?}", count, start.elapsed());
+    }
 }
 
 async fn flush_metrics(db: &Arc<Mutex<duckdb::Connection>>, buffer: &mut Vec<MetricRecord>) {
     let start = Instant::now();
-    let conn = db.lock().unwrap();
+    let conn = match db.lock() {
+        Ok(c) => c,
+        Err(e) => {
+            error!("Failed to acquire database lock for metrics: {}", e);
+            return;
+        }
+    };
     let mut appender = match conn.appender("metrics") {
         Ok(a) => a,
         Err(e) => {
@@ -334,6 +349,115 @@ async fn flush_metrics(db: &Arc<Mutex<duckdb::Connection>>, buffer: &mut Vec<Met
             record.tags.map(|v| v.to_string()),
         ]);
     }
-    let _ = appender.flush();
-    info!("Flushed {} metrics in {:?}", count, start.elapsed());
+    if let Err(e) = appender.flush() {
+        error!("Failed to flush metrics to database: {}", e);
+    } else {
+        info!("Flushed {} metrics in {:?}", count, start.elapsed());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::LogRecord;
+    use chrono::Utc;
+    use serde_json::json;
+
+    #[test]
+    fn test_ingest_payload_deserialization() {
+        let single_json = json!({
+            "timestamp": "2023-01-01T00:00:00Z",
+            "level": "info",
+            "service": "test",
+            "message": "hello"
+        });
+        let payload: IngestPayload<LogRecord> = serde_json::from_value(single_json).unwrap();
+        match payload {
+            IngestPayload::Single(_) => (),
+            _ => panic!("Expected Single"),
+        }
+
+        let batch_json = json!([
+            {
+                "timestamp": "2023-01-01T00:00:00Z",
+                "level": "info",
+                "service": "test",
+                "message": "hello 1"
+            },
+            {
+                "timestamp": "2023-01-01T00:00:01Z",
+                "level": "info",
+                "service": "test",
+                "message": "hello 2"
+            }
+        ]);
+        let payload: IngestPayload<LogRecord> = serde_json::from_value(batch_json).unwrap();
+        match payload {
+            IngestPayload::Batch(v) => assert_eq!(v.len(), 2),
+            _ => panic!("Expected Batch"),
+        }
+    }
+
+    #[test]
+    fn test_ingest_payload_empty_batch() {
+        let batch_json = json!([]);
+        let payload: IngestPayload<LogRecord> = serde_json::from_value(batch_json).unwrap();
+        match payload {
+            IngestPayload::Batch(v) => assert_eq!(v.len(), 0),
+            _ => panic!("Expected Batch"),
+        }
+    }
+
+    #[test]
+    fn test_map_row_to_log_malformed_json() {
+        let conn = duckdb::Connection::open_in_memory().unwrap();
+        // Use VARCHAR instead of JSON to bypass DuckDB's native validation for this test.
+        conn.execute("CREATE TABLE logs (timestamp TIMESTAMP, received_at TIMESTAMP, level VARCHAR, service VARCHAR, message TEXT, tags VARCHAR, attributes VARCHAR)", []).unwrap();
+
+        // This is not valid JSON
+        conn.execute("INSERT INTO logs VALUES ('2023-01-01 00:00:00', '2023-01-01 00:00:00', 'info', 'test', 'msg', '{bad json}', '{{ more bad json }}')", []).unwrap();
+
+        let mut stmt = conn.prepare("SELECT * FROM logs").unwrap();
+        let mut rows = stmt.query([]).unwrap();
+        let row = rows.next().unwrap().unwrap();
+
+        let log = map_row_to_log(row).unwrap();
+        assert_eq!(log.message, "msg");
+        assert!(log.tags.is_none()); // Failed parsing returns None
+        assert!(log.attributes.is_none());
+    }
+
+    #[tokio::test]
+    async fn test_query_logs_no_hits() {
+        let conn = crate::db::init_db(":memory:").unwrap();
+        let db = Arc::new(Mutex::new(conn));
+        let (tx, _) = mpsc::channel(1);
+        let (mtx, _) = mpsc::channel(1);
+        let (btx, _) = tokio::sync::broadcast::channel(1);
+        let auth = Arc::new(AuthState {
+            api_keys: dashmap::DashMap::new(),
+        });
+        let state = Arc::new(AppState {
+            log_tx: tx,
+            metric_tx: mtx,
+            log_broadcast_tx: btx,
+            db,
+            auth,
+        });
+
+        let req = LogQueryRequest {
+            start: Utc::now() - chrono::Duration::hours(1),
+            end: Utc::now(),
+            level: None,
+            query: None,
+            limit: Some(10),
+            offset: Some(0),
+        };
+
+        // This is a direct handler call test
+        let response = query_logs(State(state), Json(req)).await.unwrap();
+        // Since we can't easily inspect axum::response::Response without extra traits,
+        // we'll just check it doesn't error.
+        // In a real scenario, we'd use TestServer as in integration_test.rs.
+    }
 }

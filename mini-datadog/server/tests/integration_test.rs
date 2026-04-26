@@ -94,6 +94,7 @@ async fn test_full_log_lifecycle() {
     let query_req = LogQueryRequest {
         start: now - chrono::Duration::minutes(1),
         end: now + chrono::Duration::minutes(1),
+        level: None,
         query: Some("Integration".to_string()),
         limit: Some(10),
         offset: Some(0),

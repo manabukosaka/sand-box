@@ -41,7 +41,7 @@ export default function LiveTail() {
   );
 
   useEffect(() => {
-    const eventSource = new EventSource('http://localhost:3000/api/v1/stream/logs');
+    const eventSource = new EventSource('/api/v1/stream/logs');
 
     eventSource.onopen = () => setStatus('connected');
     eventSource.onerror = () => {

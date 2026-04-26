@@ -1,9 +1,10 @@
 ---
 name: product-manager
+kind: local
 description: ユーザーの要求を分析し、本質的な課題を抽出して要件定義書 (docs/requirements.md) を策定する専門家。
 tools: ["*"]
 model: "gemini-2.0-flash"
-maxTurns: 20
+max_turns: 20
 ---
 
 # Product Manager / Requirements Analyst

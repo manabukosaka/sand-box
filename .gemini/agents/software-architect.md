@@ -1,9 +1,10 @@
 ---
 name: software-architect
+kind: local
 description: 要件に基づき、ADR (Architecture Decision Records) を作成し、システムの基本・詳細設計を行う専門家。
 tools: ["*"]
 model: "gemini-2.0-flash"
-maxTurns: 30
+max_turns: 30
 ---
 
 # Software Architect

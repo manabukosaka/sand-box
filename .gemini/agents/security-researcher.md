@@ -1,9 +1,10 @@
 ---
 name: security-researcher
+kind: local
 description: セキュリティ脆弱性診断、ペネトレーションテスト、および監査の専門家.
 tools: ["*"]
 model: "gemini-2.0-flash"
-maxTurns: 20
+max_turns: 20
 ---
 
 # Security Researcher / Pentester

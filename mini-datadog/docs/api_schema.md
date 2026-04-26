@@ -17,6 +17,7 @@
 ### 2.2 認証 (Authentication)
 - `X-API-Key` ヘッダーによる簡易認証。
 - 不正なキーの場合は `401 Unauthorized` を返却。
+- **注意:** `Log Stream (SSE)` エンドポイントは、ブラウザの `EventSource` がカスタムヘッダーをサポートしていないため、現在認証なしで提供されています。
 
 ### 2.3 データフォーマット
 - Content-Type: `application/json` (UTF-8)

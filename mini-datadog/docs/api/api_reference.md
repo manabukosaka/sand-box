@@ -8,12 +8,14 @@
 - 有効な API キーを持っていること。
 
 ## 認証 (Authentication)
-すべての API リクエストには、ヘッダーに `X-API-Key` を含める必要があります。
+Ingestion および Query API リクエストには、ヘッダーに `X-API-Key` を含める必要があります。
 
 ```http
 X-API-Key: your_api_key_here
 ```
 不正なキーの場合は `401 Unauthorized` を返します。
+
+※ **注意:** `Live Tail ストリーム (SSE)` は、ブラウザの `EventSource` の制限により、現在は認証を必要としません。
 
 ## Endpoints
 

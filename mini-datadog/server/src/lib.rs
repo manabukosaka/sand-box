@@ -128,11 +128,11 @@ pub fn create_app(state: Arc<AppState>, auth: Arc<AuthState>) -> Router {
                 .route("/logs", post(query_logs))
                 .route("/metrics", post(query_metrics)),
         )
-        .route("/stream/logs", get(stream_logs))
         .layer(middleware::from_fn_with_state(
             Arc::clone(&auth),
             api_key_auth,
-        ));
+        ))
+        .route("/stream/logs", get(stream_logs));
 
     Router::new()
         .nest("/api/v1", api_v1)

@@ -46,6 +46,20 @@ export default function LogSearch() {
   const [results, setResults] = useState<LogRecord[]>([]);
   const [loading, setLoading] = useState(false);
 
+  const setQuickRange = (minutes: number) => {
+    const now = new Date();
+    const past = new Date(now.getTime() - minutes * 60000);
+    
+    // adjust for local time used by datetime-local input
+    const offset = now.getTimezoneOffset() * 60000;
+    const localNow = new Date(now.getTime() - offset);
+    const localPast = new Date(past.getTime() - offset);
+    
+    setEnd(localNow.toISOString().slice(0, 16));
+    setStart(localPast.toISOString().slice(0, 16));
+    toast.info(`Time range set to last ${minutes >= 60 ? minutes / 60 + 'h' : minutes + 'm'}`);
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -87,46 +101,52 @@ export default function LogSearch() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <h2 className="text-3xl font-bold tracking-tight">Logs Search</h2>
+        <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-lg border border-slate-800">
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(15)} className="text-xs h-8 hover:bg-slate-800">Last 15m</Button>
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(60)} className="text-xs h-8 hover:bg-slate-800">Last 1h</Button>
+          <Button variant="ghost" size="sm" onClick={() => setQuickRange(1440)} className="text-xs h-8 hover:bg-slate-800">Last 24h</Button>
+        </div>
       </div>
       
-      <Card className="border-slate-800 bg-slate-900/50 shadow-xl">
+      <Card className="border-slate-800 bg-slate-900/50 shadow-xl overflow-hidden">
+        <div className="h-1 bg-gradient-to-r from-emerald-500/50 via-sky-500/50 to-indigo-500/50" />
         <CardContent className="pt-6">
           <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="start" className="flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5 text-slate-400" /> Start Time
+              <Label htmlFor="start" className="flex items-center gap-2 text-slate-400">
+                <Calendar className="h-3.5 w-3.5" /> Start Time
               </Label>
               <Input 
                 id="start"
                 type="datetime-local" 
                 value={start} 
                 onChange={(e) => setStart(e.target.value)}
-                className="bg-slate-950 border-slate-800"
+                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="end" className="flex items-center gap-2">
-                <Calendar className="h-3.5 w-3.5 text-slate-400" /> End Time
+              <Label htmlFor="end" className="flex items-center gap-2 text-slate-400">
+                <Calendar className="h-3.5 w-3.5" /> End Time
               </Label>
               <Input 
                 id="end"
                 type="datetime-local" 
                 value={end} 
                 onChange={(e) => setEnd(e.target.value)}
-                className="bg-slate-950 border-slate-800"
+                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="level" className="flex items-center gap-2">
-                <Filter className="h-3.5 w-3.5 text-slate-400" /> Level
+              <Label htmlFor="level" className="flex items-center gap-2 text-slate-400">
+                <Filter className="h-3.5 w-3.5" /> Level
               </Label>
               <SelectNative 
                 id="level"
                 value={level} 
                 onChange={(e) => setLevel(e.target.value)}
-                className="bg-slate-950 border-slate-800"
+                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
               >
                 <option value="">ALL LEVELS</option>
                 <option value="info">INFO</option>
@@ -136,8 +156,8 @@ export default function LogSearch() {
               </SelectNative>
             </div>
             <div className="space-y-2 lg:col-span-1">
-              <Label htmlFor="query" className="flex items-center gap-2">
-                <Search className="h-3.5 w-3.5 text-slate-400" /> Keyword
+              <Label htmlFor="query" className="flex items-center gap-2 text-slate-400">
+                <Search className="h-3.5 w-3.5" /> Keyword
               </Label>
               <Input 
                 id="query"
@@ -145,11 +165,11 @@ export default function LogSearch() {
                 placeholder="e.g. error, auth..." 
                 value={query} 
                 onChange={(e) => setQuery(e.target.value)}
-                className="bg-slate-950 border-slate-800"
+                className="bg-slate-950 border-slate-800 focus:ring-emerald-500/30 transition-all"
               />
             </div>
             <div className="flex items-end">
-              <Button type="submit" disabled={loading} className="w-full">
+              <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold">
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -184,39 +204,42 @@ export default function LogSearch() {
             ))}
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3 border-2 border-dashed border-slate-800 rounded-lg">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-500 gap-3 border-2 border-dashed border-slate-800 rounded-lg bg-slate-900/10">
             <Terminal className="h-10 w-10 opacity-20" />
-            <p>No results found. Adjust your filters and try again.</p>
+            <p className="text-sm font-medium">No results found. Adjust your filters and try again.</p>
           </div>
         ) : (
-          <div className="grid gap-3">
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between px-2 mb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Results ({results.length})</span>
+            </div>
             {results.map((log, i) => (
-              <Card key={i} className="group border-slate-800 bg-slate-900/40 hover:bg-slate-900/60 transition-colors shadow-sm overflow-hidden">
+              <Card key={i} className="group border-slate-800 bg-slate-950 hover:bg-slate-900 transition-all shadow-sm overflow-hidden border-l-2 border-l-transparent hover:border-l-emerald-500">
                 <CardContent className="p-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-2 border-b border-slate-800/50 bg-slate-950/30">
-                    <span className="text-xs font-mono text-slate-500">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 py-1.5 border-b border-slate-800/50 bg-slate-900/20">
+                    <span className="text-[11px] font-mono text-slate-400">
                       {new Date(log.timestamp).toLocaleString()}
                     </span>
                     <div className="flex items-center gap-2 ml-auto sm:ml-4">
-                      <Badge 
-                        variant="outline" 
-                        className={cn("text-[10px] px-1.5 py-0", getLogLevelColor(log.level))}
-                      >
-                        {log.level.toUpperCase()}
-                      </Badge>
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-800">
+                      <span className={cn(
+                        "px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border",
+                        getLogLevelColor(log.level)
+                      )}>
+                        {log.level}
+                      </span>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-slate-800 text-slate-300 border-slate-700">
                         {log.service}
                       </Badge>
                       <button 
                         onClick={() => copyToClipboard(log.message)}
-                        className="ml-2 p-1 hover:bg-slate-700 rounded transition-colors text-slate-500"
+                        className="ml-2 p-1 hover:bg-slate-700 rounded transition-colors text-slate-500 opacity-0 group-hover:opacity-100"
                         title="Copy message"
                       >
                         <Copy className="h-3 w-3" />
                       </button>
                     </div>
                   </div>
-                  <div className="px-4 py-3 font-mono text-sm text-slate-200 break-all">
+                  <div className="px-4 py-2.5 font-mono text-[13px] text-slate-200 break-all leading-relaxed">
                     {log.message}
                   </div>
                 </CardContent>

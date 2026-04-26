@@ -25,9 +25,9 @@ async fn test_performance_and_stability() {
         .insert(test_key.to_string(), "perf-service".to_string());
 
     // Channel capacity to handle high load
-    let (log_tx, log_rx) = mpsc::channel(10000);
-    let (metric_tx, metric_rx) = mpsc::channel(10000);
-    let (log_broadcast_tx, _) = broadcast::channel(10000);
+    let (log_tx, log_rx) = mpsc::channel(100000);
+    let (metric_tx, metric_rx) = mpsc::channel(100000);
+    let (log_broadcast_tx, _) = broadcast::channel(100000);
 
     start_workers(Arc::clone(&db), log_rx, metric_rx, log_broadcast_tx.clone());
 

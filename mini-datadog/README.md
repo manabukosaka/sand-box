@@ -1,48 +1,71 @@
 # Mini Datadog
 
-「Mini Datadog」は、中小規模のインフラ・アプリケーション向けに設計された、軽量で高速なシステム監視・ログ分析プラットフォームです。高価で重厚なSaaSの代替として、セルフホストでシンプルに運用できることを目指しています。
+## Overview
+Mini Datadog は、中小規模のインフラやアプリケーションを運用するエンジニア向けの、軽量かつ高速なシステム監視・ログ分析プラットフォームです。高価な SaaS に依存することなく、セルフホストでシンプルに導入できることを目指しています。バックエンドに Rust、データストアに組み込みの DuckDB、フロントエンドに Next.js を採用し、単一バイナリで動作します。
 
-本ディレクトリ（`mini-datadog/`）は、サンドボックスリポジトリ内の1プロダクトとして独立しており、このプラットフォームに関するすべてのソースコード、ドキュメント、および成果物を自己完結的に管理します。
+## Prerequisites
+- Linux / macOS 環境
+- 推奨要件: 2 CPU Core, 4GB RAM 以上のリソース（テスト環境ではそれ以下でも動作可能）
 
-## ディレクトリ構造と成果物管理方針
+## Features
+- **単一バイナリ (Single Binary):** Rust バックエンドにフロントエンドのアセットを内包しており、インストールと運用が極めて容易です。
+- **高速データ受信:** インメモリバッファを活用し、毎秒 5,000 件以上のログ・メトリクス受信を低レイテンシで処理します。
+- **リアルタイム Live Tail:** Server-Sent Events (SSE) を活用し、発生したログをミリ秒単位の遅延でブラウザへストリーミングします。
+- **軽量データストア:** DuckDB を組み込みデータベースとして採用し、外部データベースの構築を不要としています。
 
-他のプロダクトとの境界を明確にし、内部コンポーネントの責務を分離するため、以下のディレクトリ構造を採用しています。
+## Quick Start
+```bash
+# 1. バイナリのダウンロードまたはビルド（ビルドの場合）
+cargo build --release
 
-```text
-mini-datadog/
-├── docs/                 # プロジェクトに関するすべてのドキュメント
-│   ├── adr/              # Architecture Decision Records (アーキテクチャ決定記録)
-│   ├── requirements.md   # 要件定義書
-│   ├── project_plan.md   # 開発計画書
-│   ├── architecture.md   # (予定) アーキテクチャ設計書
-│   └── api_schema.md     # (予定) APIインターフェース定義
-│
-├── poc/                  # 技術検証（Proof of Concept）用のコード
-│   └── datastore/        # (予定) DB書き込み/読み込みパフォーマンステスト等
-│
-├── server/               # バックエンドアプリケーション (Rust)
-│   ├── src/              # HTTPサーバー、DB連携、アラートエンジン等のソースコード
-│   └── Cargo.toml        # 依存関係定義
-│
-├── web/                  # フロントエンドアプリケーション (Next.js/React等)
-│   ├── src/              # ダッシュボード、ログ検索UI等のソースコード
-│   └── package.json      # 依存関係定義
-│
-├── agent/                # (予定) 各サーバーに配置する軽量なデータ収集エージェント
-│
-├── scripts/              # 開発・ビルド・デプロイ用のスクリプト群
-│   └── build.sh          # 単一バイナリ化等のビルドスクリプト
-│
-└── docker-compose.yml    # (予定) ローカル開発およびセルフホスト検証用の環境構築ファイル
+# 2. サーバーの起動
+./target/release/mini_datadog serve
+
+# 3. Web UI にアクセス
+# ブラウザで http://localhost:3000 にアクセスします。
 ```
 
-### 成果物の管理ルール
+## Architecture Overview
+以下の図は、Mini Datadog の全体像を示しています。
 
-1.  **ドキュメント中心のアプローチ (Docs-as-Code):**
-    *   要件、設計、アーキテクチャの重要な決定（ADR）はすべて `docs/` ディレクトリ内にMarkdown形式で保存します。
-    *   これにより、コードの実装と設計の意図が常に同一リポジトリ内で追跡可能になります。
-2.  **コンポーネントの分離:**
-    *   `server/` (バックエンド) と `web/` (フロントエンド) を明確に分け、それぞれ独立したビルドプロセスを持たせます。
-    *   最終的には `scripts/` 内のスクリプト等を用いて、これらを統合（例：Rustのバイナリにフロントエンドのアセットを組み込む）してデプロイ可能な形にします。
-3.  **技術検証の分離:**
-    *   メインのソースコードベースをクリーンに保つため、実験的なコードやパフォーマンステストは `poc/` 内で管理し、本番コード（`server/` や `web/`）には混ぜません。
+```mermaid
+graph TD
+    subgraph Target Infrastructure
+        Agent1[Agent / Logger]
+    end
+
+    subgraph Mini Datadog Node
+        subgraph Server [Rust Backend Server]
+            Ingestion[Ingestion API]
+            Buffer[(In-Memory Buffer)]
+            StreamEngine[Stream & Alert Engine]
+            QueryAPI[Query API]
+            
+            Ingestion --> |Queue| Buffer
+            Buffer -.-> |Stream| StreamEngine
+        end
+        DataStore[(DuckDB)]
+        Buffer ==> |Bulk Insert| DataStore
+    end
+
+    subgraph User Environment
+        WebUI[Web UI]
+    end
+
+    Agent1 --> |HTTP POST| Ingestion
+    QueryAPI --> |SQL| DataStore
+    WebUI --> |Search/Agg| QueryAPI
+    StreamEngine ===> |SSE Live Tail| WebUI
+
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef highlight fill:#e1f5fe,stroke:#03a9f4,stroke-width:2px;
+    classDef storage fill:#fff3e0,stroke:#ff9800,stroke-width:2px;
+    
+    class Server,WebUI highlight;
+    class DataStore,Buffer storage;
+```
+
+## References
+- [User Guide](docs/setup/user_guide.md)
+- [API Reference](docs/api/api_reference.md)
+- [Internal Design](docs/architecture/internal_design.md)

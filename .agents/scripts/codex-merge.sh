@@ -61,10 +61,12 @@ if [[ -z "$pr" ]]; then
   [[ -n "$pr" ]] || die "no PR found for current branch; pass --pr <number>"
 fi
 
-read -r state is_draft review_decision mergeable merge_state url < <(
-  gh pr view "$pr" --json state,isDraft,reviewDecision,mergeable,mergeStateStatus,url \
-    --jq '[.state, (.isDraft|tostring), (.reviewDecision // ""), (.mergeable // ""), (.mergeStateStatus // ""), .url] | @tsv'
-)
+state="$(gh pr view "$pr" --json state --jq .state)"
+is_draft="$(gh pr view "$pr" --json isDraft --jq .isDraft)"
+review_decision="$(gh pr view "$pr" --json reviewDecision --jq '(.reviewDecision // "")')"
+mergeable="$(gh pr view "$pr" --json mergeable --jq '(.mergeable // "")')"
+merge_state="$(gh pr view "$pr" --json mergeStateStatus --jq '(.mergeStateStatus // "")')"
+url="$(gh pr view "$pr" --json url --jq .url)"
 
 [[ "$state" == "OPEN" ]] || die "PR #$pr is not open"
 [[ "$is_draft" == "false" ]] || die "PR #$pr is draft"

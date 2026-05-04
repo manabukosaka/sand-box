@@ -2,6 +2,12 @@
 
 These rules adapt OpenAI's harness engineering guidance for this repository.
 
+## Task Context
+
+- For broad tasks, establish goal, context, constraints, and done-when criteria before implementation.
+- Use `prompt-template.md` when the task is fuzzy or high stakes.
+- Use `plans.md` before coding when work is complex, ambiguous, or long-running.
+
 ## Map, Not Manual
 
 - Treat `AGENTS.md` and `SKILL.md` files as maps to trusted sources, not encyclopedias.
@@ -23,9 +29,16 @@ These rules adapt OpenAI's harness engineering guidance for this repository.
 ## Feedback Loops
 
 - Make the app, logs, metrics, tests, screenshots, and command output readable to Codex whenever practical.
+- Use `.agents/scripts/verify.sh` as the repeatable local verification entry point.
 - Reproduce, fix, and verify in the same loop for bugs and UI changes.
 - Treat agent struggle as a signal that docs, tools, or repository structure need improvement.
 - Capture coherent progress with checkpoint commits when the user has requested an ongoing commit workflow.
+
+## External Context And Automation
+
+- Use MCP when context changes frequently or lives outside the repository; see `mcp.md`.
+- Turn repeated, reliable workflows into skills before scheduling them as automations.
+- Keep one thread per coherent task; use `session-controls.md` for long-running work.
 
 ## Entropy Control
 

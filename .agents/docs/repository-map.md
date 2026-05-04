@@ -9,6 +9,9 @@ Use this map before loading broader context.
 - `.gemini/`: Gemini-specific agents and skills. Do not change during Codex-only work.
 - `.agents/skills/`: Codex skills migrated from Gemini role perspectives.
 - `.agents/docs/`: Codex harness and role reference material.
+- `.agents/scripts/verify.sh`: repeatable local verification entry point.
+- `.agents/scripts/codex-checkpoint.sh`: explicit checkpoint commit helper.
+- `.githooks/`: local Git hooks enabled by `.agents/scripts/install-git-hooks.sh`.
 
 ## Product Documents
 

@@ -11,9 +11,10 @@ Use this skill to keep Mini Datadog work aligned across requirements, design, im
 
 1. Classify the request by SDLC phase.
 2. Select role perspectives from `../../docs/role-map.md`.
-3. Build a short plan with handoffs, quality gates, and evidence.
-4. Keep knowledge repository-visible using `../../docs/harness-principles.md`.
-5. Before delivery, apply `../../docs/quality-gates.md`.
+3. Use `../../docs/prompt-template.md` or `../../docs/plans.md` when the task needs sharper setup.
+4. Build a short plan with handoffs, quality gates, and evidence.
+5. Keep knowledge repository-visible using `../../docs/harness-principles.md`.
+6. Before delivery, apply `../../docs/quality-gates.md`.
 
 ## Codex Adaptation
 

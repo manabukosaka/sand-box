@@ -11,9 +11,10 @@ Use this skill for final verification, validation, release readiness, PR prepara
 
 1. Verify relevant checks and summarize evidence.
 2. Validate behavior against the user's workflow and acceptance criteria.
-3. Report residual risks, rollback notes, and known gaps.
-4. Use `.agents/scripts/codex-checkpoint.sh` for requested checkpoint commits.
-5. Branch, PR, push, or merge only when explicitly requested.
+3. Review non-trivial diffs using `../../docs/code-review.md`.
+4. Report residual risks, rollback notes, and known gaps.
+5. Use `../../scripts/verify.sh` and `.agents/scripts/codex-checkpoint.sh` where appropriate.
+6. Branch, PR, push, or merge only when explicitly requested.
 
 ## Report Shape
 

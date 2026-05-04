@@ -15,6 +15,7 @@ Use this skill to design and verify tests that give meaningful confidence. Use `
 4. Keep tests deterministic and independent of execution order.
 5. Mock external services unless the test is explicitly integration-oriented.
 6. Record failures with reproduction steps, expected behavior, actual behavior, and relevant logs.
+7. Use `../../scripts/verify.sh` for broad repository checks when appropriate.
 
 ## Test Evidence
 

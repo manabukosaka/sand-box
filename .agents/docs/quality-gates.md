@@ -11,6 +11,7 @@ Use the smallest gate that gives credible evidence for the risk of the change.
 
 ## Testing Gates
 
+- Run `.agents/scripts/verify.sh` for the default repository check set when broad verification is needed.
 - Rust: run `cargo fmt --check`, `cargo clippy`, and `cargo test` when backend changes warrant it.
 - Frontend: run `npm run lint`, `npm test` if present, and `npm run build` when frontend changes warrant it.
 - UI: check layout, responsiveness, accessibility basics, and screenshot or browser evidence where practical.
@@ -21,6 +22,7 @@ Use the smallest gate that gives credible evidence for the risk of the change.
 - Verification: implementation matches requirements, design, API contracts, and tests.
 - Validation: result satisfies the user's actual workflow and acceptance criteria.
 - Evidence: report commands, pass/fail status, manual checks, screenshots, and known gaps.
+- Review: use `code-review.md` for diff review before final delivery on non-trivial changes.
 
 ## Release Gates
 

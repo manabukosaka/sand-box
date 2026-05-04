@@ -25,3 +25,10 @@ if git diff --cached --name-only | grep -Eq '^\.agents/skills/[^/]+/SKILL\.md$';
     exit 1
   fi
 fi
+
+if git diff --cached --name-only | grep -Eq '^(\.agents/scripts/|\.githooks/)'; then
+  while IFS= read -r script; do
+    [[ -f "$script" ]] || continue
+    bash -n "$script"
+  done < <(git diff --cached --name-only | grep -E '^(\.agents/scripts/|\.githooks/)' | sort -u)
+fi

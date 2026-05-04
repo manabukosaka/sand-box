@@ -1,23 +1,23 @@
-# MCP Guidance
+# MCP ガイダンス
 
-Use MCP only when it removes a real manual loop.
+MCP は、実際の手動 loop を取り除ける場合だけ使う。
 
-## Good Candidates
+## 良い候補
 
-- External context changes frequently.
-- The source of truth lives outside the repository.
-- Codex should use a tool repeatedly instead of relying on pasted text.
-- Multiple users or projects need the same integration.
+- 外部文脈が頻繁に変わる。
+- source of truth が repository 外にある。
+- Codex が pasted instructions に頼るより、tool を繰り返し使うべきである。
+- 複数 user または project が同じ integration を必要とする。
 
-## Current Policy
+## 現在の方針
 
-- Prefer repository-visible docs, scripts, tests, and logs first.
-- Add one or two MCP servers only after a repeated workflow proves the need.
-- For OpenAI documentation, prefer the official OpenAI docs MCP when available; otherwise restrict browsing to official OpenAI domains.
-- Do not wire in broad tool access just because it exists.
+- まず repository-visible docs、scripts、tests、logs を優先する。
+- 繰り返し workflow として必要性が確認できてから、MCP server を 1 つか 2 つだけ追加する。
+- OpenAI documentation では、利用可能なら公式 OpenAI docs MCP を優先する。fallback で browse する場合も official OpenAI domain に限定する。
+- 存在するという理由だけで広い tool access を配線しない。
 
-## Candidate Integrations
+## 候補 integration
 
-- GitHub PR and CI context.
-- Issue tracker or planning system context.
-- Local observability logs and metrics when Mini Datadog runtime workflows need it.
+- GitHub PR と CI context。
+- issue tracker または planning system context。
+- Mini Datadog runtime workflow で必要になる local observability logs と metrics。

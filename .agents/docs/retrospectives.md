@@ -1,34 +1,34 @@
-# Retrospectives
+# ふりかえり
 
-Use retrospectives to convert repeated friction into durable repository guidance.
+ふりかえりは、繰り返し発生する friction を durable repository guidance に変換するために使う。
 
-## When To Run
+## 実施タイミング
 
-- Codex makes the same mistake twice.
-- A task needed repeated steering.
-- Verification was unclear or missing.
-- A prompt had to include instructions that should be reusable.
-- A workflow is ready to become a skill or automation.
+- Codex が同じ誤りを 2 回繰り返した。
+- task に繰り返し steering が必要だった。
+- verification が不明確または不足していた。
+- prompt に、本来 reusable にすべき指示を含める必要があった。
+- workflow を skill または automation に昇格できそうになった。
 
-## Template
+## テンプレート
 
 ```markdown
-# Retro: <topic>
+# ふりかえり: <topic>
 
-## Trigger
+## きっかけ
 
-## What Happened
+## 起きたこと
 
-## Root Cause
+## 根本原因
 
-## Durable Fix
+## 永続的な修正
 
-## Validation
+## 妥当性確認
 ```
 
-## Durable Fix Options
+## 永続的な修正の選択肢
 
-- Update `AGENTS.md` when the rule is broad and stable.
-- Update `.agents/docs/` when the guidance is specific but shared.
-- Update a `SKILL.md` when the workflow is repeatable.
-- Add or update a script, test, lint rule, or hook when the rule can be enforced mechanically.
+- rule が広く安定している場合は `AGENTS.md` を更新する。
+- guidance が specific だが共有される場合は `.agents/docs/` を更新する。
+- workflow が繰り返し可能な場合は `SKILL.md` を更新する。
+- 機械的に強制できる rule は script、test、lint rule、hook を追加または更新する。

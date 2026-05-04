@@ -23,14 +23,14 @@
 - test が変更された正常系と現実的な異常系または境界値を cover している。
 - command と manual check が正確に報告されている。
 
-## Finding 形式
+## 指摘形式
 
-finding は重要度順に先頭へ置く:
+指摘は重要度順に先頭へ置く:
 
 ```text
-<severity>: <file>:<line> - <issue>
-Impact: <why it matters>
-Recommendation: <specific fix or test>
+<重要度>: <file>:<line> - <問題>
+影響: <なぜ重要か>
+推奨: <具体的な修正またはテスト>
 ```
 
 問題がない場合は、その旨を明確に述べ、残余リスクまたは未実行チェックを示す。

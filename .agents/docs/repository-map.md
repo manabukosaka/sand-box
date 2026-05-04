@@ -1,35 +1,35 @@
-# Repository Map
+# リポジトリマップ
 
-Use this map before loading broader context.
+広い文脈を読む前に、この map を使う。
 
-## Entry Points
+## 入口
 
-- `AGENTS.md`: Codex workspace instructions and precedence.
-- `GEMINI.md`: Gemini CLI configuration. Read only for historical context; do not edit unless requested.
-- `.gemini/`: Gemini-specific agents and skills. Do not change during Codex-only work.
-- `.agents/skills/`: Codex skills migrated from Gemini role perspectives.
-- `.agents/docs/`: Codex harness and role reference material.
-- `.agents/scripts/verify.sh`: repeatable local verification entry point.
-- `.agents/scripts/codex-checkpoint.sh`: explicit checkpoint commit helper.
-- `.githooks/`: local Git hooks enabled by `.agents/scripts/install-git-hooks.sh`.
+- `AGENTS.md`: Codex workspace instructions と precedence。
+- `GEMINI.md`: Gemini CLI configuration。historical context として読むだけにし、明示的な依頼がない限り編集しない。
+- `.gemini/`: Gemini-specific agents と skills。Codex-only work では変更しない。
+- `.agents/skills/`: Gemini role perspective から移植した Codex skills。
+- `.agents/docs/`: Codex harness と role reference material。
+- `.agents/scripts/verify.sh`: repeatable local verification entry point。
+- `.agents/scripts/codex-checkpoint.sh`: explicit checkpoint commit helper。
+- `.githooks/`: `.agents/scripts/install-git-hooks.sh` で有効化される local Git hooks。
 
-## Product Documents
+## 製品ドキュメント
 
-- `mini-datadog/docs/requirements.md`: product requirements.
-- `mini-datadog/docs/architecture.md`: architecture overview.
-- `mini-datadog/docs/detailed_design.md`: detailed design.
-- `mini-datadog/docs/api_schema.md`: API schema.
-- `mini-datadog/docs/adr/`: architecture decision records.
-- `mini-datadog/docs/vuv_checklist.md`: visual and UX verification checklist.
-- `mini-datadog/docs/vv_report_phase3.md`: V&V evidence.
+- `mini-datadog/docs/requirements.md`: product requirements。
+- `mini-datadog/docs/architecture.md`: architecture overview。
+- `mini-datadog/docs/detailed_design.md`: detailed design。
+- `mini-datadog/docs/api_schema.md`: API schema。
+- `mini-datadog/docs/adr/`: architecture decision records。
+- `mini-datadog/docs/vuv_checklist.md`: visual and UX verification checklist。
+- `mini-datadog/docs/vv_report_phase3.md`: V&V evidence。
 
-## Implementation Areas
+## 実装領域
 
-- Backend: Rust, Axum, Tokio, DuckDB under `mini-datadog`.
-- Frontend: TypeScript, React, Next.js, Tailwind CSS under `mini-datadog`.
+- Backend: `mini-datadog` 配下の Rust、Axum、Tokio、DuckDB。
+- Frontend: `mini-datadog` 配下の TypeScript、React、Next.js、Tailwind CSS。
 
-## Search Strategy
+## 検索方針
 
-- Use `rg` and `rg --files` first.
-- Prefer nearby code and existing tests over assumptions.
-- Prefer structured docs and ADRs over stale conversational context.
+- まず `rg` と `rg --files` を使う。
+- 仮定より、近くの code と既存 tests を優先する。
+- 古い conversation context より、structured docs と ADR を優先する。

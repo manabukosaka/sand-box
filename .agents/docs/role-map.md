@@ -1,27 +1,27 @@
-# Role Map
+# ロールマップ
 
-Use role perspectives as focused review lenses. They are not Gemini agents and do not imply Codex subagent delegation.
+role perspective は、焦点を絞った review lens として使う。これは Gemini agent ではなく、Codex sub-agent delegation を意味しない。
 
-## Roles
+## ロール
 
-- Product Manager: clarify user value, scope, requirements, acceptance criteria, and non-functional needs.
-- Software Architect: define boundaries, contracts, ADRs, storage choices, security posture, and maintainability tradeoffs.
-- Senior Engineer: implement Rust and TypeScript changes using existing patterns, type safety, and focused tests.
-- QA Engineer: design deterministic tests for normal, boundary, failure, integration, E2E, and regression risks.
-- Release Manager: verify specification compliance, validate user intent, summarize evidence, and manage release readiness.
-- Agile Coach: coordinate phase flow, risk, blockers, handoffs, and delivery reporting.
-- Security Researcher: review auth, input validation, secrets, dependency risk, and OWASP-style issues without intrusive testing.
-- DB Tuner: review DuckDB ingestion, query plans, retention, file growth, and migration or recovery risk.
-- SRE Specialist: review Linux, Docker, resource limits, startup, shutdown, observability, SLOs, and recovery.
+- Product Manager: user value、scope、requirements、acceptance criteria、non-functional needs を明確化する。
+- Software Architect: boundary、contract、ADR、storage choice、security posture、maintainability tradeoff を定義する。
+- Senior Engineer: 既存 pattern、type safety、focused tests に沿って Rust / TypeScript 変更を実装する。
+- QA Engineer: normal、boundary、failure、integration、E2E、regression risk 向けの deterministic tests を設計する。
+- Release Manager: 仕様適合性を検証し、ユーザー意図の妥当性を確認し、証跡を要約し、release readiness を管理する。
+- Agile Coach: phase flow、risk、blocker、handoff、delivery reporting を調整する。
+- Security Researcher: auth、input validation、secret、dependency risk、OWASP 系 issue を非侵襲的に review する。
+- DB Tuner: DuckDB ingestion、query plan、retention、file growth、migration / recovery risk を review する。
+- SRE Specialist: Linux、Docker、resource limit、startup、shutdown、observability、SLO、recovery を review する。
 
-## Handoffs
+## 引き継ぎ
 
-- Requirements before design when scope is ambiguous.
-- ADR before implementation for material architecture, storage, API, security, deployment, or performance decisions.
-- Tests before release readiness.
-- V&V before final delivery or PR reporting.
+- scope が曖昧な場合は、design の前に requirements を固める。
+- architecture、storage、API、security、deployment、performance に関する重要判断は、implementation の前に ADR を作る。
+- release readiness の前に tests を確認する。
+- final delivery または PR reporting の前に V&V を行う。
 
-## Delegation
+## 委譲
 
-- Use Codex subagents only when the user explicitly asks for subagents, delegation, or parallel agent work.
-- Otherwise apply role perspectives locally and keep the work moving.
+- Codex sub-agent は、ユーザーが sub-agent、delegation、parallel agent work を明示的に求めた場合だけ使う。
+- それ以外は role perspective を local に適用し、作業を進める。

@@ -1,48 +1,48 @@
-# Harness Principles
+# Harness 原則
 
-These rules adapt OpenAI's harness engineering guidance for this repository.
+このリポジトリ向けの agent-first harness 原則。
 
-## Task Context
+## タスク文脈
 
-- Use `operating-model.md` as the default repository workflow.
-- For broad tasks, establish goal, context, constraints, and done-when criteria before implementation.
-- Use `prompt-template.md` when the task is fuzzy or high stakes.
-- Use `plans.md` before coding when work is complex, ambiguous, or long-running.
+- `operating-model.md` を標準 workflow として使う。
+- 広いタスクでは、実装前に目的、文脈、制約、完了条件を明確にする。
+- タスクが曖昧または高リスクな場合は `prompt-template.md` を使う。
+- 作業が複雑、曖昧、または長時間になりそうな場合は、coding 前に `plans.md` を使う。
 
-## Map, Not Manual
+## 地図であり、詳細マニュアルではない
 
-- Treat `AGENTS.md` and `SKILL.md` files as maps to trusted sources, not encyclopedias.
-- Keep common rules in `.agents/docs/` and project facts in `mini-datadog/docs/`.
-- Load deeper context only when the current task needs it.
+- `AGENTS.md` と `SKILL.md` は、百科事典ではなく信頼できる情報源への地図として扱う。
+- 共通ルールは `.agents/docs/`、project facts は `mini-datadog/docs/` に置く。
+- 現在のタスクに必要な時だけ詳細文脈を読む。
 
-## Repository-Visible Knowledge
+## リポジトリから読める知識
 
-- If Codex cannot read it from the repository, do not assume it is durable project knowledge.
-- Convert important decisions, review feedback, and recurring preferences into versioned Markdown, tests, scripts, or lint rules.
-- Prefer structured artifacts: requirements, ADRs, API references, test reports, execution plans, and V&V notes.
+- Codex がリポジトリから読めない情報は、永続的な project knowledge とみなさない。
+- 重要な判断、review feedback、繰り返し発生する preference は、versioned Markdown、tests、scripts、lint rules に変換する。
+- requirements、ADR、API references、test reports、execution plans、V&V notes などの structured artifact を優先する。
 
-## Guardrails Over Micromanagement
+## 細かい指示よりガードレール
 
-- Enforce invariants and boundaries; allow local implementation freedom inside those boundaries.
-- Prefer boring, explicit, inspectable abstractions over opaque cleverness.
-- Promote repeated preferences into reusable helpers, tests, or documentation.
+- invariant と boundary を強制し、その範囲内の local implementation freedom は許容する。
+- 透明で検査可能な boring abstraction を、opaque cleverness より優先する。
+- 繰り返し発生する preference は、reusable helper、test、documentation に昇格する。
 
-## Feedback Loops
+## フィードバックループ
 
-- Make the app, logs, metrics, tests, screenshots, and command output readable to Codex whenever practical.
-- Use `.agents/scripts/verify.sh` as the repeatable local verification entry point.
-- Reproduce, fix, and verify in the same loop for bugs and UI changes.
-- Treat agent struggle as a signal that docs, tools, or repository structure need improvement.
-- Capture coherent progress with checkpoint commits when the user has requested an ongoing commit workflow.
+- 実用的な範囲で、app、logs、metrics、tests、screenshots、command output を Codex が読めるようにする。
+- 広範な repository verification が必要な場合は `.agents/scripts/verify.sh` を使う。
+- bug と UI 変更では、再現、修正、検証を同じ loop で行う。
+- agent が詰まることは、docs、tools、repository structure に不足がある signal として扱う。
+- ユーザーが継続的な commit workflow を求めている場合は、coherent progress を checkpoint commit で捕捉する。
 
-## External Context And Automation
+## 外部文脈と自動化
 
-- Use MCP when context changes frequently or lives outside the repository; see `mcp.md`.
-- Turn repeated, reliable workflows into skills before scheduling them as automations.
-- Keep one thread per coherent task; use `session-controls.md` for long-running work.
+- 文脈が頻繁に変わる、または repository 外にある場合は MCP を使う。詳細は `mcp.md` を参照する。
+- 繰り返し可能で信頼できる workflow は、automation の前に skill に昇格する。
+- 1 つの coherent task につき 1 thread を使う。長時間作業は `session-controls.md` を参照する。
 
-## Entropy Control
+## エントロピー制御
 
-- Periodically remove drift, duplication, stale docs, and inconsistent patterns.
-- Keep refactors narrow and mechanical when the purpose is cleanup.
-- Track known follow-up debt rather than burying it in large prompts.
+- drift、duplication、stale docs、不統一な pattern を定期的に取り除く。
+- cleanup 目的の refactor は、狭く機械的に保つ。
+- 既知の follow-up debt は、大きな prompt に埋めず tracking する。

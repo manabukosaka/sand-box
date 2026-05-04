@@ -1,40 +1,40 @@
-# Quality Gates
+# 品質ゲート
 
-Use the smallest gate that gives credible evidence for the risk of the change.
+変更リスクに対して信頼できる証跡を与える、最小の gate を使う。
 
-## Implementation Gates
+## 実装ゲート
 
-- Preserve repository structure, helper APIs, and local conventions.
-- Avoid large refactors, new frameworks, or broad folder changes without clear need.
-- Avoid `unsafe`, `@ts-ignore`, and equivalent bypasses unless explicitly approved and documented.
-- Respect uncommitted user work. Do not revert unrelated changes.
+- repository structure、helper API、local convention を保つ。
+- 明確な必要性なしに large refactor、新 framework、広範な folder 変更を行わない。
+- 明示的な承認と記録がない限り、`unsafe`、`@ts-ignore`、同等の bypass を避ける。
+- 未コミットのユーザー作業を尊重する。無関係な変更を revert しない。
 
-## Testing Gates
+## テストゲート
 
-- Run `.agents/scripts/verify.sh` for the default repository check set when broad verification is needed.
-- Rust: run `cargo fmt --check`, `cargo clippy`, and `cargo test` when backend changes warrant it.
-- Frontend: run `npm run lint`, `npm test` if present, and `npm run build` when frontend changes warrant it.
-- UI: check layout, responsiveness, accessibility basics, and screenshot or browser evidence where practical.
-- Data/auth/deployment: call out rollback, recovery, migration, and residual risk.
+- 広範な repository check が必要な場合は `.agents/scripts/verify.sh` を使う。
+- Rust: backend 変更に見合う場合は `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
+- Frontend: frontend 変更に見合う場合は `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
+- UI: 実用的な範囲で layout、responsiveness、accessibility basics、screenshot または browser evidence を確認する。
+- Data/auth/deployment: rollback、recovery、migration、residual risk を明示する。
 
-## V&V Gates
+## V&V ゲート
 
-- Verification: implementation matches requirements, design, API contracts, and tests.
-- Validation: result satisfies the user's actual workflow and acceptance criteria.
-- Evidence: report commands, pass/fail status, manual checks, screenshots, and known gaps.
-- Review: use `code-review.md` for diff review before final delivery on non-trivial changes.
+- Verification: 実装が requirements、design、API contracts、tests と一致することを確認する。
+- Validation: 結果がユーザーの実際の workflow と acceptance criteria を満たすことを確認する。
+- Evidence: command、pass/fail status、manual check、screenshots、known gaps を報告する。
+- Review: 自明でない変更は最終報告前に `code-review.md` で diff review する。
 
-## Release Gates
+## リリースゲート
 
-- Branch, commit, PR, push, and merge only when explicitly requested.
-- Use Conventional Commits when committing.
-- Use repository PR templates when opening PRs.
-- Merge only after explicit user approval.
+- branch、commit、PR、push、merge は明示的に要求された時だけ行う。
+- commit する場合は Conventional Commits を使う。
+- PR を開く場合は repository PR template を使う。
+- merge は明示的なユーザー承認後だけ行う。
 
-## Checkpoint Commits
+## Checkpoint commit
 
-- Use `.agents/scripts/codex-checkpoint.sh` when the user has asked for work to be committed as it progresses.
-- Prefer staged-only commits for safest operation. Use `--paths` for a known file set or `--all` only when all non-Gemini changes belong to the current task.
-- Commit at coherent boundaries: harness setup, requirements/docs update, implementation slice, test update, or V&V evidence.
-- Keep `.gemini/` and `GEMINI.md` out of Codex checkpoint commits unless the user explicitly requests Gemini configuration changes.
-- Install local Git hooks with `.agents/scripts/install-git-hooks.sh` to enforce Gemini protection and skill validation before commits.
+- ユーザーが進行中の commit を求めている場合は `.agents/scripts/codex-checkpoint.sh` を使う。
+- 最も安全な運用として staged-only commit を優先する。既知の file set には `--paths` を使い、現在の task に属する non-Gemini 変更だけの場合に限り `--all` を使う。
+- coherent boundary で commit する。例: harness setup、requirements/docs update、implementation slice、test update、V&V evidence。
+- ユーザーが Gemini 設定変更を明示しない限り、Codex checkpoint commit に `.gemini/` と `GEMINI.md` を含めない。
+- local Git hook を有効にするには `.agents/scripts/install-git-hooks.sh` を使う。これにより Gemini protection と skill validation を commit 前に実行する。

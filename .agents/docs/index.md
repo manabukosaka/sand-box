@@ -1,27 +1,27 @@
-# Codex Knowledge Map
+# Codex ナレッジマップ
 
-This directory is the Codex-facing knowledge base for Mini Datadog agent work. Keep `AGENTS.md` and each `SKILL.md` as maps, then load only the deeper file needed for the task.
+この directory は、Mini Datadog の agent 作業向け Codex-facing knowledge base です。`AGENTS.md` と各 `SKILL.md` は地図として保ち、タスクに必要な詳細 file だけを読む。
 
-## Core References
+## 主要参照
 
-- `harness-principles.md`: agent-first operating principles adapted from OpenAI harness engineering.
-- `operating-model.md`: recommended daily Codex workflow for this repository.
-- `prompt-template.md`: reusable prompt shape for reliable task setup.
-- `plans.md`: execution-plan template for complex work.
-- `code-review.md`: consistent review checklist and finding format.
-- `role-map.md`: role perspectives and handoff responsibilities.
-- `quality-gates.md`: verification, validation, release, and safety gates.
-- `repository-map.md`: where to find project knowledge and implementation evidence.
-- `model-policy.md`: model and reasoning selection policy.
-- `mcp.md`: criteria for adding external context through MCP.
-- `automations.md`: criteria for promoting reliable workflows to scheduled automation.
-- `session-controls.md`: thread, compaction, fork, and subagent guidance.
-- `retrospectives.md`: how to turn repeated friction into durable guardrails.
+- `harness-principles.md`: OpenAI harness engineering をこの workspace 向けに適用した agent-first 原則。
+- `operating-model.md`: この repository における日常的な Codex workflow。
+- `prompt-template.md`: reliable task setup のための再利用可能な prompt 形式。
+- `plans.md`: 複雑な作業向け execution plan template。
+- `code-review.md`: 一貫した review checklist と finding 形式。
+- `role-map.md`: role perspective と handoff responsibility。
+- `quality-gates.md`: verification、validation、release、安全性 gate。
+- `repository-map.md`: project knowledge と implementation evidence の場所。
+- `model-policy.md`: model と reasoning の選択方針。
+- `mcp.md`: MCP で外部文脈を追加する基準。
+- `automations.md`: 信頼できる workflow を scheduled automation に昇格する基準。
+- `session-controls.md`: thread、compaction、fork、sub-agent の扱い。
+- `retrospectives.md`: 繰り返し発生する friction を durable guardrail に変える方法。
 
-## Maintenance Rules
+## 保守ルール
 
-- Prefer short stable entry points over long manuals.
-- Encode durable invariants in docs or tooling, not one-off prompts.
-- Move repeated guidance from individual skills into shared references.
-- Do not update `.gemini/` from Codex refactors unless the user explicitly asks for Gemini configuration changes.
-- When Codex repeats a mistake, run a short retrospective and update the smallest durable artifact that would prevent it.
+- 長い manual より、短く安定した entry point を優先する。
+- durable invariant は、一回限りの prompt ではなく docs や tooling に encode する。
+- 個別 skill に重複する guidance は shared reference に移す。
+- ユーザーが Gemini 設定変更を明示しない限り、Codex refactor で `.gemini/` を更新しない。
+- Codex が同じ誤りを繰り返した場合は、短い retrospective を行い、それを防ぐ最小の durable artifact を更新する。

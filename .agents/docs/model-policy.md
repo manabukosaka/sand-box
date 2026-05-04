@@ -1,20 +1,20 @@
-# Model And Reasoning Policy
+# モデルと reasoning の方針
 
-Use parent-session defaults unless a task has a clear reason to override.
+明確な override 理由がない限り、parent session default を使う。
 
-## Defaults
+## default
 
-- Use the inherited model for normal work.
-- Use higher reasoning for complex architecture, debugging, multi-file refactors, security, and data safety work.
-- Use lower reasoning for narrow, well-scoped edits and mechanical documentation updates.
+- 通常作業では inherited model を使う。
+- 複雑な architecture、debugging、multi-file refactor、security、data safety では higher reasoning を使う。
+- 狭く well-scoped な edit や機械的な documentation update では lower reasoning を使う。
 
-## Subagent Guidance
+## サブエージェント方針
 
-- Use subagents only when the user explicitly asks for delegation or parallel agent work.
-- Prefer `gpt-5.4-mini` for bounded exploration, test triage, and low-risk parallel checks.
-- Prefer frontier models such as `gpt-5.5` for complex design, high-risk implementation, security review, or work that is likely to require deep reasoning.
-- Do not hard-code model choices into skills; Codex skills should describe when to use the workflow, not force a runtime model.
+- sub-agent は、ユーザーが delegation または parallel agent work を明示した時だけ使う。
+- bounded exploration、test triage、low-risk parallel check では `gpt-5.4-mini` を優先する。
+- complex design、high-risk implementation、security review、deep reasoning が必要な作業では `gpt-5.5` など frontier model を優先する。
+- model choice を skill に hard-code しない。Codex skill は runtime model を強制するのではなく、workflow を使う場面を記述する。
 
-## Practical Rule
+## 実用ルール
 
-Start with quality. Optimize for cost and latency only after the workflow is reliable.
+まず品質を優先する。cost と latency の最適化は、workflow が信頼できるようになってから行う。

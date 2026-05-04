@@ -1,26 +1,26 @@
-# Session Controls
+# セッション制御
 
-Keep one Codex thread per coherent unit of work.
+1 つの coherent unit of work につき 1 つの Codex thread を使う。
 
-## Use The Same Thread When
+## 同じ thread を使う場合
 
-- The work is still part of the same problem.
-- Prior reasoning and decisions are directly relevant.
-- You are continuing verification or fixing feedback on the same diff.
+- 作業がまだ同じ問題の一部である。
+- 以前の reasoning や decision が直接関係する。
+- 同じ diff に対する verification または feedback 対応を続けている。
 
-## Fork Or Start Fresh When
+## 分岐または新規開始する場合
 
-- The task truly branches.
-- Context has become bloated or misleading.
-- A parallel exploration can run without touching the same files.
+- task が本当に分岐する。
+- context が膨らみすぎた、または誤解を招く状態になった。
+- 同じ file を触らずに parallel exploration を実行できる。
 
-## Compaction
+## 圧縮
 
-- Compact when the thread is long and the earlier context can be summarized.
-- Before final delivery after compaction or resume, verify the newest user request is still the one being answered.
+- thread が長くなり、過去の context を要約しても問題ない場合に compact する。
+- 圧縮または再開後に最終報告する前に、最新のユーザー依頼に答えていることを確認する。
 
-## Subagents
+## サブエージェント
 
-- Use subagents only when the user explicitly asks for delegation or parallel agent work.
-- Keep delegated work bounded, self-contained, and materially useful.
-- Use `model-policy.md` when an explicit subagent model override is justified.
+- サブエージェントは、ユーザーが委譲または並列 agent 作業を明示した時だけ使う。
+- 委譲する作業は、範囲が限定され、自己完結し、主作業に実質的に役立つものに保つ。
+- 明示的なサブエージェント model override が正当化できる場合は `model-policy.md` を使う。

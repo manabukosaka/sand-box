@@ -4,11 +4,11 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  .agents/scripts/verify.sh [--backend] [--frontend] [--skills] [--hooks] [--all]
+  .agents/scripts/verify.sh [--backend] [--frontend] [--skills] [--hooks] [--codex-env] [--all]
 
 Runs repeatable Codex verification checks for this repository.
 
-Default: --backend --frontend --skills --hooks when corresponding files exist.
+Default: --backend --frontend --skills --hooks --codex-env when corresponding files exist.
 EOF
 }
 
@@ -19,6 +19,7 @@ run_backend=0
 run_frontend=0
 run_skills=0
 run_hooks=0
+run_codex_env=0
 explicit=0
 
 while (($#)); do
@@ -27,7 +28,8 @@ while (($#)); do
     --frontend) run_frontend=1; explicit=1; shift ;;
     --skills) run_skills=1; explicit=1; shift ;;
     --hooks) run_hooks=1; explicit=1; shift ;;
-    --all) run_backend=1; run_frontend=1; run_skills=1; run_hooks=1; explicit=1; shift ;;
+    --codex-env) run_codex_env=1; explicit=1; shift ;;
+    --all) run_backend=1; run_frontend=1; run_skills=1; run_hooks=1; run_codex_env=1; explicit=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) echo "verify: unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -38,6 +40,7 @@ if (( ! explicit )); then
   [[ -f mini-datadog/web/package.json ]] && run_frontend=1
   [[ -d .agents/skills ]] && run_skills=1
   [[ -d .githooks || -d .agents/scripts ]] && run_hooks=1
+  [[ -f .agents/scripts/check-codex-env.sh ]] && run_codex_env=1
 fi
 
 if ((run_hooks)); then
@@ -57,6 +60,11 @@ if ((run_skills)); then
   while IFS= read -r skill_dir; do
     python3 "$validator" "$skill_dir"
   done < <(find .agents/skills -mindepth 1 -maxdepth 1 -type d | sort)
+fi
+
+if ((run_codex_env)); then
+  echo "==> Codex environment"
+  .agents/scripts/check-codex-env.sh
 fi
 
 if ((run_backend)); then

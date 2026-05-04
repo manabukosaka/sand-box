@@ -4,6 +4,7 @@ These rules adapt OpenAI's harness engineering guidance for this repository.
 
 ## Task Context
 
+- Use `operating-model.md` as the default repository workflow.
 - For broad tasks, establish goal, context, constraints, and done-when criteria before implementation.
 - Use `prompt-template.md` when the task is fuzzy or high stakes.
 - Use `plans.md` before coding when work is complex, ambiguous, or long-running.

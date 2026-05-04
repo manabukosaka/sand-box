@@ -32,3 +32,9 @@ if git diff --cached --name-only | grep -Eq '^(\.agents/scripts/|\.githooks/)'; 
     bash -n "$script"
   done < <(git diff --cached --name-only | grep -E '^(\.agents/scripts/|\.githooks/)' | sort -u)
 fi
+
+if git diff --cached --name-only | grep -Eq '^(AGENTS\.md|\.agents/)'; then
+  if [[ -x .agents/scripts/check-codex-env.sh ]]; then
+    .agents/scripts/check-codex-env.sh
+  fi
+fi

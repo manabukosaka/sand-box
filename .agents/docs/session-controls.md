@@ -23,3 +23,4 @@ Keep one Codex thread per coherent unit of work.
 
 - Use subagents only when the user explicitly asks for delegation or parallel agent work.
 - Keep delegated work bounded, self-contained, and materially useful.
+- Use `model-policy.md` when an explicit subagent model override is justified.

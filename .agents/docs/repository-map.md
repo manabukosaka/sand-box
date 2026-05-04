@@ -6,6 +6,7 @@
 
 - `AGENTS.md`: Codex workspace instructions と precedence。
 - `GEMINI.md`: Gemini CLI configuration。historical context として読むだけにし、明示的な依頼がない限り編集しない。
+- `mini-datadog/CONTRIBUTING.md`: GitHub Flow、Conventional Commits、PR review、quality check の source of truth。
 - `.gemini/`: Gemini-specific agents と skills。Codex-only work では変更しない。
 - `.agents/skills/`: Gemini role perspective から移植した Codex skills。
 - `.agents/docs/`: Codex harness と role reference material。

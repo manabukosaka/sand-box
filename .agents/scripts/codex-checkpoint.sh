@@ -20,6 +20,7 @@ Options:
   --all                 Stage all changes except GEMINI.md and .gemini/.
   --dry-run             Show what would be committed without committing.
   --no-verify           Pass --no-verify to git commit.
+  --allow-main          Allow committing on main. Use only for explicit emergency or maintenance instructions.
   --help, -h            Show this help.
 
 Examples:
@@ -40,6 +41,7 @@ message=""
 auto_message=0
 dry_run=0
 no_verify=0
+allow_main=0
 stage_all=0
 declare -a paths=()
 
@@ -73,6 +75,10 @@ while (($#)); do
       no_verify=1
       shift
       ;;
+    --allow-main)
+      allow_main=1
+      shift
+      ;;
     --help|-h)
       usage
       exit 0
@@ -93,6 +99,11 @@ fi
 
 if ! [[ "$message" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9._-]+\))?!?:\ .+ ]]; then
   die "message must follow Conventional Commits, e.g. chore(codex): checkpoint work"
+fi
+
+current_branch="$(git branch --show-current)"
+if [[ "$current_branch" == "main" ]] && (( ! allow_main )); then
+  die "refusing checkpoint commit on main; create a '<type>/<issue-or-short-desc>' branch per mini-datadog/CONTRIBUTING.md, or use --allow-main only for an explicit exception"
 fi
 
 if ((stage_all)) && ((${#paths[@]})); then

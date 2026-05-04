@@ -4,6 +4,18 @@ set -euo pipefail
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
+if [[ "$(git branch --show-current)" == "main" && "${CODEX_ALLOW_MAIN_COMMIT:-}" != "1" ]]; then
+  cat >&2 <<'EOF'
+pre-commit: refusing to commit directly on main.
+
+mini-datadog/CONTRIBUTING.md requires GitHub Flow: create a
+<type>/<issue-or-short-desc> branch, push it, and merge via PR.
+
+Set CODEX_ALLOW_MAIN_COMMIT=1 only for an explicit, reviewed exception.
+EOF
+  exit 1
+fi
+
 if git diff --cached --name-only | grep -Eq '^(GEMINI\.md|\.gemini/)'; then
   cat >&2 <<'EOF'
 pre-commit: refusing to commit Gemini configuration from the Codex workflow.

@@ -31,6 +31,7 @@
 - `.agents/docs/retrospectives.md`: 繰り返し起きる摩擦への対処。
 - `.agents/skills/`: Gemini のロール観点から移植した Codex skills。
 - `mini-datadog/docs/`: product requirements、design、ADR、API docs、V&V、setup docs。
+- `mini-datadog/CONTRIBUTING.md`: branch、commit、PR、review、quality check の source of truth。
 - `GEMINI.md` と `.gemini/`: Gemini 設定。ユーザーが明示的に Gemini 変更を求めない限り変更しない。
 
 ## 運用原則
@@ -55,6 +56,7 @@
 - UI: 実用的な範囲で layout、responsive、accessibility basics、screenshot / browser evidence を確認する。
 - data、auth、deployment、destructive behavior では、残余リスクと rollback / recovery consideration を明示する。
 - ユーザーが継続的な commit を求めている場合は、作業の区切りで `.agents/scripts/codex-checkpoint.sh` を使う。
+- Git 運用は `mini-datadog/CONTRIBUTING.md` に従う。原則として `main` へ直接 commit / push せず、`<type>/<issue-or-short-desc>` branch から PR 経由で merge する。
 
 ## Codex 制約
 

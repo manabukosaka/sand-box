@@ -1,4 +1,4 @@
 interface:
   display_name: "DB Tuner"
-  short_description: "Tune DuckDB storage and queries."
-  default_prompt: "Use the db-tuner skill to review Mini Datadog DuckDB ingestion, schema, query plans, retention, compaction, and growth risks."
+  short_description: "DuckDB のストレージとクエリを調整します。"
+  default_prompt: "db-tuner skill を使い、Mini Datadog の DuckDB 取り込み、スキーマ、クエリ計画、保持、圧縮、増加リスクをレビューしてください。"

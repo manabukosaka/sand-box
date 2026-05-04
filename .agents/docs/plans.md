@@ -1,38 +1,38 @@
-# Execution Plans
+# 実行計画
 
-Use an execution plan for long-running, multi-step, or high-risk work. Keep small tasks lightweight.
+長時間、複数ステップ、または高リスクの作業では実行計画を使う。小さなタスクは軽量に扱う。
 
-## Plan Template
+## 計画テンプレート
 
 ```markdown
-# Plan: <task>
+# 計画: <task>
 
-## Goal
+## 目的
 
-## Context
+## 文脈
 
-## Constraints
+## 制約
 
-## Steps
+## 手順
 
-- [ ] Gather context
-- [ ] Define requirements or acceptance criteria
-- [ ] Design changes and ADRs if needed
-- [ ] Implement smallest coherent slice
-- [ ] Add or update tests
-- [ ] Verify and validate
-- [ ] Checkpoint commit if requested
+- [ ] 文脈を収集する
+- [ ] 要件または受け入れ基準を定義する
+- [ ] 必要に応じて変更を設計し ADR を作成する
+- [ ] 最小の一貫した単位で実装する
+- [ ] テストを追加または更新する
+- [ ] Verification と Validation を行う
+- [ ] 要求されている場合は checkpoint commit を作成する
 
-## Decisions
+## 判断
 
-## Verification
+## 検証
 
-## Risks / Follow-up
+## リスク / フォローアップ
 ```
 
-## Rules
+## ルール
 
-- Keep one plan per coherent unit of work.
-- Update status as work progresses.
-- Record decisions that would otherwise be hidden in chat.
-- Promote material architecture decisions to `mini-datadog/docs/adr/`.
+- 一貫した作業単位ごとに 1 つの計画を保つ。
+- 作業の進行に合わせて状態を更新する。
+- チャット内に埋もれそうな判断を記録する。
+- 重要なアーキテクチャ判断は `mini-datadog/docs/adr/` に昇格する。

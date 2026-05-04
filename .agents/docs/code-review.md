@@ -1,31 +1,31 @@
-# Code Review Guide
+# コードレビューガイド
 
-Use this guide for `/review`, manual review, or final self-review before delivery.
+`/review`、手動 review、または最終 self-review の前にこのガイドを使う。
 
-## Review Order
+## レビュー順序
 
-1. Bugs, regressions, data loss, security, and user-visible behavior.
-2. Missing tests or weak verification.
-3. Architecture drift, duplicated patterns, and maintainability risks.
-4. Documentation, API contract, and V&V gaps.
-5. Style only when it affects readability or consistency.
+1. bug、regression、data loss、security、user-visible behavior。
+2. 不足している test、または弱い verification。
+3. architecture drift、重複 pattern、maintainability risk。
+4. documentation、API contract、V&V gap。
+5. style は readability や consistency に影響する場合だけ扱う。
 
-## Checklist
+## チェックリスト
 
-- Scope matches the user's request.
-- No unrelated files, broad refactors, or accidental generated output.
-- Existing uncommitted user work was not reverted.
-- Error handling is explicit and user-safe.
-- Inputs are validated at boundaries.
-- Secrets and sensitive data are not logged.
-- DuckDB changes consider migration, file growth, backup, and rollback.
-- UI changes are responsive and accessible enough for the affected workflow.
-- Tests cover the changed normal path and realistic failure or boundary cases.
-- Commands and manual checks are reported accurately.
+- scope がユーザー依頼と一致している。
+- 無関係な file、広すぎる refactor、意図しない generated output がない。
+- 既存の未コミットユーザー作業を revert していない。
+- error handling が明示的で user-safe。
+- input が boundary で validation されている。
+- secret や sensitive data が log に出ていない。
+- DuckDB 変更では migration、file growth、backup、rollback を考慮している。
+- UI 変更は対象 workflow に対して十分に responsive / accessible。
+- test が変更された正常系と現実的な異常系または境界値を cover している。
+- command と manual check が正確に報告されている。
 
-## Finding Format
+## Finding 形式
 
-Lead with findings, ordered by severity:
+finding は重要度順に先頭へ置く:
 
 ```text
 <severity>: <file>:<line> - <issue>
@@ -33,4 +33,4 @@ Impact: <why it matters>
 Recommendation: <specific fix or test>
 ```
 
-If no issues are found, say that clearly and mention residual risk or unrun checks.
+問題がない場合は、その旨を明確に述べ、残余リスクまたは未実行チェックを示す。

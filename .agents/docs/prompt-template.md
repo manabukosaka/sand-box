@@ -1,28 +1,28 @@
-# Prompt Template
+# プロンプトテンプレート
 
-Use this shape when a task is broad, risky, or likely to span multiple files.
+タスクが広い、リスクが高い、または複数ファイルにまたがる可能性がある場合は、この形で依頼を整理する。
 
-## Goal
+## 目的
 
-What should change or exist when the work is complete?
+完了時に何が変わっているべきか、または何が存在しているべきか。
 
-## Context
+## 文脈
 
-Relevant files, folders, docs, examples, logs, screenshots, errors, or prior decisions.
+関連するファイル、フォルダ、ドキュメント、例、ログ、スクリーンショット、エラー、過去の判断。
 
-## Constraints
+## 制約
 
-Architecture, safety, compatibility, UX, security, data, performance, and repository conventions Codex must follow.
+Codex が守るべきアーキテクチャ、安全性、互換性、UX、セキュリティ、データ、性能、リポジトリ規約。
 
-## Done When
+## 完了条件
 
-Concrete completion checks:
+具体的な完了チェック:
 
-- Behavior changed or bug no longer reproduces.
-- Relevant tests, lint, type checks, or builds pass.
-- Documentation, ADRs, or V&V evidence are updated when needed.
-- Diff has been reviewed for regressions and unrelated changes.
+- 挙動が変わった、またはバグが再現しなくなった。
+- 関連するテスト、lint、型チェック、build が通った。
+- 必要に応じてドキュメント、ADR、V&V 証跡が更新された。
+- 差分が回帰や無関係な変更を含まないかレビューされた。
 
-## Planning Trigger
+## 計画トリガー
 
-Use Plan mode or write an execution plan before implementation when the task is ambiguous, multi-step, high-risk, or hard to describe.
+タスクが曖昧、複数ステップ、高リスク、または説明しにくい場合は、実装前に Plan mode を使うか実行計画を書く。

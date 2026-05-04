@@ -1,4 +1,4 @@
 interface:
   display_name: "SRE Specialist"
-  short_description: "Harden runtime reliability and ops."
-  default_prompt: "Use the sre-specialist skill to review Mini Datadog Linux, Docker, systemd, resource limits, startup, shutdown, observability, and recovery behavior."
+  short_description: "実行環境の信頼性と運用を強化します。"
+  default_prompt: "sre-specialist skill を使い、Mini Datadog の Linux、Docker、systemd、リソース制限、起動、停止、可観測性、復旧動作をレビューしてください。"

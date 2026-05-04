@@ -1,32 +1,32 @@
-# Codex Operating Model
+# Codex 運用モデル
 
-Use this as the default way of working in this repository.
+このリポジトリでは、以下を標準の作業方法として使う。
 
-## Default Loop
+## 標準ループ
 
-1. Frame the task with `prompt-template.md`.
-2. Gather only relevant repository context.
-3. Plan first when the task is ambiguous, multi-step, high-risk, or cross-cutting.
-4. Implement the smallest coherent slice.
-5. Verify with the narrowest credible checks, or `.agents/scripts/verify.sh` for broad checks.
-6. Review non-trivial diffs with `code-review.md`.
-7. Capture durable decisions in docs, ADRs, tests, scripts, or lint rules.
-8. Create a checkpoint commit with `codex-checkpoint.sh` when ongoing commits are requested.
+1. `prompt-template.md` に沿ってタスクを整理する。
+2. 関連するリポジトリ文脈だけを収集する。
+3. タスクが曖昧、複数ステップ、高リスク、または横断的な場合は plan を先に作る。
+4. 最小の一貫した単位で実装する。
+5. 狭く信頼できるチェックで verification する。広範なチェックが必要な場合は `.agents/scripts/verify.sh` を使う。
+6. 自明でない差分は `code-review.md` で review する。
+7. 永続的な判断は docs、ADR、tests、scripts、lint rules に残す。
+8. 継続的な commit が求められている場合は、`codex-checkpoint.sh` で checkpoint commit を作る。
 
-## Escalation Rules
+## エスカレーションルール
 
-- Ask clarification when ambiguity affects scope, architecture, data safety, security, or user-visible behavior.
-- Use MCP only when repository context is not enough and the external context is repeatably useful.
-- Promote repeated manual workflows to skills before scheduling them as automations.
-- Use one thread per coherent task; fork only when work truly branches.
+- 曖昧さが scope、architecture、data safety、security、user-visible behavior に影響する場合は確認する。
+- repository context だけでは不十分で、外部文脈が繰り返し有用な場合だけ MCP を使う。
+- 繰り返し発生する手動 workflow は、automation にする前に skill に昇格する。
+- 1 つの一貫したタスクにつき 1 thread を使う。作業が本当に分岐する場合だけ fork する。
 
-## Recommended Prompt Contract
+## 推奨プロンプト契約
 
-- Goal: desired change.
-- Context: relevant files, docs, logs, screenshots, or errors.
-- Constraints: architecture, safety, UX, data, performance, and do-not rules.
-- Done when: tests, behavior, docs, review, and evidence expected.
+- 目的: 望ましい変更。
+- 文脈: 関連するファイル、ドキュメント、ログ、スクリーンショット、エラー。
+- 制約: アーキテクチャ、安全性、UX、データ、性能、禁止事項。
+- 完了条件: 期待されるテスト、挙動、ドキュメント、レビュー、証跡。
 
-## Retrospective Rule
+## ふりかえりルール
 
-When Codex repeats a mistake, do not just fix the current diff. Add the smallest durable guardrail that prevents the next recurrence.
+Codex が同じ誤りを繰り返した場合、現在の差分を直すだけで終わらせない。次回の再発を防ぐ最小の永続的ガードレールを追加する。

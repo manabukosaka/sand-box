@@ -1,4 +1,4 @@
 interface:
   display_name: "Product Manager"
-  short_description: "Clarify scope and acceptance criteria."
-  default_prompt: "Use the product-manager skill to turn this Mini Datadog request into clear scope, acceptance criteria, edge cases, and documentation updates."
+  short_description: "スコープと受け入れ基準を明確化します。"
+  default_prompt: "product-manager skill を使い、この Mini Datadog の依頼を明確なスコープ、受け入れ基準、エッジケース、必要なドキュメント更新に整理してください。"

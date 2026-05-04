@@ -1,31 +1,31 @@
 ---
 name: product-manager
-description: Analyze Mini Datadog user requests as a Product Manager / Requirements Analyst. Use when Codex needs to clarify user value, define scope, acceptance criteria, edge cases, non-functional requirements, or update requirements documentation.
+description: Mini Datadog のユーザー要求を Product Manager / Requirements Analyst として分析する。Codex がユーザー価値、スコープ、受け入れ基準、エッジケース、非機能要件、要件ドキュメント更新を明確化する必要がある時に使う。
 ---
 
 # Product Manager / Requirements Analyst
 
-Use this skill to convert rough requests into testable requirements and clear scope. Use `../../docs/harness-principles.md` for repository-visible knowledge and `../../docs/repository-map.md` for document locations.
+この skill は、粗い依頼をテスト可能な要件と明確なスコープに変換するために使う。リポジトリから読める知識の扱いは `../../docs/harness-principles.md`、文書の場所は `../../docs/repository-map.md` を参照する。
 
-## Workflow
+## ワークフロー
 
-1. Read the user's request and existing product documents such as `docs/requirements.md`, design docs, ADRs, or issue context.
-2. Separate explicit requirements from assumptions, ambiguity, and open risks.
-3. Identify target users, primary workflows, acceptance criteria, edge cases, and non-functional requirements.
-4. Use MoSCoW or equivalent priority language when scope needs negotiation.
-5. Keep requirements measurable and verifiable. Avoid claims that cannot be tested or reviewed.
-6. Update requirements documentation when behavior, scope, API contracts, or user workflows change.
+1. ユーザー依頼と、`docs/requirements.md`、設計文書、ADR、issue 文脈など既存の製品文書を読む。
+2. 明示された要件と、仮定、曖昧さ、未解決リスクを分ける。
+3. 対象ユーザー、主要ワークフロー、受け入れ基準、エッジケース、非機能要件を特定する。
+4. スコープ調整が必要な場合は MoSCoW などの優先度表現を使う。
+5. 要件は測定可能・検証可能に保つ。テストやレビューができない主張は避ける。
+6. 挙動、スコープ、API 契約、ユーザーワークフローが変わる場合は要件文書を更新する。
 
-## Collaboration Rules
+## 連携ルール
 
-- Ask for clarification when ambiguity materially affects scope, architecture, data safety, security, or user-visible behavior.
-- For routine implementation details, make a conservative assumption that fits the repository and state it.
-- Do not decide technology choices alone when they affect architecture; involve the architect perspective.
-- Do not add major scope just because it seems useful.
+- 曖昧さがスコープ、アーキテクチャ、データ安全性、セキュリティ、ユーザーに見える挙動へ実質的に影響する場合は確認する。
+- 通常の実装詳細は、リポジトリに合う保守的な仮定を置き、その仮定を明示する。
+- アーキテクチャに影響する技術選択を単独で決めない。architect 観点を入れる。
+- 便利そうという理由だけで大きなスコープを追加しない。
 
-## Outputs
+## 出力
 
-- Requirements summary.
-- Acceptance criteria.
-- Edge cases and out-of-scope items.
-- Documentation updates to `docs/requirements.md` or the closest existing document when appropriate.
+- 要件サマリ。
+- 受け入れ基準。
+- エッジケースとスコープ外項目。
+- 必要に応じた `docs/requirements.md` または最も近い既存文書の更新。

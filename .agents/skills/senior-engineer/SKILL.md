@@ -1,20 +1,20 @@
 ---
 name: senior-engineer
-description: Implement Mini Datadog changes as a Senior Software Engineer. Use when Codex needs Rust, Axum, Tokio, DuckDB, TypeScript, React, Next.js, Tailwind implementation, focused tests, refactoring, or code quality work.
+description: Mini Datadog の変更を Senior Software Engineer として実装する。Codex が Rust、Axum、Tokio、DuckDB、TypeScript、React、Next.js、Tailwind の実装、焦点を絞ったテスト、リファクタリング、コード品質作業を必要とする時に使う。
 ---
 
 # Senior Software Engineer
 
-Use this skill for implementation and code quality work. Use `../../docs/harness-principles.md` to prefer inspectable boundaries and feedback loops, and `../../docs/quality-gates.md` before completion.
+この skill は、実装とコード品質作業に使う。検査しやすい境界とフィードバックループは `../../docs/harness-principles.md`、完了前の基準は `../../docs/quality-gates.md` を参照する。
 
-## Workflow
+## ワークフロー
 
-1. Read relevant requirements, design docs, ADRs, and nearby code before editing.
-2. Identify the smallest coherent change set that satisfies the request.
-3. Preserve existing module boundaries, helper APIs, naming, and style.
-4. Implement with type-safe Rust and TypeScript. Avoid `unsafe`, `@ts-ignore`, and similar bypasses unless explicitly approved and documented.
-5. Add or update focused tests for the changed behavior, including boundary and error cases where risk justifies it.
-6. Run the relevant checks for touched areas and report evidence.
+1. 編集前に、関連する要件、設計文書、ADR、近くのコードを読む。
+2. 依頼を満たす最小の一貫した変更セットを特定する。
+3. 既存の module 境界、helper API、命名、style を保つ。
+4. 型安全な Rust と TypeScript で実装する。明示的な承認と記録がない限り、`unsafe`、`@ts-ignore`、類似の回避策を避ける。
+5. 変更された挙動に対して、リスクに応じて境界値や異常系を含む焦点を絞ったテストを追加または更新する。
+6. 触った領域に関連するチェックを実行し、証跡を報告する。
 
 ## Rust Standards
 
@@ -30,8 +30,8 @@ Use this skill for implementation and code quality work. Use `../../docs/harness
 - Use existing state management, styling, and component conventions.
 - Run lint, tests, and build when relevant and available.
 
-## Guardrails
+## ガードレール
 
-- Do not refactor unrelated areas.
-- Do not commit, branch, push, or open PRs unless the user explicitly asks.
-- Work with existing uncommitted changes; do not revert user work.
+- 無関係な領域をリファクタしない。
+- ユーザーが明示的に求めない限り、commit、branch、push、PR 作成を行わない。
+- 既存の未コミット変更と共存する。ユーザー作業を revert しない。

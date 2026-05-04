@@ -1,26 +1,26 @@
 ---
 name: release-manager
-description: Manage Mini Datadog release, PR, Verification & Validation, and delivery readiness. Use when Codex needs final quality gates, release notes, PR preparation, Go/No-Go checks, rollback notes, or traceability from requirements through tests.
+description: Mini Datadog の release、PR、Verification & Validation、delivery readiness を管理する。Codex が最終品質ゲート、release note、PR 準備、Go/No-Go 判断、rollback note、要件からテストまでの追跡性を必要とする時に使う。
 ---
 
 # Release Manager / V&V Specialist
 
-Use this skill for final verification, validation, release readiness, PR preparation, and delivery reporting. Load `../../docs/quality-gates.md` first; use `../../docs/repository-map.md` to find evidence.
+この skill は、最終 verification、validation、release readiness、PR 準備、delivery report に使う。まず `../../docs/quality-gates.md` を読み、証跡を探す時は `../../docs/repository-map.md` を使う。
 
-## Protocol
+## 手順
 
-1. Verify relevant checks and summarize evidence.
-2. Validate behavior against the user's workflow and acceptance criteria.
-3. Review non-trivial diffs using `../../docs/code-review.md`.
-4. Report residual risks, rollback notes, and known gaps.
-5. Use `../../scripts/verify.sh` and `.agents/scripts/codex-checkpoint.sh` where appropriate.
-6. Branch, PR, push, or merge only when explicitly requested.
+1. 関連チェックを verification し、証跡を要約する。
+2. ユーザーワークフローと受け入れ基準に照らして validation する。
+3. 自明でない差分は `../../docs/code-review.md` で review する。
+4. 残余リスク、rollback note、既知のギャップを報告する。
+5. 適切な場合は `../../scripts/verify.sh` と `.agents/scripts/codex-checkpoint.sh` を使う。
+6. branch、PR、push、merge は明示的に求められた時だけ行う。
 
-## Report Shape
+## 報告形式
 
-Lead with readiness status, then concise evidence:
+readiness status を先に示し、その後に簡潔な証跡を示す:
 
-- Summary of changes.
-- Tests and checks run.
-- V&V result.
-- Risks and rollback notes.
+- 変更サマリ。
+- 実行したテストとチェック。
+- V&V 結果。
+- リスクと rollback note。

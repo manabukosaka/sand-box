@@ -1,64 +1,64 @@
-# Codex Workspace Instructions
+# Codex ワークスペース指示
 
-## Purpose and Precedence
+## 目的と優先順位
 
-This file is the Codex entry point for `/home/manabukosaka/work/my-sandbox`. Treat it as a map, not a manual. Load deeper guidance from `.agents/docs/` or `mini-datadog/docs/` only when the task needs it.
+このファイルは `/home/manabukosaka/work/my-sandbox` における Codex の入口です。これは詳細マニュアルではなく地図として扱い、必要な時だけ `.agents/docs/` または `mini-datadog/docs/` の詳細ガイドを読むこと。
 
-Higher-priority system and developer instructions override this file. This file is not permission to bypass Codex safety, approval, sandbox, git, or collaboration rules.
+より優先度の高い system / developer 指示は、このファイルより優先されます。このファイルは Codex の安全、承認、サンドボックス、git、協調作業ルールを迂回する許可ではありません。
 
-## Project Context
+## プロジェクト文脈
 
-- Product: Mini Datadog, a lightweight self-hosted monitoring and log analysis platform.
-- Backend: Rust, Axum, Tokio, DuckDB.
-- Frontend: TypeScript, React, Next.js, Tailwind CSS.
-- Goal: convert rough user requests into requirements, design, implementation, tests, and V&V evidence.
+- Product: Mini Datadog。軽量な self-hosted monitoring / log analysis platform。
+- Backend: Rust, Axum, Tokio, DuckDB。
+- Frontend: TypeScript, React, Next.js, Tailwind CSS。
+- Goal: 粗いユーザー依頼を、要件、設計、実装、テスト、V&V 証跡へ変換する。
 
-## Knowledge Map
+## ナレッジマップ
 
-- `.agents/docs/index.md`: Codex knowledge map and maintenance rules.
-- `.agents/docs/harness-principles.md`: agent-first harness principles for this workspace.
-- `.agents/docs/operating-model.md`: recommended Codex work loop for this repository.
-- `.agents/docs/prompt-template.md`: task prompt shape: goal, context, constraints, done when.
-- `.agents/docs/plans.md`: execution-plan template for complex or long-running work.
-- `.agents/docs/code-review.md`: consistent review checklist and finding format.
-- `.agents/docs/role-map.md`: role perspectives and handoffs.
-- `.agents/docs/quality-gates.md`: verification, validation, release, and safety gates.
-- `.agents/docs/model-policy.md`: model and reasoning selection policy.
-- `.agents/docs/repository-map.md`: project document and implementation locations.
-- `.agents/docs/mcp.md`: criteria for adding external context through MCP.
-- `.agents/docs/automations.md`: criteria for promoting reliable workflows to scheduled automation.
-- `.agents/docs/session-controls.md`: thread, compaction, fork, and subagent guidance.
-- `.agents/docs/retrospectives.md`: repeated-friction handling.
-- `.agents/skills/`: Codex skills migrated from Gemini role perspectives.
-- `mini-datadog/docs/`: product requirements, design, ADRs, API docs, V&V, and setup docs.
-- `GEMINI.md` and `.gemini/`: Gemini configuration. Do not modify unless the user explicitly asks for Gemini changes.
+- `.agents/docs/index.md`: Codex 用ナレッジマップと保守ルール。
+- `.agents/docs/harness-principles.md`: このワークスペース向け agent-first harness 原則。
+- `.agents/docs/operating-model.md`: このリポジトリで推奨する Codex 作業ループ。
+- `.agents/docs/prompt-template.md`: 目的、文脈、制約、完了条件で依頼を整理するテンプレート。
+- `.agents/docs/plans.md`: 複雑または長時間の作業向け実行計画テンプレート。
+- `.agents/docs/code-review.md`: 一貫したレビュー checklist と finding 形式。
+- `.agents/docs/role-map.md`: ロール観点と引き継ぎ。
+- `.agents/docs/quality-gates.md`: verification、validation、release、安全性の gate。
+- `.agents/docs/model-policy.md`: model と reasoning の選択方針。
+- `.agents/docs/repository-map.md`: project document と implementation の場所。
+- `.agents/docs/mcp.md`: MCP で外部文脈を追加する基準。
+- `.agents/docs/automations.md`: 安定した workflow を automation に昇格する基準。
+- `.agents/docs/session-controls.md`: thread、compaction、fork、sub-agent の扱い。
+- `.agents/docs/retrospectives.md`: 繰り返し起きる摩擦への対処。
+- `.agents/skills/`: Gemini のロール観点から移植した Codex skills。
+- `mini-datadog/docs/`: product requirements、design、ADR、API docs、V&V、setup docs。
+- `GEMINI.md` と `.gemini/`: Gemini 設定。ユーザーが明示的に Gemini 変更を求めない限り変更しない。
 
-## Operating Principles
+## 運用原則
 
-- Prefer existing repository structure, helper APIs, and local conventions.
-- Keep work traceable from requirement to design, implementation, tests, and validation.
-- Ask when ambiguity materially affects scope, architecture, data safety, security, or user-visible behavior.
-- For routine details, make a conservative repository-consistent choice and continue.
-- Encode durable decisions in repository-visible artifacts: docs, ADRs, tests, scripts, or lint rules.
-- Keep entry points short; move repeated or detailed guidance into `.agents/docs/`.
-- For broad tasks, shape prompts around goal, context, constraints, and done-when criteria.
-- Plan before coding when work is ambiguous, multi-step, high-risk, or hard to describe.
-- Use the inherited model by default; follow `.agents/docs/model-policy.md` only when an override is justified.
+- 既存の repository structure、helper API、local convention を優先する。
+- 作業は requirement、design、implementation、test、validation まで追跡可能にする。
+- 曖昧さが scope、architecture、data safety、security、user-visible behavior に実質的影響を与える場合は確認する。
+- 通常の詳細は、リポジトリに合う保守的な判断を置いて進める。
+- 永続的な判断は docs、ADR、tests、scripts、lint rules などリポジトリから読める artifact に残す。
+- 入口は短く保ち、繰り返し使う詳細な guidance は `.agents/docs/` に移す。
+- 広いタスクでは、目的、文脈、制約、完了条件でプロンプトを整理する。
+- 曖昧、複数ステップ、高リスク、説明しにくい作業では、実装前に plan を作る。
+- 通常は継承された model を使う。override が正当化できる場合だけ `.agents/docs/model-policy.md` に従う。
 
-## Quality Gates
+## 品質ゲート
 
-Use `.agents/docs/quality-gates.md` for details. In short:
+詳細は `.agents/docs/quality-gates.md` を使う。要約:
 
-- Run `.agents/scripts/verify.sh` for repository-wide Codex environment verification.
-- Backend: run relevant `cargo fmt --check`, `cargo clippy`, and `cargo test`.
-- Frontend: run relevant `npm run lint`, `npm test` if present, and `npm run build`.
-- UI: check layout, responsiveness, accessibility basics, and screenshot or browser evidence where practical.
-- Data, auth, deployment, or destructive behavior: call out residual risks and rollback or recovery considerations.
-- When the user asks for ongoing commits, use `.agents/scripts/codex-checkpoint.sh` at coherent work boundaries.
+- 広範な Codex 環境 verification には `.agents/scripts/verify.sh` を実行する。
+- Backend: 関連する `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
+- Frontend: 関連する `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
+- UI: 実用的な範囲で layout、responsive、accessibility basics、screenshot / browser evidence を確認する。
+- data、auth、deployment、destructive behavior では、残余リスクと rollback / recovery consideration を明示する。
+- ユーザーが継続的な commit を求めている場合は、作業の区切りで `.agents/scripts/codex-checkpoint.sh` を使う。
 
-## Codex Constraints
+## Codex 制約
 
-- Do not copy Gemini-specific commands such as `invoke_agent` or `activate_skill` into execution plans.
-- Do not modify `.gemini/` or `GEMINI.md` unless explicitly requested.
-- Do not self-initiate pushes, PRs, merges, or branch switches unless explicitly requested.
-- Respect existing uncommitted user changes. Work with relevant changes and leave unrelated changes alone.
+- `invoke_agent` や `activate_skill` など Gemini 固有コマンドを実行計画にコピーしない。
+- ユーザーが明示的に求めない限り、`.gemini/` や `GEMINI.md` を変更しない。
+- ユーザーが明示的に求めない限り、push、PR、merge、branch switch を自発的に行わない。
+- 既存の未コミットユーザー変更を尊重する。関連する変更とは共存し、無関係な変更は触らない。

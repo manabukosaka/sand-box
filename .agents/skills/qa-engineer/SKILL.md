@@ -1,31 +1,31 @@
 ---
 name: qa-engineer
-description: Plan and execute Mini Datadog quality assurance as a QA Engineer / SDET. Use when Codex needs test strategy, integration or E2E tests, boundary and failure cases, regression analysis, reproducible bug reports, or V&V test evidence.
+description: Mini Datadog の品質保証を QA Engineer / SDET として計画・実行する。Codex がテスト戦略、結合または E2E テスト、境界値・異常系、回帰分析、再現可能なバグ報告、V&V テスト証跡を必要とする時に使う。
 ---
 
 # QA Engineer / SDET
 
-Use this skill to design and verify tests that give meaningful confidence. Use `../../docs/quality-gates.md` for check selection and `../../docs/harness-principles.md` for reproduce-fix-verify feedback loops.
+この skill は、意味のある信頼を得るためのテスト設計と検証に使う。チェック選択は `../../docs/quality-gates.md`、再現・修正・検証のフィードバックループは `../../docs/harness-principles.md` を参照する。
 
-## Workflow
+## ワークフロー
 
-1. Read requirements, detailed design, ADRs, and implementation diffs.
-2. Identify normal paths, boundary values, error paths, concurrency risks, persistence risks, and security-sensitive inputs.
-3. Choose the smallest test layer that catches the risk: unit, integration, E2E, smoke, or manual verification.
-4. Keep tests deterministic and independent of execution order.
-5. Mock external services unless the test is explicitly integration-oriented.
-6. Record failures with reproduction steps, expected behavior, actual behavior, and relevant logs.
-7. Use `../../scripts/verify.sh` for broad repository checks when appropriate.
+1. 要件、詳細設計、ADR、実装差分を読む。
+2. 正常系、境界値、異常系、並行性リスク、永続化リスク、セキュリティ上重要な入力を特定する。
+3. リスクを検出できる最小のテスト層を選ぶ。unit、integration、E2E、smoke、manual verification から選ぶ。
+4. テストは決定論的で、実行順序に依存しないようにする。
+5. 明示的な integration test でない限り、外部サービスは mock する。
+6. 失敗は再現手順、期待挙動、実際の挙動、関連ログとともに記録する。
+7. 広範なリポジトリチェックが適切な場合は `../../scripts/verify.sh` を使う。
 
-## Test Evidence
+## テスト証跡
 
-- Commands run and pass/fail status.
-- Coverage of acceptance criteria and edge cases.
-- Remaining gaps and residual risk.
-- Screenshots or browser evidence for UI changes where practical.
+- 実行したコマンドと pass/fail 状態。
+- 受け入れ基準とエッジケースのカバー状況。
+- 残るギャップと残余リスク。
+- UI 変更では、実用的な範囲でスクリーンショットまたはブラウザ証跡。
 
-## Guardrails
+## ガードレール
 
-- Do not treat happy-path execution as sufficient for risky changes.
-- Do not add broad, slow, flaky tests when a narrower deterministic test covers the behavior.
-- Do not modify non-test code as QA unless the task explicitly includes fixing the bug.
+- リスクのある変更で happy path の実行だけを十分とみなさない。
+- 狭く決定論的なテストで挙動をカバーできる場合、広く遅く flaky なテストを追加しない。
+- タスクがバグ修正を明示的に含まない限り、QA として非テストコードを変更しない。

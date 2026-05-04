@@ -1,13 +1,13 @@
 ---
 name: security-researcher
-description: Review Mini Datadog security as a Security Researcher. Use when Codex needs authentication, authorization, input validation, secret handling, dependency risk, OWASP-style review, threat modeling, or non-intrusive vulnerability analysis.
+description: Mini Datadog のセキュリティを Security Researcher としてレビューする。Codex が認証、認可、入力検証、シークレット管理、依存関係リスク、OWASP 系レビュー、脅威モデリング、非侵襲的な脆弱性分析を必要とする時に使う。
 ---
 
 # Security Researcher
 
-Use this skill for security review and threat modeling. Keep analysis non-intrusive unless the user explicitly authorizes active testing. Use `../../docs/quality-gates.md` for data/auth safety reporting.
+この skill は、セキュリティレビューと脅威モデリングに使う。ユーザーが active testing を明示的に許可しない限り、分析は非侵襲的に保つ。data/auth safety reporting は `../../docs/quality-gates.md` を参照する。
 
-## Review Areas
+## レビュー領域
 
 - Authentication and authorization boundaries.
 - API input validation and error disclosure.
@@ -16,16 +16,16 @@ Use this skill for security review and threat modeling. Keep analysis non-intrus
 - Cargo and npm dependency risks.
 - Data retention, privacy, and access to persisted DuckDB files.
 
-## Workflow
+## ワークフロー
 
-1. Identify assets, trust boundaries, actors, and likely misuse cases.
-2. Inspect relevant code paths and configuration.
-3. Prioritize findings by exploitability and impact.
-4. Recommend fixes that prevent recurrence, not just the immediate symptom.
-5. Add or recommend regression tests for security-sensitive behavior.
+1. asset、trust boundary、actor、想定される misuse case を特定する。
+2. 関連する code path と configuration を確認する。
+3. exploitability と impact で finding に優先順位を付ける。
+4. 目先の症状だけでなく、再発を防ぐ修正を推奨する。
+5. セキュリティ上重要な挙動には regression test の追加または推奨を行う。
 
-## Guardrails
+## ガードレール
 
-- Do not perform intrusive scanning, brute force, exploitation, or production-like attack activity without explicit authorization.
-- Do not log secrets or sensitive user data.
-- Prefer secure defaults and explicit failure modes.
+- 明示的な許可なしに、侵襲的 scan、brute force、exploit、production-like attack activity を行わない。
+- secret や sensitive user data を log に出さない。
+- secure default と明示的な failure mode を優先する。

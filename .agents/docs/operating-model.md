@@ -12,6 +12,7 @@
 6. 自明でない差分は `code-review.md` で review する。
 7. 永続的な判断は docs、ADR、tests、scripts、lint rules に残す。
 8. Git 運用は `mini-datadog/CONTRIBUTING.md` に従う。原則として作業 branch で checkpoint commit を作り、PR 経由で `main` に merge する。
+9. PR 作成は `.agents/scripts/codex-pr.sh`、承認済み PR の merge は `.agents/scripts/codex-merge.sh` を使う。
 
 ## エスカレーションルール
 

@@ -17,10 +17,13 @@ skill は方法を定義し、automation は実行スケジュールを定義す
 - CI failure を確認する。
 - standup summary や V&V summary を作る。
 - 繰り返し行う maintenance check を実行する。
+- branch push と PR 作成を `.agents/scripts/codex-pr.sh` に寄せる。
+- approval と check が揃った PR merge を `.agents/scripts/codex-merge.sh` に寄せる。
 
 ## まだ自動化しないもの
 
 - まだ強い steering が必要な workflow。
 - destructive または production-impacting な操作。
 - 明示的な人間の承認がない branch、push、PR、merge 操作。
+- approval のない PR merge。
 - worktree isolation なしに同じ file 群へ live edit する作業。

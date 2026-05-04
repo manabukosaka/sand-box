@@ -14,7 +14,8 @@ description: Mini Datadog の release、PR、Verification & Validation、deliver
 3. 自明でない差分は `../../docs/code-review.md` で review する。
 4. 残余リスク、rollback note、既知のギャップを報告する。
 5. 適切な場合は `../../scripts/verify.sh` と `.agents/scripts/codex-checkpoint.sh` を使う。
-6. branch、PR、push、merge は明示的に求められた時だけ行う。実行時は GitHub Flow を守り、原則として `main` 直接 push ではなく PR 経由で merge する。
+6. PR 作成は `.agents/scripts/codex-pr.sh`、承認済み PR の merge は `.agents/scripts/codex-merge.sh` を使う。
+7. branch、PR、push、merge は明示的に求められた時だけ行う。実行時は GitHub Flow を守り、原則として `main` 直接 push ではなく PR 経由で merge する。
 
 ## 報告形式
 

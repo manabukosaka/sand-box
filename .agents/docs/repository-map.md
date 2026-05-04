@@ -12,6 +12,8 @@
 - `.agents/docs/`: Codex harness と role reference material。
 - `.agents/scripts/verify.sh`: repeatable local verification entry point。
 - `.agents/scripts/codex-checkpoint.sh`: explicit checkpoint commit helper。
+- `.agents/scripts/codex-pr.sh`: branch push と PR 作成の helper。
+- `.agents/scripts/codex-merge.sh`: approved PR merge の helper。
 - `.githooks/`: `.agents/scripts/install-git-hooks.sh` で有効化される local Git hooks。
 
 ## 製品ドキュメント

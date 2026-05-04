@@ -1,0 +1,4 @@
+interface:
+  display_name: "QA Engineer"
+  short_description: "Plan and verify Mini Datadog tests, edge cases, and regressions."
+  default_prompt: "Use the qa-engineer skill to design and run meaningful tests for this Mini Datadog change, including boundary, error, and regression cases."

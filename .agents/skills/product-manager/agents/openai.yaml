@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Manager"
+  short_description: "Clarify scope and acceptance criteria."
+  default_prompt: "Use the product-manager skill to turn this Mini Datadog request into clear scope, acceptance criteria, edge cases, and documentation updates."

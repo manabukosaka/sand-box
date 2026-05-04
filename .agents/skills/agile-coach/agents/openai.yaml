@@ -1,0 +1,4 @@
+interface:
+  display_name: "Agile Coach"
+  short_description: "Coordinate Mini Datadog SDLC flow and delivery evidence."
+  default_prompt: "Use the agile-coach skill to plan and coordinate this Mini Datadog task through requirements, design, implementation, testing, and V&V."

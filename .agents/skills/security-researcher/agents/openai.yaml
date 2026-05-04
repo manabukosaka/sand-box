@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Researcher"
+  short_description: "Review security risks and threat models."
+  default_prompt: "Use the security-researcher skill to review Mini Datadog authentication, authorization, input validation, secrets, dependencies, and OWASP-style risks."

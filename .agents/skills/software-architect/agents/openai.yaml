@@ -1,0 +1,4 @@
+interface:
+  display_name: "Software Architect"
+  short_description: "Design architecture, ADRs, and contracts."
+  default_prompt: "Use the software-architect skill to design this Mini Datadog change, identify ADR-worthy decisions, and define implementation-ready contracts."

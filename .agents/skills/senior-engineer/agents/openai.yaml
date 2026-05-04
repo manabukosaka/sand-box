@@ -1,0 +1,4 @@
+interface:
+  display_name: "Senior Engineer"
+  short_description: "Implement typed Rust and TypeScript changes with focused tests."
+  default_prompt: "Use the senior-engineer skill to implement this Mini Datadog change with existing patterns, type safety, focused tests, and relevant checks."

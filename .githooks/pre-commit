@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(git rev-parse --show-toplevel)"
+cd "$repo_root"
+
+if git diff --cached --name-only | grep -Eq '^(GEMINI\.md|\.gemini/)'; then
+  cat >&2 <<'EOF'
+pre-commit: refusing to commit Gemini configuration from the Codex workflow.
+
+Move GEMINI.md/.gemini changes to a separate explicit Gemini task, or override
+manually only when you intentionally want to change Gemini configuration.
+EOF
+  exit 1
+fi
+
+if git diff --cached --name-only | grep -Eq '^\.agents/skills/[^/]+/SKILL\.md$'; then
+  validator="/home/manabukosaka/.codex/skills/.system/skill-creator/scripts/quick_validate.py"
+  if [[ -f "$validator" ]]; then
+    while IFS= read -r skill_dir; do
+      python3 "$validator" "$skill_dir"
+    done < <(git diff --cached --name-only | sed -nE 's#^(\.agents/skills/[^/]+)/SKILL\.md$#\1#p' | sort -u)
+  else
+    echo "pre-commit: skill validator not found at $validator" >&2
+    exit 1
+  fi
+fi

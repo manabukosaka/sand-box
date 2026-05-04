@@ -1,0 +1,4 @@
+interface:
+  display_name: "Release Manager"
+  short_description: "Verify release readiness and V&V evidence."
+  default_prompt: "Use the release-manager skill to verify Mini Datadog readiness, summarize checks, validate the user workflow, and prepare release or PR evidence."

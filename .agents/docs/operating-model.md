@@ -11,7 +11,8 @@
 5. 狭く信頼できるチェックで verification する。広範なチェックが必要な場合は `.agents/scripts/verify.sh` を使う。
 6. 自明でない差分は `code-review.md` で review する。
 7. 永続的な判断は docs、ADR、tests、scripts、lint rules に残す。
-8. 継続的な commit が求められている場合は、`codex-checkpoint.sh` で checkpoint commit を作る。
+8. Git 運用は `mini-datadog/CONTRIBUTING.md` に従う。原則として作業 branch で checkpoint commit を作り、PR 経由で `main` に merge する。
+9. PR 作成は `.agents/scripts/codex-pr.sh`、承認済み PR の merge は `.agents/scripts/codex-merge.sh` を使う。
 
 ## エスカレーションルール
 
@@ -19,6 +20,7 @@
 - repository context だけでは不十分で、外部文脈が繰り返し有用な場合だけ MCP を使う。
 - 繰り返し発生する手動 workflow は、automation にする前に skill に昇格する。
 - 1 つの一貫したタスクにつき 1 thread を使う。作業が本当に分岐する場合だけ fork する。
+- branch、push、PR、merge はユーザーの明示指示がある場合だけ行う。ただし実行時も `mini-datadog/CONTRIBUTING.md` の GitHub Flow を優先する。
 
 ## 推奨プロンプト契約
 

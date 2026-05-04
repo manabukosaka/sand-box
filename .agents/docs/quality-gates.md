@@ -26,14 +26,21 @@
 
 ## リリースゲート
 
+- Git 運用の source of truth は `mini-datadog/CONTRIBUTING.md`。
+- `main` は常に deployable に保つ。原則として直接 commit / push せず、作業 branch から PR 経由で merge する。
 - branch、commit、PR、push、merge は明示的に要求された時だけ行う。
+- 作業 branch は `<type>/<issue-or-short-desc>` 形式にする。例: `docs/codex-workflow`、`fix/lint-config`。
 - commit する場合は Conventional Commits を使う。
 - PR を開く場合は repository PR template を使う。
-- merge は明示的なユーザー承認後だけ行う。
+- PR 作成と push は `.agents/scripts/codex-pr.sh` を標準入口にする。
+- 承認済み PR の merge は `.agents/scripts/codex-merge.sh` を標準入口にする。
+- PR 前に self-review と関連 check を行う。
+- merge は CI / check 通過後、明示的なユーザー承認後だけ行う。
 
 ## Checkpoint commit
 
 - ユーザーが進行中の commit を求めている場合は `.agents/scripts/codex-checkpoint.sh` を使う。
+- checkpoint commit は原則として `main` 以外の作業 branch で作成する。
 - 最も安全な運用として staged-only commit を優先する。既知の file set には `--paths` を使い、現在の task に属する non-Gemini 変更だけの場合に限り `--all` を使う。
 - coherent boundary で commit する。例: harness setup、requirements/docs update、implementation slice、test update、V&V evidence。
 - ユーザーが Gemini 設定変更を明示しない限り、Codex checkpoint commit に `.gemini/` と `GEMINI.md` を含めない。

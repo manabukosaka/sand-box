@@ -32,3 +32,4 @@
 - guidance が specific だが共有される場合は `.agents/docs/` を更新する。
 - workflow が繰り返し可能な場合は `SKILL.md` を更新する。
 - 機械的に強制できる rule は script、test、lint rule、hook を追加または更新する。
+- Git 運用の逸脱は `mini-datadog/CONTRIBUTING.md` と `.agents/docs/quality-gates.md` の両方に照らして再発防止策を入れる。

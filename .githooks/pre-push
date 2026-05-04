@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  if [[ "$remote_ref" == "refs/heads/main" && "${CODEX_ALLOW_MAIN_PUSH:-}" != "1" ]]; then
+    cat >&2 <<'EOF'
+pre-push: refusing to push directly to main.
+
+mini-datadog/CONTRIBUTING.md requires GitHub Flow:
+push a <type>/<issue-or-short-desc> branch, open a PR, and merge after review.
+
+Set CODEX_ALLOW_MAIN_PUSH=1 only for an explicit, reviewed exception.
+EOF
+    exit 1
+  fi
+done

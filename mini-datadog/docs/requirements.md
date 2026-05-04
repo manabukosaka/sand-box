@@ -22,6 +22,7 @@
 3. **可視化 (Visualization)**
    - **メトリクスダッシュボード (Metrics Dashboard):** メトリクスを折れ線グラフ等で可視化。
    - ログのリアルタイム・ストリーム表示（Live Tail機能）。
+   - **運用準備 UI:** アラートや設定の情報設計を検証するため、backend 永続化を伴わない frontend-only preview UI を提供する。
 
 ### 3.2. MVPスコープ外（V1.x以降の追加機能） (Out of MVP Scope / V1.x+)
 - **データポータビリティ:** 蓄積されたデータの CSV または Parquet 形式でのエクスポート機能。

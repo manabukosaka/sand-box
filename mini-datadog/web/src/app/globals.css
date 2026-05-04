@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    --background: 224 71% 4%;
     --foreground: 210 40% 98%;
 
     --card: 222.2 84% 4.9%;
@@ -13,7 +13,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 263.4 70% 50.4%;
+    --primary: 172 76% 42%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -30,7 +30,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 263.4 70% 50.4%;
+    --ring: 172 76% 42%;
 
     --radius: 0.5rem;
 
@@ -63,5 +63,9 @@
   }
   body {
     @apply bg-background text-foreground;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(14, 165, 233, 0.14), transparent 28rem),
+      radial-gradient(circle at 88% 12%, rgba(168, 85, 247, 0.12), transparent 30rem),
+      linear-gradient(180deg, #020617 0%, #070b18 42%, #020617 100%);
   }
 }

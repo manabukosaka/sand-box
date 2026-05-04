@@ -4,7 +4,14 @@
 
 ## 1. 画面構成と情報設計 (Information Architecture)
 
-現在の Mini Datadog は以下の2つの主要な画面で構成されています。
+現在の Mini Datadog は、リアルタイム監視、ログ分析、メトリクス確認、運用準備 UI を含む高密度なオブザーバビリティコンソールで構成されています。
+
+### 1.0. 共通 Dashboard Shell
+- **目的**: Live Tail、Explorer、Metrics、Alerts、Settings を横断する運用コンソールとして、現在位置と運用状態を即座に把握できるようにすること。
+- **構成**:
+  1. **Sidebar navigation**: Live、Explorer、Metrics、Alerts、Settings を常時表示し、画面間移動を高速化する。
+  2. **Status bar**: `Live ready`、`DuckDB local`、version などの状態を上部に表示する。
+  3. **Operational badges**: API、Store、Mode などの runtime context を sidebar に固定表示する。
 
 ### 1.1. Live Tail 画面 (`/`)
 - **目的**: システムで発生しているログをリアルタイムで監視し、異常を即座に検知すること。
@@ -18,6 +25,25 @@
 - **最優先で伝える情報**:
   1. **直感的な検索条件入力**: 時間範囲（Start/End）、ログレベル、キーワードの各条件を迷いなく入力できるフォーム。
   2. **検索結果の視認性**: 検索結果が何件見つかったか、それぞれのログの発生時刻と内容をノイズなく一覧できるリスト表示。
+
+### 1.3. Metrics 画面 (`/metrics`)
+- **目的**: 既存の Metrics Query API を使い、メトリクスの時系列変化を即座に確認すること。
+- **最優先で伝える情報**:
+  1. **最新値・平均・最大・最小**: 選択した metric の状態を stat card で表示する。
+  2. **Signal trajectory**: 外部 chart library を使わず SVG line chart で時系列を表示する。
+  3. **Query controls**: metric name、service、time range、interval を指定できる。
+
+### 1.4. Alerts 画面 (`/alerts`)
+- **目的**: 将来の alerting 機能に向け、ルール作成・有効化・通知先の情報設計を検証すること。
+- **制約**: 現時点では frontend-only の preview UI とし、backend 永続化は行わない。
+- **最優先で伝える情報**:
+  1. **Rule inventory**: rule 数、有効 rule 数、channel、persistence 状態を表示する。
+  2. **Rule builder**: signal、threshold、window を選択して preview rule を作成できる。
+  3. **Persistence note**: backend 未実装であることを明示し、ユーザーに誤解を与えない。
+
+### 1.5. Settings 画面 (`/settings`)
+- **目的**: self-hosted 運用で必要になる API key、retention、sampling、density の情報設計を検証すること。
+- **制約**: 現時点では frontend-only の preview UI とし、backend 永続化は行わない。
 
 ---
 
@@ -53,6 +79,18 @@
   - **WARN**: `text-yellow-400 border-yellow-400/30 bg-yellow-400/10`
   - **ERROR**: `text-red-400 border-red-400/30 bg-red-400/10`
   - **DEBUG**: `text-slate-400 border-slate-400/30 bg-slate-400/10`
+
+### 2.4. 高密度分析コンポーネント
+- **StatCard**:
+  - 重要 KPI を `label / value / detail / icon` の構造で表示する。
+  - Live Tail、Explorer、Metrics、Alerts、Settings で共通利用する。
+- **SparkBars**:
+  - ログ件数や検索結果の時系列分布を棒状に表現する。
+  - 大量データの傾向を省スペースで把握するために使用する。
+- **MetricLineChart**:
+  - Metrics 画面の主要 chart。外部依存を増やさず、SVG で line chart を描画する。
+- **DistributionBar**:
+  - service 別、level 別、threshold のような比較情報を横棒で表示する。
 
 ---
 

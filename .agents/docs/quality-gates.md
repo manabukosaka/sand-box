@@ -32,6 +32,7 @@
 - 作業 branch は `<type>/<issue-or-short-desc>` 形式にする。例: `docs/codex-workflow`、`fix/lint-config`。
 - commit する場合は Conventional Commits を使う。
 - PR を開く場合は repository PR template を使う。
+- PR template の Overview、ADR / Decision、Security Check、V&V Status、Screenshots / Logs、World-Class Quality Assurance は空欄や placeholder のまま残さない。
 - PR 作成と push は `.agents/scripts/codex-pr.sh` を標準入口にする。
 - 承認済み PR の merge は `.agents/scripts/codex-merge.sh` を標準入口にする。
 - PR 前に self-review と関連 check を行う。

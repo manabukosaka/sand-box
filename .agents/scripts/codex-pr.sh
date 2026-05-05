@@ -10,7 +10,13 @@ Pushes the current branch and creates or reports a GitHub PR.
 
 Options:
   --title <title>       PR title. Required when creating a new PR.
-  --body <body>         Extra PR body text appended after the template.
+  --overview <text>     Template Overview content. Required for new PRs.
+  --decision <text>     Template ADR / Decision content. Required for new PRs.
+  --security <text>     Template Security Check content. Required for new PRs.
+  --vv <text>           Template V&V Status content. Required for new PRs.
+  --evidence <text>     Template Screenshots / Logs content. Required for new PRs.
+  --quality <text>      Template quality assurance content. Required for new PRs.
+  --body <body>         Extra Codex notes appended after the filled template.
   --base <branch>       Base branch. Default: main.
   --draft              Create PR as draft.
   --skip-verify        Skip local .agents/scripts/verify.sh --all.
@@ -23,11 +29,28 @@ die() {
   exit 1
 }
 
+require_pr_section() {
+  local name="$1"
+  local value="$2"
+  if [[ ! "$value" =~ [^[:space:]] ]]; then
+    die "--$name must not be blank"
+  fi
+  if [[ "$value" == *"<!--"* || "$value" == *"ADR-XXXX"* || "$value" == "TODO"* || "$value" == "TBD" ]]; then
+    die "--$name still contains template placeholder content"
+  fi
+}
+
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repository"
 cd "$repo_root"
 
 title=""
 body=""
+overview=""
+decision=""
+security=""
+vv_status=""
+evidence=""
+quality=""
 base="main"
 draft=0
 skip_verify=0
@@ -42,6 +65,36 @@ while (($#)); do
     --body)
       (($# >= 2)) || die "--body requires a value"
       body="$2"
+      shift 2
+      ;;
+    --overview)
+      (($# >= 2)) || die "--overview requires a value"
+      overview="$2"
+      shift 2
+      ;;
+    --decision)
+      (($# >= 2)) || die "--decision requires a value"
+      decision="$2"
+      shift 2
+      ;;
+    --security)
+      (($# >= 2)) || die "--security requires a value"
+      security="$2"
+      shift 2
+      ;;
+    --vv)
+      (($# >= 2)) || die "--vv requires a value"
+      vv_status="$2"
+      shift 2
+      ;;
+    --evidence)
+      (($# >= 2)) || die "--evidence requires a value"
+      evidence="$2"
+      shift 2
+      ;;
+    --quality)
+      (($# >= 2)) || die "--quality requires a value"
+      quality="$2"
       shift 2
       ;;
     --base)
@@ -96,14 +149,36 @@ if [[ -n "$existing_url" ]]; then
 fi
 
 [[ -n "$title" ]] || die "--title is required when creating a new PR"
+require_pr_section overview "$overview"
+require_pr_section decision "$decision"
+require_pr_section security "$security"
+require_pr_section vv "$vv_status"
+require_pr_section evidence "$evidence"
+require_pr_section quality "$quality"
 
 body_file="$(mktemp)"
 trap 'rm -f "$body_file"' EXIT
-if [[ -f .github/pull_request_template.md ]]; then
-  cat .github/pull_request_template.md > "$body_file"
-else
-  : > "$body_file"
-fi
+cat > "$body_file" <<EOF
+## Overview
+$overview
+
+## ADR / Decision
+$decision
+
+## Security Check
+$security
+
+## V&V Status
+$vv_status
+
+## Screenshots / Logs
+$evidence
+
+---
+**World-Class Quality Assurance:**
+$quality
+EOF
+
 if [[ -n "$body" ]]; then
   {
     printf '\n## Codex Notes\n'

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#12201a" />
+    <title>Sports Motion App</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="appEyebrow">Pitching analysis</p>
+          <h1>Sports Motion</h1>
+        </div>
+        <div class="top-actions">
+          <div class="language-switch" role="group" aria-label="Language">
+            <button class="language-option active" type="button" data-lang="en">EN</button>
+            <button class="language-option" type="button" data-lang="ja">日本語</button>
+          </div>
+          <button class="icon-button" id="syncButton" type="button" aria-label="Sync analysis data" title="Sync analysis data">
+            <span aria-hidden="true">↻</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="summary-band" id="summaryBand" aria-label="Analysis summary">
+        <div class="summary-copy">
+          <p class="eyebrow" id="teamLabel">College pitching group</p>
+          <h2 id="athleteName">Pitcher A</h2>
+          <p id="analysisContext">Single-camera markerless estimate · specialist support only</p>
+        </div>
+        <div class="status-stack">
+          <span class="status-pill status-complete" id="analysisStatus">Analysis complete</span>
+          <span class="status-pill" id="romStatus">ROM v1</span>
+        </div>
+      </section>
+
+      <nav class="tabs" aria-label="Primary views">
+        <button class="tab active" id="captureTab" type="button" data-view="capture">Capture</button>
+        <button class="tab" id="metricsTab" type="button" data-view="metrics">Metrics</button>
+        <button class="tab" type="button" data-view="rom">ROM</button>
+        <button class="tab" id="shareTab" type="button" data-view="share">Share</button>
+      </nav>
+
+      <section class="view active" id="capture" aria-labelledby="captureHeading">
+        <div class="panel-grid">
+          <div class="video-panel">
+            <div class="video-stage" id="videoStage" role="img" aria-label="Pitching video preview with skeleton overlay">
+              <div class="mound"></div>
+              <div class="pitcher">
+                <span class="joint head"></span>
+                <span class="limb torso"></span>
+                <span class="limb arm-front"></span>
+                <span class="limb arm-back"></span>
+                <span class="limb leg-front"></span>
+                <span class="limb leg-back"></span>
+              </div>
+              <div class="phase-marker foot-contact" id="phaseFootContact">Foot contact</div>
+              <div class="phase-marker release" id="phaseRelease">Release</div>
+            </div>
+            <div class="timeline" id="phaseTimeline" aria-label="Pitching phase timeline">
+              <span id="phaseLift" style="left: 12%">Lift</span>
+              <span id="timelineFootContact" style="left: 38%">Foot contact</span>
+              <span id="timelineRelease" style="left: 72%">Release</span>
+            </div>
+          </div>
+
+          <div class="workflow-panel">
+            <h2 id="captureHeading">Session</h2>
+            <label>
+              <span id="athleteLabel">Athlete</span>
+              <input id="athleteInput" type="text" value="Pitcher A" />
+            </label>
+            <label>
+              <span id="cameraViewLabel">Camera view</span>
+              <select id="cameraView">
+                <option id="cameraOpenSide" value="open_side">Open side</option>
+                <option id="cameraCatcherView" value="catcher_view">Catcher view</option>
+                <option id="cameraClosedSide" value="closed_side">Closed side</option>
+              </select>
+            </label>
+            <label>
+              <span id="frameRateLabel">Frame rate</span>
+              <input id="frameRate" type="number" value="240" min="30" step="30" />
+            </label>
+            <div class="button-row">
+              <button class="primary-action" id="submitVideo" type="button">Submit video</button>
+              <button class="secondary-action" id="mockFailure" type="button">Flag low confidence</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="metrics" aria-labelledby="metricsHeading">
+        <div class="section-title">
+          <h2 id="metricsHeading">Evidence metrics</h2>
+          <span id="modelVersion">Model prototype.0</span>
+        </div>
+        <div class="metric-table" id="metricTable"></div>
+      </section>
+
+      <section class="view" id="rom" aria-labelledby="romHeading">
+        <div class="section-title">
+          <h2 id="romHeading">ROM profile</h2>
+          <span id="romSubtitle">Manual override enabled</span>
+        </div>
+        <div class="rom-editor">
+          <label>
+            <span id="shoulderRomLabel">Shoulder external rotation max</span>
+            <input id="shoulderRom" type="range" min="90" max="140" value="115" />
+          </label>
+          <output id="shoulderRomValue">115°</output>
+          <button class="primary-action" id="applyRom" type="button">Recalculate</button>
+        </div>
+        <div class="rom-note">
+          Raw AI estimates stay unchanged. Recalculation creates a new ROM-adjusted analysis layer.
+        </div>
+      </section>
+
+      <section class="view" id="share" aria-labelledby="shareHeading">
+        <div class="section-title">
+          <h2 id="shareHeading">External review</h2>
+          <span id="shareSubtitle">Analysis result only</span>
+        </div>
+        <div class="share-panel">
+          <label class="check-row">
+            <input id="includeVideo" type="checkbox" checked />
+            <span id="includeVideoLabel">Include video overlay</span>
+          </label>
+          <label class="check-row">
+            <input id="includeEvidence" type="checkbox" checked />
+            <span id="includeEvidenceLabel">Include evidence notes</span>
+          </label>
+          <button class="primary-action" id="createShare" type="button">Create share</button>
+          <button class="secondary-action" id="revokeShare" type="button" disabled>Revoke</button>
+          <p id="shareState">No active external share.</p>
+        </div>
+      </section>
+
+      <footer class="notice" id="notice">
+        Specialist evaluation support. Outputs are not medical diagnosis or injury prediction.
+      </footer>
+    </main>
+    <script src="./app.js"></script>
+  </body>
+</html>

@@ -69,6 +69,10 @@ require_ref sports-motion-app/docs/evidence_metrics.md "Experimental"
 require_ref sports-motion-app/docs/vuv_checklist.md "diagnosis"
 require_ref sports-motion-app/docs/adr/README.md "0001"
 
+if [[ -f sports-motion-app/package.json ]]; then
+  (cd sports-motion-app && npm test)
+fi
+
 for doc in sports-motion-app/docs/*.md sports-motion-app/docs/adr/*.md; do
   require_no_ref "$doc" "will prevent injur|diagnose[s ]|guarantee[s ]performance"
 done

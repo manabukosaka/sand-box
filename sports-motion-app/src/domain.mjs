@@ -183,7 +183,7 @@ export function calculateRomRatio(rawValue, romEntry) {
   return Number(((rawValue - romEntry.individual_min_deg) / range).toFixed(3));
 }
 
-export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetrics }) {
+export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetrics, analysis_version, created_at }) {
   const metrics = rawMetrics.map((rawMetric) => {
     const definition = metricDefinitions.find((metric) => metric.id === rawMetric.metric_definition_id);
     if (!definition) {
@@ -214,14 +214,14 @@ export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetr
     tracking_run_id: trackingRun.id,
     athlete_id: athlete.id,
     status: "completed",
-    analysis_version: 1,
+    analysis_version: analysis_version ?? 1,
     metric_definition_versions: metricDefinitions.map((metric) => ({
       metric_definition_id: metric.id,
       version: metric.version
     })),
     rom_profile_id: romProfile.id,
     rom_profile_version: romProfile.version,
-    created_at: new Date().toISOString(),
+    created_at: created_at ?? new Date().toISOString(),
     metrics
   };
 }

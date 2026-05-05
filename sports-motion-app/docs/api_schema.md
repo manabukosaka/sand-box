@@ -37,6 +37,10 @@ analysis, evidence definitions, and specialist comments remain separate.
   "id": "team_123",
   "organization_id": "org_123",
   "name": "College Pitching Group",
+  "sport": "baseball",
+  "level": "college_adult",
+  "primary_staff_user_ids": ["usr_123"],
+  "notes": "Pitching development group",
   "created_at": "2026-05-05T00:00:00Z"
 }
 ```
@@ -50,6 +54,8 @@ analysis, evidence definitions, and specialist comments remain separate.
   "display_name": "Pitcher A",
   "throwing_arm": "right",
   "age_group": "college_adult",
+  "role": "pitcher",
+  "roster_status": "active",
   "height_cm": 185.0,
   "body_mass_kg": 88.0,
   "created_at": "2026-05-05T00:00:00Z"
@@ -64,10 +70,16 @@ analysis, evidence definitions, and specialist comments remain separate.
   "athlete_id": "ath_123",
   "status": "uploaded",
   "capture_type": "recorded_in_app",
+  "capture_source": "smartphone_camera",
   "motion_type": "baseball_pitching",
   "camera_view": "open_side",
   "frame_rate_fps": 240,
   "resolution": "1920x1080",
+  "duration_ms": 4200,
+  "session_label": "Bullpen session 1",
+  "notes": "Open-side view from first-base side.",
+  "archived_at": null,
+  "deleted_at": null,
   "captured_at": "2026-05-05T00:00:00Z",
   "created_at": "2026-05-05T00:00:00Z"
 }
@@ -214,6 +226,8 @@ analysis, evidence definitions, and specialist comments remain separate.
 
 ### Athletes
 
+- `GET /teams/{team_id}`
+- `PATCH /teams/{team_id}`
 - `POST /teams/{team_id}/athletes`
 - `GET /teams/{team_id}/athletes`
 - `GET /athletes/{athlete_id}`
@@ -231,9 +245,20 @@ their original ROM profile reference.
 ### Videos
 
 - `POST /athletes/{athlete_id}/videos`
+- `GET /athletes/{athlete_id}/videos`
+- `GET /teams/{team_id}/videos`
 - `GET /videos/{motion_video_id}`
+- `PATCH /videos/{motion_video_id}`
 - `POST /videos/{motion_video_id}/upload-session`
 - `POST /videos/{motion_video_id}/submit-tracking`
+- `POST /videos/{motion_video_id}/archive`
+- `POST /videos/{motion_video_id}/restore`
+- `DELETE /videos/{motion_video_id}`
+
+`POST /athletes/{athlete_id}/videos` can create a draft record before upload
+when the user captures video with the smartphone camera. Query endpoints support
+filters for athlete, team, capture date, status, camera view, and analysis
+availability.
 
 ### Tracking And Analysis
 
@@ -271,6 +296,7 @@ Shared views must return only the scoped analysis result and allowed assets.
 - `409 analysis_already_processing`: duplicate tracking or analysis submission.
 - `422 tracking_confidence_too_low`: analysis cannot calculate required signals.
 - `422 unsupported_metric_definition`: metric is not valid for this motion type.
+- `422 video_not_ready_for_tracking`: video is not uploaded or is archived/deleted.
 - `410 share_expired_or_revoked`: external share is no longer available.
 
 ## 6. Security And Audit Requirements

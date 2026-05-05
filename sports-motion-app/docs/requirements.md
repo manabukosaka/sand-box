@@ -55,18 +55,39 @@ improvement.
 ### 4.1 Athlete And Team Management
 
 - Coaches and trainers can create athletes under a team or academy organization.
+- Coaches and team administrators can manage team attributes, including team
+  name, organization, sport, level, primary staff, and optional notes.
 - Each athlete has a profile with name, throwing arm, height, body mass, age or
-  age group, role, and optional notes.
+  age group, role or position, roster status, team membership, and optional notes.
+- Athlete and team attributes can be created, viewed, edited, and used as filters
+  for video and analysis history.
 - Each athlete has a chronological history of videos, tracking runs, analysis
   runs, ROM profiles, and shared reports.
+- The system preserves enough athlete and team context on each analysis result to
+  make historical review understandable even if profile attributes are later
+  edited.
 
 ### 4.2 Video Capture And Upload
 
-- A user can record or import a pitching video from a smartphone.
-- A video can be assigned to an athlete before or after upload.
+- A user can record a pitching video using the smartphone camera from inside the
+  app.
+- A user can import an existing pitching video from the smartphone media library
+  when in-app capture is not available.
+- During capture, the app lets the user assign the athlete, team, camera view,
+  throwing side, session label, and optional notes before submission.
 - The app records capture metadata where available, including frame rate,
-  resolution, device, capture date, throwing side, and camera-view notes.
-- The app displays upload, processing, failed, completed, and re-analysis states.
+  resolution, device, capture date, capture source, duration, throwing side, and
+  camera-view notes.
+- Captured videos can be saved as managed `MotionVideo` records before formal AI
+  tracking is submitted.
+- Users can view, search, filter, and update video metadata by athlete, team,
+  capture date, processing status, camera view, and analysis availability.
+- Users can keep videos in draft, uploaded, processing, analyzed, failed, archived,
+  or deleted states according to the storage and retention policy.
+- The app displays upload, processing, failed, completed, archived, deleted, and
+  re-analysis states.
+- Deleting or archiving a video must not silently delete historical analysis
+  evidence without an explicit product decision and audit trail.
 
 ### 4.3 AI Automatic Tracking
 
@@ -196,6 +217,8 @@ The implementation should support these core entities:
 - `Team`: group of athletes and staff within an organization.
 - `Athlete`: player profile and longitudinal analysis subject.
 - `MotionVideo`: uploaded or captured pitching video and capture metadata.
+- `VideoLibrary`: athlete/team-scoped collection and query boundary for managed
+  videos.
 - `TrackingRun`: AI tracking output, confidence, phase detection, and model
   version.
 - `AnalysisRun`: derived raw metrics, ROM-adjusted metrics, calculation versions,
@@ -227,8 +250,13 @@ The implementation should support these core entities:
 
 - A coach can create an athlete and edit an individual ROM profile initialized
   from standard ROM defaults.
-- A pitching video can be captured or imported, assigned to an athlete, uploaded,
-  and submitted for AI tracking.
+- A coach or trainer can create and edit team attributes and athlete attributes,
+  then use those attributes to filter the video and analysis history.
+- A pitching video can be captured with the smartphone camera from inside the app,
+  saved as a managed video record, assigned to an athlete/team, uploaded, and
+  submitted for AI tracking.
+- A previously captured or imported video can be found later by athlete, team,
+  date, status, or camera view.
 - The system can produce and store a tracking run containing skeleton data, joint
   confidence, and pitching phase markers.
 - The analysis view shows raw metrics, ROM-adjusted metrics, ROM ratios,

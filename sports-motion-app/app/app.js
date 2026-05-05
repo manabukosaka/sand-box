@@ -1,3 +1,5 @@
+import { createSportsMotionMockApi } from "../src/mockApi.mjs";
+
 const translations = {
   en: {
     documentTitle: "Sports Motion App",
@@ -150,6 +152,14 @@ const translations = {
   }
 };
 
+const api = createSportsMotionMockApi({ storage: localStorage });
+
+const metricKeys = {
+  metric_shoulder_max_external_rotation: "shoulder",
+  metric_trunk_rotation_velocity: "trunk",
+  metric_elbow_torque_proxy: "elbowProxy"
+};
+
 const state = {
   language: localStorage.getItem("sports-motion-language") ?? "en",
   athlete: {
@@ -162,35 +172,7 @@ const state = {
   lowConfidence: false,
   shareActive: false,
   lastNotice: "default",
-  metrics: [
-    {
-      key: "shoulder",
-      raw: 108,
-      unit: "deg",
-      confidence: 0.84,
-      maturity: "provisional",
-      evidence: "Ide 2024",
-      romAdjusted: 0.939
-    },
-    {
-      key: "trunk",
-      raw: 620,
-      unit: "deg/s",
-      confidence: 0.82,
-      maturity: "provisional",
-      evidence: "McCutcheon 2025",
-      romAdjusted: null
-    },
-    {
-      key: "elbowProxy",
-      raw: 0.73,
-      unit: "index",
-      confidence: 0.64,
-      maturity: "experimental",
-      evidence: "McCutcheon 2025",
-      romAdjusted: null
-    }
-  ]
+  metrics: []
 };
 
 const tabs = document.querySelectorAll(".tab");
@@ -271,6 +253,9 @@ function formatMetricValue(metric) {
   if (metric.unit === "index") {
     return metric.raw.toFixed(2);
   }
+  if (metric.unit === "deg_per_sec") {
+    return `${metric.raw} deg/s`;
+  }
   return `${metric.raw}${metric.unit === "deg" ? "°" : ` ${metric.unit}`}`;
 }
 
@@ -339,6 +324,39 @@ function renderStaticText() {
   });
 }
 
+function syncFromSnapshot(snapshot) {
+  const shoulderRom = snapshot.romProfile.entries.find(
+    (entry) => entry.joint === "shoulder" && entry.movement === "external_rotation"
+  );
+  state.athlete.name = snapshot.athlete.display_name;
+  state.cameraView = snapshot.video.camera_view;
+  state.frameRate = snapshot.video.frame_rate_fps;
+  state.romVersion = snapshot.romProfile.version;
+  state.shoulderRomMax = shoulderRom.individual_max_deg;
+  state.lowConfidence = snapshot.lowConfidence;
+  state.shareActive = Boolean(snapshot.activeShare);
+  state.metrics = snapshot.analysisRun.metrics.map((metric) => {
+    const definition = snapshot.metricDefinitions.find(
+      (candidate) => candidate.id === metric.metric_definition_id
+    );
+    return {
+      key: metricKeys[metric.metric_definition_id],
+      raw: metric.raw_value,
+      unit: metric.unit,
+      confidence: metric.confidence,
+      maturity: metric.maturity,
+      evidence: definition.reference_ids.join(", "),
+      romAdjusted: metric.adjusted_value
+    };
+  });
+
+  athleteInput.value = state.athlete.name;
+  cameraView.value = state.cameraView;
+  frameRate.value = state.frameRate;
+  shoulderRom.value = state.shoulderRomMax;
+  revokeShare.disabled = !state.shareActive;
+}
+
 function renderAll() {
   athleteName.textContent = state.athlete.name;
   shoulderRomValue.textContent = `${state.shoulderRomMax}°`;
@@ -353,30 +371,48 @@ function setLanguage(language) {
 }
 
 function recalculateRom() {
-  const ratio = state.metrics[0].raw / state.shoulderRomMax;
-  state.metrics[0].romAdjusted = Number(ratio.toFixed(3));
-  state.romVersion += 1;
+  syncFromSnapshot(api.updateShoulderExternalRotationMax(state.shoulderRomMax));
   state.lastNotice = "recalculated";
   renderAll();
 }
 
 function updateAthlete() {
-  state.athlete.name = athleteInput.value.trim() || t("unnamedAthlete");
-  state.cameraView = cameraView.value;
-  state.frameRate = Number(frameRate.value);
+  syncFromSnapshot(
+    api.updateAthleteProfile({
+      display_name: athleteInput.value.trim() || t("unnamedAthlete"),
+      camera_view: cameraView.value,
+      frame_rate_fps: Number(frameRate.value)
+    })
+  );
   state.lastNotice = "videoStaged";
   renderAll();
 }
 
 document.querySelector("#submitVideo").addEventListener("click", () => {
-  updateAthlete();
-  state.lowConfidence = false;
+  api.updateAthleteProfile({
+    display_name: athleteInput.value.trim() || t("unnamedAthlete"),
+    camera_view: cameraView.value,
+    frame_rate_fps: Number(frameRate.value)
+  });
+  syncFromSnapshot(
+    api.submitVideo({
+      camera_view: cameraView.value,
+      frame_rate_fps: Number(frameRate.value),
+      lowConfidence: false
+    })
+  );
   state.lastNotice = "trackingComplete";
   renderAll();
 });
 
 document.querySelector("#mockFailure").addEventListener("click", () => {
-  state.lowConfidence = true;
+  syncFromSnapshot(
+    api.submitVideo({
+      camera_view: cameraView.value,
+      frame_rate_fps: Number(frameRate.value),
+      lowConfidence: true
+    })
+  );
   state.lastNotice = "lowConfidence";
   renderAll();
 });
@@ -389,15 +425,18 @@ shoulderRom.addEventListener("input", () => {
 document.querySelector("#applyRom").addEventListener("click", recalculateRom);
 
 document.querySelector("#createShare").addEventListener("click", () => {
-  state.shareActive = true;
-  revokeShare.disabled = false;
+  syncFromSnapshot(
+    api.createShare({
+      includeVideo: document.querySelector("#includeVideo").checked,
+      includeEvidence: document.querySelector("#includeEvidence").checked
+    })
+  );
   state.lastNotice = "shareCreated";
   renderAll();
 });
 
 revokeShare.addEventListener("click", () => {
-  state.shareActive = false;
-  revokeShare.disabled = true;
+  syncFromSnapshot(api.revokeActiveShare());
   state.lastNotice = "shareRevoked";
   renderAll();
   shareState.textContent = t("shareRevoked");
@@ -407,4 +446,5 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("./service-worker.js").catch(() => {});
 }
 
+syncFromSnapshot(api.getSnapshot());
 renderAll();

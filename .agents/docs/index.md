@@ -16,6 +16,7 @@
 - `mcp.md`: MCP で外部文脈を追加する基準。
 - `automations.md`: 信頼できる workflow を scheduled automation に昇格する基準。
 - `session-controls.md`: thread、compaction、fork、sub-agent の扱い。
+- `sub-agent-harness.md`: role 別 sub-agent delegation の判断、handoff、統合ルール。
 - `retrospectives.md`: 繰り返し発生する friction を durable guardrail に変える方法。
 
 ## 保守ルール

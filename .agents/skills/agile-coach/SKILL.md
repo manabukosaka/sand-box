@@ -18,7 +18,7 @@ description: Mini Datadog の SDLC 作業を Agile Coach / Engineering Manager �
 
 ## Codex 向け調整
 
-- `invoke_agent` や `activate_skill` など Gemini 固有コマンドは使わない。
+- Gemini 固有の agent / skill 起動コマンドは使わない。
 - Codex sub-agent は、ユーザーが委譲または並列 agent 作業を明示した時だけ使う。
 - ユーザーが明示的に要求しない限り、commit、branch 変更、push、PR、merge を自発的に行わない。
 - `.gemini/` は参照元として扱い、ユーザーが Gemini 設定変更を求めない限り更新しない。

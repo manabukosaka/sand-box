@@ -26,13 +26,22 @@ Exit criteria:
 
 - Implement organization, team, user, athlete, and role model.
 - Implement athlete profile and ROM profile CRUD.
-- Implement video capture/import metadata flow in the mobile app.
+- Implement team attribute and athlete attribute management, including filters
+  for video and analysis history.
+- Implement in-app smartphone camera capture and video import metadata flow in
+  the mobile app.
+- Implement video library management for draft, uploaded, processing, analyzed,
+  failed, archived, and deleted states.
 - Implement backend video metadata and upload orchestration.
 - Implement analysis status model and basic result placeholders.
 
 Exit criteria:
 
 - A coach can create an athlete and upload or register a pitching video.
+- A coach can create or edit team and athlete attributes and use them to find
+  videos and analysis history.
+- A coach can capture a video with the smartphone camera and save it as a managed
+  video record before submitting AI tracking.
 - A coach can edit individual ROM values initialized from standard defaults.
 - The system can represent pending, processing, failed, and completed analysis.
 

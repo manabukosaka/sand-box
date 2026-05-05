@@ -4,11 +4,11 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  .agents/scripts/verify.sh [--backend] [--frontend] [--skills] [--hooks] [--codex-env] [--subagent-harness] [--all]
+  .agents/scripts/verify.sh [--backend] [--frontend] [--mini-datadog] [--sports-motion-app] [--skills] [--hooks] [--codex-env] [--subagent-harness] [--all]
 
 Runs repeatable Codex verification checks for this repository.
 
-Default: --backend --frontend --skills --hooks --codex-env --subagent-harness when corresponding files exist.
+Default: Mini Datadog checks, Sports Motion App docs checks, and shared Codex harness checks when corresponding files exist.
 EOF
 }
 
@@ -17,6 +17,7 @@ cd "$repo_root"
 
 run_backend=0
 run_frontend=0
+run_sports_motion_app=0
 run_skills=0
 run_hooks=0
 run_codex_env=0
@@ -27,11 +28,13 @@ while (($#)); do
   case "$1" in
     --backend) run_backend=1; explicit=1; shift ;;
     --frontend) run_frontend=1; explicit=1; shift ;;
+    --mini-datadog) run_backend=1; run_frontend=1; explicit=1; shift ;;
+    --sports-motion-app) run_sports_motion_app=1; explicit=1; shift ;;
     --skills) run_skills=1; explicit=1; shift ;;
     --hooks) run_hooks=1; explicit=1; shift ;;
     --codex-env) run_codex_env=1; explicit=1; shift ;;
     --subagent-harness) run_subagent_harness=1; explicit=1; shift ;;
-    --all) run_backend=1; run_frontend=1; run_skills=1; run_hooks=1; run_codex_env=1; run_subagent_harness=1; explicit=1; shift ;;
+    --all) run_backend=1; run_frontend=1; run_sports_motion_app=1; run_skills=1; run_hooks=1; run_codex_env=1; run_subagent_harness=1; explicit=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) echo "verify: unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -40,6 +43,7 @@ done
 if (( ! explicit )); then
   [[ -f mini-datadog/Cargo.toml ]] && run_backend=1
   [[ -f mini-datadog/web/package.json ]] && run_frontend=1
+  [[ -d sports-motion-app/docs ]] && run_sports_motion_app=1
   [[ -d .agents/skills ]] && run_skills=1
   [[ -d .githooks || -d .agents/scripts ]] && run_hooks=1
   [[ -f .agents/scripts/check-codex-env.sh ]] && run_codex_env=1
@@ -73,6 +77,11 @@ fi
 if ((run_subagent_harness)); then
   echo "==> Sub-agent harness"
   .agents/scripts/check-subagent-harness.sh
+fi
+
+if ((run_sports_motion_app)); then
+  echo "==> Sports Motion App docs"
+  bash .agents/scripts/check-sports-motion-docs.sh
 fi
 
 if ((run_backend)); then

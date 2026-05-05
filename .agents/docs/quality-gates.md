@@ -12,8 +12,11 @@
 ## テストゲート
 
 - 広範な repository check が必要な場合は `.agents/scripts/verify.sh` を使う。
+- 対象が Mini Datadog に限定される場合は `.agents/scripts/verify.sh --mini-datadog` を使う。
+- 対象が Sports Motion App に限定される場合は `.agents/scripts/verify.sh --sports-motion-app` を使う。
 - Rust: backend 変更に見合う場合は `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
 - Frontend: frontend 変更に見合う場合は `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
+- Sports Motion App docs: requirements、architecture、API schema、evidence metrics、project plan、V&V、ADR の整合性を `check-sports-motion-docs.sh` で確認する。
 - UI: 実用的な範囲で layout、responsiveness、accessibility basics、screenshot または browser evidence を確認する。
 - Data/auth/deployment: rollback、recovery、migration、residual risk を明示する。
 

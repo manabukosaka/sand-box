@@ -2,20 +2,25 @@
 
 ## 目的と優先順位
 
-このファイルは `/home/manabukosaka/work/my-sandbox` における Codex の入口です。これは詳細マニュアルではなく地図として扱い、必要な時だけ `.agents/docs/` または `mini-datadog/docs/` の詳細ガイドを読むこと。
+このファイルは `/home/manabukosaka/work/my-sandbox` における Codex の入口です。これは詳細マニュアルではなく地図として扱い、必要な時だけ `.agents/docs/`、`mini-datadog/docs/`、`sports-motion-app/docs/` の詳細ガイドを読むこと。
 
 より優先度の高い system / developer 指示は、このファイルより優先されます。このファイルは Codex の安全、承認、サンドボックス、git、協調作業ルールを迂回する許可ではありません。
 
 ## プロジェクト文脈
 
+- この workspace は複数プロダクトを扱う。境界は `.agents/docs/product-boundaries.md` を使う。
 - Product: Mini Datadog。軽量な self-hosted monitoring / log analysis platform。
-- Backend: Rust, Axum, Tokio, DuckDB。
-- Frontend: TypeScript, React, Next.js, Tailwind CSS。
-- Goal: 粗いユーザー依頼を、要件、設計、実装、テスト、V&V 証跡へ変換する。
+  - Backend: Rust, Axum, Tokio, DuckDB。
+  - Frontend: TypeScript, React, Next.js, Tailwind CSS。
+- Product: Sports Motion App。野球投球 MVP から始める sports motion analysis mobile app。
+  - Current phase: documentation-first。requirements、architecture、API contract、evidence metrics、project plan、V&V、ADR を `sports-motion-app/docs/` に保持する。
+  - Key constraints: installable iOS/Android app、hybrid cloud analysis、AI markerless tracking、ROM post-processing、evidence-backed baseball metrics。
+- Goal: 粗いユーザー依頼を、対象プロダクトごとの要件、設計、実装、テスト、V&V 証跡へ変換する。
 
 ## ナレッジマップ
 
 - `.agents/docs/index.md`: Codex 用ナレッジマップと保守ルール。
+- `.agents/docs/product-boundaries.md`: Mini Datadog と Sports Motion App の境界と検証入口。
 - `.agents/docs/harness-principles.md`: このワークスペース向け agent-first harness 原則。
 - `.agents/docs/operating-model.md`: このリポジトリで推奨する Codex 作業ループ。
 - `.agents/docs/prompt-template.md`: 目的、文脈、制約、完了条件で依頼を整理するテンプレート。
@@ -31,6 +36,7 @@
 - `.agents/docs/retrospectives.md`: 繰り返し起きる摩擦への対処。
 - `.agents/skills/`: Gemini のロール観点から移植した Codex skills。
 - `mini-datadog/docs/`: product requirements、design、ADR、API docs、V&V、setup docs。
+- `sports-motion-app/docs/`: Sports Motion App の requirements、architecture、API contract、evidence metrics、project plan、V&V、ADR。
 - `mini-datadog/CONTRIBUTING.md`: branch、commit、PR、review、quality check の source of truth。
 - `GEMINI.md` と `.gemini/`: Gemini 設定。ユーザーが明示的に Gemini 変更を求めない限り変更しない。
 
@@ -51,6 +57,8 @@
 詳細は `.agents/docs/quality-gates.md` を使う。要約:
 
 - 広範な Codex 環境 verification には `.agents/scripts/verify.sh` を実行する。
+- Mini Datadog の広範な verification は `.agents/scripts/verify.sh --mini-datadog` を使う。
+- Sports Motion App の docs / contract verification は `.agents/scripts/verify.sh --sports-motion-app` を使う。
 - Backend: 関連する `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
 - Frontend: 関連する `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
 - UI: 実用的な範囲で layout、responsive、accessibility basics、screenshot / browser evidence を確認する。

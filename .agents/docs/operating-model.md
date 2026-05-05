@@ -5,13 +5,13 @@
 ## 標準ループ
 
 1. `prompt-template.md` に沿ってタスクを整理する。
-2. 関連するリポジトリ文脈だけを収集する。
+2. `product-boundaries.md` に沿って対象プロダクトを判定し、関連するリポジトリ文脈だけを収集する。
 3. タスクが曖昧、複数ステップ、高リスク、または横断的な場合は plan を先に作る。
 4. 最小の一貫した単位で実装する。
 5. 狭く信頼できるチェックで verification する。広範なチェックが必要な場合は `.agents/scripts/verify.sh` を使う。
 6. 自明でない差分は `code-review.md` で review する。
 7. 永続的な判断は docs、ADR、tests、scripts、lint rules に残す。
-8. Git 運用は `mini-datadog/CONTRIBUTING.md` に従う。原則として作業 branch で checkpoint commit を作り、PR 経由で `main` に merge する。
+8. Git 運用は現時点では `mini-datadog/CONTRIBUTING.md` を workspace 共通の既定として使う。Sports Motion App 固有の contributing doc が追加された場合は対象プロダクトの doc を優先する。
 9. PR 作成は `.agents/scripts/codex-pr.sh`、承認済み PR の merge は `.agents/scripts/codex-merge.sh` を使う。
 
 ## エスカレーションルール

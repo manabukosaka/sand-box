@@ -1,6 +1,6 @@
 # Sub-Agent Harness
 
-この文書は、Mini Datadog で role 別 sub-agent を選択的に使うための harness 設計である。通常は親 Codex が role lens を local に適用し、ユーザーが `sub-agent`、`delegation`、`parallel agent work` を明示した場合だけ bounded task として委譲する。
+この文書は、この workspace で role 別 sub-agent を選択的に使うための harness 設計である。通常は親 Codex が role lens を local に適用し、ユーザーが `sub-agent`、`delegation`、`parallel agent work` を明示した場合だけ bounded task として委譲する。
 
 ## 判断ツリー
 
@@ -29,6 +29,9 @@
 | Security Researcher | auth、input validation、secret、dependency risk の非侵襲 review | findings、impact、推奨修正 |
 | DB Tuner | DuckDB schema/query/retention/file growth review | query/storage risk、測定または確認手順 |
 | SRE Specialist | startup/shutdown、resource、deployment、recovery review | failure mode、operational control、validation |
+| Sports Motion Product | sports-motion-app requirements、MVP scope、ROM / sharing workflow | 要件差分、acceptance criteria、scope / risk |
+| Sports Biomechanics Analyst | baseball pitching metrics、ROM、markerless tracking evidence | metric maturity、evidence caveat、doc update guidance |
+| Sports Mobile Architect | mobile/cloud analysis boundary、API contract、ADR | architecture decision、contract impact、open risks |
 
 Agile Coach は phase flow、handoff、blocker、delivery reporting を親側で調整する。複数 role を委譲する場合も、親が統合判断と最終報告を持つ。
 

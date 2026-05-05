@@ -1,10 +1,11 @@
 # Codex ナレッジマップ
 
-この directory は、Mini Datadog の agent 作業向け Codex-facing knowledge base です。`AGENTS.md` と各 `SKILL.md` は地図として保ち、タスクに必要な詳細 file だけを読む。
+この directory は、workspace 内プロダクトの agent 作業向け Codex-facing knowledge base です。`AGENTS.md` と各 `SKILL.md` は地図として保ち、タスクに必要な詳細 file だけを読む。
 
 ## 主要参照
 
 - `harness-principles.md`: OpenAI harness engineering をこの workspace 向けに適用した agent-first 原則。
+- `product-boundaries.md`: Mini Datadog と Sports Motion App の対象範囲、docs、verification entrypoint。
 - `operating-model.md`: この repository における日常的な Codex workflow。
 - `prompt-template.md`: reliable task setup のための再利用可能な prompt 形式。
 - `plans.md`: 複雑な作業向け execution plan template。

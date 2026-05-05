@@ -4,11 +4,11 @@ set -euo pipefail
 usage() {
   cat <<'EOF'
 Usage:
-  .agents/scripts/verify.sh [--backend] [--frontend] [--skills] [--hooks] [--codex-env] [--all]
+  .agents/scripts/verify.sh [--backend] [--frontend] [--skills] [--hooks] [--codex-env] [--subagent-harness] [--all]
 
 Runs repeatable Codex verification checks for this repository.
 
-Default: --backend --frontend --skills --hooks --codex-env when corresponding files exist.
+Default: --backend --frontend --skills --hooks --codex-env --subagent-harness when corresponding files exist.
 EOF
 }
 
@@ -20,6 +20,7 @@ run_frontend=0
 run_skills=0
 run_hooks=0
 run_codex_env=0
+run_subagent_harness=0
 explicit=0
 
 while (($#)); do
@@ -29,7 +30,8 @@ while (($#)); do
     --skills) run_skills=1; explicit=1; shift ;;
     --hooks) run_hooks=1; explicit=1; shift ;;
     --codex-env) run_codex_env=1; explicit=1; shift ;;
-    --all) run_backend=1; run_frontend=1; run_skills=1; run_hooks=1; run_codex_env=1; explicit=1; shift ;;
+    --subagent-harness) run_subagent_harness=1; explicit=1; shift ;;
+    --all) run_backend=1; run_frontend=1; run_skills=1; run_hooks=1; run_codex_env=1; run_subagent_harness=1; explicit=1; shift ;;
     --help|-h) usage; exit 0 ;;
     *) echo "verify: unknown argument: $1" >&2; exit 1 ;;
   esac
@@ -41,6 +43,7 @@ if (( ! explicit )); then
   [[ -d .agents/skills ]] && run_skills=1
   [[ -d .githooks || -d .agents/scripts ]] && run_hooks=1
   [[ -f .agents/scripts/check-codex-env.sh ]] && run_codex_env=1
+  [[ -f .agents/scripts/check-subagent-harness.sh ]] && run_subagent_harness=1
 fi
 
 if ((run_hooks)); then
@@ -65,6 +68,11 @@ fi
 if ((run_codex_env)); then
   echo "==> Codex environment"
   .agents/scripts/check-codex-env.sh
+fi
+
+if ((run_subagent_harness)); then
+  echo "==> Sub-agent harness"
+  .agents/scripts/check-subagent-harness.sh
 fi
 
 if ((run_backend)); then

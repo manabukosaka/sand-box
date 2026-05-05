@@ -11,6 +11,7 @@
 - `.agents/skills/`: Gemini role perspective から移植した Codex skills。
 - `.agents/docs/`: Codex harness と role reference material。
 - `.agents/scripts/verify.sh`: repeatable local verification entry point。
+- `.agents/scripts/check-subagent-harness.sh`: role 別 sub-agent harness の static consistency check。
 - `.agents/scripts/codex-checkpoint.sh`: explicit checkpoint commit helper。
 - `.agents/scripts/codex-pr.sh`: branch push と PR 作成の helper。
 - `.agents/scripts/codex-merge.sh`: approved PR merge の helper。

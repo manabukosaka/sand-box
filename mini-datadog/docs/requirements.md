@@ -18,10 +18,13 @@
    - 受信したログおよびメトリクスの時系列保存。
    - **データ保持期間 (Retention):** デフォルト30日間（設定により変更可能）。
    - **ログ検索画面 (Log Search Screen):** 時間範囲、キーワード、タグによるログの高速フィルタリングと検索。
+   - **ログファセット分析 (Log Facet Analysis):** 検索結果から service、level、tags、attributes の主要値を集計し、クリック操作で再検索条件へ反映できること。
+   - **相関 ID 補助 (Correlation Assist):** `trace_id`、`span_id`、`request_id`、`correlation_id` などがログの tags または attributes に含まれる場合、Explorer 上で抽出して関連ログ調査に利用できること。
    - **データクリーンアップジョブ (Data Cleanup Job):** 定期的に古いデータを削除し、ディスク使用量を管理する。
 3. **可視化 (Visualization)**
    - **メトリクスダッシュボード (Metrics Dashboard):** メトリクスを折れ線グラフ等で可視化。
    - ログのリアルタイム・ストリーム表示（Live Tail機能）。
+   - **運用準備 UI:** アラートや設定の情報設計を検証するため、backend 永続化を伴わない frontend-only preview UI を提供する。
 
 ### 3.2. MVPスコープ外（V1.x以降の追加機能） (Out of MVP Scope / V1.x+)
 - **データポータビリティ:** 蓄積されたデータの CSV または Parquet 形式でのエクスポート機能。

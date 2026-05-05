@@ -25,3 +25,10 @@ role perspective は、焦点を絞った review lens として使う。これ�
 
 - Codex sub-agent は、ユーザーが sub-agent、delegation、parallel agent work を明示的に求めた場合だけ使う。
 - それ以外は role perspective を local に適用し、作業を進める。
+- 明示的な委譲依頼がある場合、role perspective は `sub-agent-harness.md` に従って bounded sub-agent task に昇格できる。
+- Product Manager: 要件、受け入れ基準、スコープ外の整理を委譲できる。
+- Software Architect: ADR 要否、API / DB / security boundary、代替案比較を委譲できる。
+- Senior Engineer: disjoint write scope が明確な実装を委譲できる。
+- QA Engineer: test plan、regression matrix、manual / E2E evidence の整理を委譲できる。
+- Release Manager: V&V、PR readiness、rollback note の整理を委譲できる。
+- Security Researcher、DB Tuner、SRE Specialist: auth、DuckDB、deployment など高リスク領域の専門 review を委譲できる。

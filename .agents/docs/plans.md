@@ -13,6 +13,14 @@
 
 ## 制約
 
+## Delegation
+
+- Parent owns:
+- Sub-agents:
+- Do not delegate:
+- Integration checkpoint:
+- Verification owner:
+
 ## 手順
 
 - [ ] 文脈を収集する

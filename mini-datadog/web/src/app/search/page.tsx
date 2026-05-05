@@ -1,7 +1,7 @@
 'use client'
 
 import { FormEvent, useMemo, useState } from 'react'
-import { Calendar, Copy, Filter, Search, SlidersHorizontal, Terminal } from 'lucide-react'
+import { Calendar, Copy, Filter, Fingerprint, Search, Tags, Terminal } from 'lucide-react'
 import { toast } from "sonner"
 
 import { Badge } from "@/components/ui/badge"
@@ -30,9 +30,57 @@ interface LogQueryResponse {
   hits: LogRecord[]
 }
 
+interface FacetCount {
+  key: string
+  value: string
+  count: number
+}
+
 function toLocalInput(date: Date) {
   const offset = date.getTimezoneOffset() * 60000
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+}
+
+function collectFacets(logs: LogRecord[]) {
+  return collectFacetCounts(logs).slice(0, 12)
+}
+
+function collectFacetCounts(logs: LogRecord[]) {
+  const counts = new Map<string, number>()
+  logs.forEach((log) => {
+    counts.set(`service:${log.service || "unknown"}`, (counts.get(`service:${log.service || "unknown"}`) ?? 0) + 1)
+    counts.set(`level:${log.level || "unknown"}`, (counts.get(`level:${log.level || "unknown"}`) ?? 0) + 1)
+
+    ;([
+      ["tag", log.tags],
+      ["attr", log.attributes],
+    ] as const).forEach(([scope, values]) => {
+      if (!values || typeof values !== "object") return
+      Object.entries(values as Record<string, unknown>).forEach(([key, value]) => {
+        if (value === null || value === undefined || typeof value === "object") return
+        const facet = `${scope}.${key}:${String(value)}`
+        counts.set(facet, (counts.get(facet) ?? 0) + 1)
+      })
+    })
+  })
+
+  return Array.from(counts.entries())
+    .map(([facet, count]) => {
+      const separator = facet.indexOf(":")
+      return {
+        key: facet.slice(0, separator),
+        value: facet.slice(separator + 1),
+        count,
+      }
+    })
+    .sort((a, b) => b.count - a.count || `${a.key}:${a.value}`.localeCompare(`${b.key}:${b.value}`))
+}
+
+function collectCorrelationFields(logs: LogRecord[]) {
+  const correlationKeys = ["trace_id", "traceId", "span_id", "spanId", "request_id", "requestId", "correlation_id", "correlationId"]
+  return collectFacetCounts(logs)
+    .filter((facet) => correlationKeys.some((key) => facet.key.toLowerCase().endsWith(key.toLowerCase())))
+    .slice(0, 8)
 }
 
 export default function LogSearch() {
@@ -47,7 +95,10 @@ export default function LogSearch() {
 
   const summary = useMemo(() => summarizeLogs(results), [results])
   const buckets = useMemo(() => timelineBuckets(results, 32), [results])
+  const facets = useMemo(() => collectFacets(results), [results])
+  const correlationFields = useMemo(() => collectCorrelationFields(results), [results])
   const maxService = Math.max(...summary.topServices.map(([, count]) => count), 1)
+  const maxFacetCount = Math.max(...facets.map((facet) => facet.count), 1)
 
   const setQuickRange = (minutes: number) => {
     const now = new Date()
@@ -100,13 +151,22 @@ export default function LogSearch() {
     toast.success("Copied message")
   }
 
+  const applyFacet = (facet: FacetCount) => {
+    if (facet.key === "level") {
+      setLevel(facet.value.toLowerCase())
+    } else {
+      setQuery(facet.value)
+    }
+    toast.info(`Facet applied: ${facet.key}:${facet.value}`)
+  }
+
   return (
     <div className="space-y-6">
       <section className="grid gap-4 xl:grid-cols-4">
         <StatCard icon={<Search className="h-4 w-4" />} label="Query hits" value={formatNumber(results.length)} detail={`${formatNumber(total)} reported by API`} tone="cyan" />
         <StatCard icon={<Terminal className="h-4 w-4" />} label="Services" value={formatNumber(summary.services)} detail="represented in result set" tone="violet" />
         <StatCard icon={<Filter className="h-4 w-4" />} label="Errors" value={formatNumber(summary.errors)} detail={`${summary.errorRate}% of loaded hits`} tone={summary.errors ? "red" : "emerald"} />
-        <StatCard icon={<SlidersHorizontal className="h-4 w-4" />} label="Limit" value={String(limit)} detail="records per query" tone="emerald" />
+        <StatCard icon={<Tags className="h-4 w-4" />} label="Facets" value={formatNumber(facets.length)} detail="from loaded tags and attributes" tone="emerald" />
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[360px_1fr]">
@@ -233,6 +293,55 @@ export default function LogSearch() {
                       <p className="text-sm text-slate-500">No services in result set.</p>
                     ) : (
                       summary.topServices.map(([name, count]) => <DistributionBar key={name} label={name} value={count} max={maxService} tone="emerald" />)
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-slate-800 bg-slate-950/75">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Facets</p>
+                    <Badge variant="outline" className="border-slate-700 bg-slate-950 text-[10px] text-slate-400">click to filter</Badge>
+                  </div>
+                  <div className="mt-4 space-y-3">
+                    {facets.length === 0 ? (
+                      <p className="text-sm text-slate-500">Run a query to extract service, level, tag, and attribute facets.</p>
+                    ) : (
+                      facets.map((facet) => (
+                        <button
+                          key={`${facet.key}:${facet.value}`}
+                          type="button"
+                          className="w-full rounded-md border border-slate-800 bg-slate-900/40 p-2 text-left transition-colors hover:border-cyan-400/30 hover:bg-slate-900"
+                          onClick={() => applyFacet(facet)}
+                        >
+                          <DistributionBar label={`${facet.key}:${facet.value}`} value={facet.count} max={maxFacetCount} tone={facet.key === "level" ? "violet" : "cyan"} />
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-slate-800 bg-slate-950/75">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2">
+                    <Fingerprint className="h-4 w-4 text-emerald-300" />
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">Correlation IDs</p>
+                  </div>
+                  <div className="mt-4 space-y-2">
+                    {correlationFields.length === 0 ? (
+                      <p className="text-sm leading-5 text-slate-500">No trace, span, request, or correlation IDs found in loaded tags or attributes.</p>
+                    ) : (
+                      correlationFields.map((facet) => (
+                        <Button
+                          key={`${facet.key}:${facet.value}`}
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start border-slate-800 bg-slate-900/60 font-mono text-xs"
+                          onClick={() => applyFacet(facet)}
+                        >
+                          {facet.key}:{facet.value}
+                        </Button>
+                      ))
                     )}
                   </div>
                 </CardContent>

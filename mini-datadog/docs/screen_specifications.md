@@ -25,6 +25,7 @@
 - **最優先で伝える情報**:
   1. **直感的な検索条件入力**: 時間範囲（Start/End）、ログレベル、キーワードの各条件を迷いなく入力できるフォーム。
   2. **検索結果の視認性**: 検索結果が何件見つかったか、それぞれのログの発生時刻と内容をノイズなく一覧できるリスト表示。
+  3. **Facet / Correlation Assist**: 検索結果に含まれる service、level、tags、attributes の主要値を横断的に表示し、`trace_id`、`span_id`、`request_id`、`correlation_id` などの相関 ID があれば即座に絞り込みへ使えるようにする。
 
 ### 1.3. Metrics 画面 (`/metrics`)
 - **目的**: 既存の Metrics Query API を使い、メトリクスの時系列変化を即座に確認すること。

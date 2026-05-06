@@ -7,8 +7,21 @@ import {
   createAthlete,
   createPrototypeDataset,
   createStandardRomProfile,
+  createTeam,
   updateRomEntry
 } from "../src/domain.mjs";
+
+test("creates a team with baseball defaults and editable attributes", () => {
+  const team = createTeam({
+    id: "team_test",
+    organization_id: "org_test",
+    name: "  Pitching Lab  "
+  });
+
+  assert.equal(team.name, "Pitching Lab");
+  assert.equal(team.sport, "baseball");
+  assert.equal(team.level, "college_adult");
+});
 
 test("creates an athlete with required identity fields", () => {
   const athlete = createAthlete({
@@ -20,6 +33,8 @@ test("creates an athlete with required identity fields", () => {
   assert.equal(athlete.display_name, "Pitcher Test");
   assert.equal(athlete.throwing_arm, "right");
   assert.equal(athlete.age_group, "college_adult");
+  assert.equal(athlete.role, "pitcher");
+  assert.equal(athlete.roster_status, "active");
 });
 
 test("rejects empty athlete display names", () => {

@@ -71,9 +71,81 @@
           <div class="workflow-panel">
             <h2 id="captureHeading">Session</h2>
             <label>
+              <span id="teamNameLabel">Team</span>
+              <input id="teamNameInput" type="text" value="College Pitching Group" />
+            </label>
+            <label>
+              <span id="teamStaffLabel">Primary staff</span>
+              <input id="teamStaffInput" type="text" value="Pitching coach" />
+            </label>
+            <div class="inline-fields">
+              <label>
+                <span id="teamSportLabel">Sport</span>
+                <select id="teamSportInput">
+                  <option id="sportBaseball" value="baseball">Baseball</option>
+                </select>
+              </label>
+              <label>
+                <span id="teamLevelLabel">Team level</span>
+                <select id="teamLevelInput">
+                  <option id="levelCollegeAdult" value="college_adult">College/adult</option>
+                  <option id="levelHighSchool" value="high_school">High school</option>
+                  <option id="levelYouth" value="youth">Youth</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              <span id="teamNotesLabel">Team notes</span>
+              <input id="teamNotesInput" type="text" value="Prototype pitching development group" />
+            </label>
+            <label>
               <span id="athleteLabel">Athlete</span>
               <input id="athleteInput" type="text" value="Pitcher A" />
             </label>
+            <div class="inline-fields">
+              <label>
+                <span id="throwingArmLabel">Throwing arm</span>
+                <select id="throwingArmInput">
+                  <option id="throwingRight" value="right">Right</option>
+                  <option id="throwingLeft" value="left">Left</option>
+                </select>
+              </label>
+              <label>
+                <span id="athleteRoleLabel">Role</span>
+                <select id="athleteRoleInput">
+                  <option id="rolePitcher" value="pitcher">Pitcher</option>
+                  <option id="roleTwoWay" value="two_way">Two-way</option>
+                </select>
+              </label>
+            </div>
+            <div class="inline-fields">
+              <label>
+                <span id="rosterStatusLabel">Roster status</span>
+                <select id="rosterStatusInput">
+                  <option id="rosterActive" value="active">Active</option>
+                  <option id="rosterRehab" value="rehab">Rehab</option>
+                  <option id="rosterInactive" value="inactive">Inactive</option>
+                </select>
+              </label>
+              <label>
+                <span id="ageGroupLabel">Age group</span>
+                <select id="ageGroupInput">
+                  <option id="ageCollegeAdult" value="college_adult">College/adult</option>
+                  <option id="ageHighSchool" value="high_school">High school</option>
+                  <option id="ageYouth" value="youth">Youth</option>
+                </select>
+              </label>
+            </div>
+            <div class="inline-fields">
+              <label>
+                <span id="heightLabel">Height cm</span>
+                <input id="heightInput" type="number" value="185" min="120" max="230" />
+              </label>
+              <label>
+                <span id="bodyMassLabel">Body mass kg</span>
+                <input id="bodyMassInput" type="number" value="88" min="35" max="180" />
+              </label>
+            </div>
             <label>
               <span id="cameraViewLabel">Camera view</span>
               <select id="cameraView">
@@ -86,12 +158,66 @@
               <span id="frameRateLabel">Frame rate</span>
               <input id="frameRate" type="number" value="240" min="30" step="30" />
             </label>
+            <label>
+              <span id="sessionLabelText">Session label</span>
+              <input id="sessionLabel" type="text" value="Bullpen session" />
+            </label>
+            <div class="file-actions">
+              <label class="file-action">
+                <span id="captureVideoLabel">Record with camera</span>
+                <input id="captureVideoInput" type="file" accept="video/*" capture="environment" />
+              </label>
+              <label class="file-action">
+                <span id="importVideoLabel">Import video</span>
+                <input id="importVideoInput" type="file" accept="video/*" />
+              </label>
+            </div>
             <div class="button-row">
               <button class="primary-action" id="submitVideo" type="button">Submit video</button>
               <button class="secondary-action" id="mockFailure" type="button">Flag low confidence</button>
             </div>
           </div>
         </div>
+        <div class="section-title library-title">
+          <h2 id="libraryHeading">Video library</h2>
+          <span id="librarySubtitle">Managed videos for this athlete</span>
+        </div>
+        <div class="library-filters">
+          <label>
+            <span id="videoSearchLabel">Search</span>
+            <input id="videoSearchInput" type="search" />
+          </label>
+          <label>
+            <span id="videoStatusFilterLabel">Status</span>
+            <select id="videoStatusFilter">
+              <option id="filterAllStatuses" value="all">All statuses</option>
+              <option value="draft">Draft</option>
+              <option value="uploaded">Uploaded</option>
+              <option value="processing">Processing</option>
+              <option value="analyzed">Analyzed</option>
+              <option value="failed">Failed</option>
+              <option value="archived">Archived</option>
+            </select>
+          </label>
+          <label>
+            <span id="videoCameraFilterLabel">Camera view</span>
+            <select id="videoCameraFilter">
+              <option id="filterAllCameraViews" value="all">All views</option>
+              <option value="open_side">Open side</option>
+              <option value="catcher_view">Catcher view</option>
+              <option value="closed_side">Closed side</option>
+            </select>
+          </label>
+          <label>
+            <span id="videoAnalysisFilterLabel">Analysis</span>
+            <select id="videoAnalysisFilter">
+              <option id="filterAllAnalysis" value="all">All analysis states</option>
+              <option id="filterWithAnalysis" value="with_analysis">With analysis</option>
+              <option id="filterWithoutAnalysis" value="without_analysis">Without analysis</option>
+            </select>
+          </label>
+        </div>
+        <div class="library-list" id="videoLibrary"></div>
       </section>
 
       <section class="view" id="metrics" aria-labelledby="metricsHeading">

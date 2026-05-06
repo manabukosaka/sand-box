@@ -1,4 +1,4 @@
-const CACHE_NAME = "sports-motion-prototype-v4";
+const CACHE_NAME = "sports-motion-prototype-v7";
 const ASSETS = [
   "./",
   "./index.html",

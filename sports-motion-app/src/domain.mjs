@@ -6,6 +6,23 @@ export const metricMaturity = Object.freeze({
   EXPERIMENTAL: "experimental"
 });
 
+export function createTeam(input) {
+  const name = input.name?.trim();
+  if (!name) {
+    throw new Error("team name is required");
+  }
+  return {
+    id: input.id,
+    organization_id: input.organization_id,
+    name,
+    sport: input.sport ?? "baseball",
+    level: input.level ?? "college_adult",
+    primary_staff: input.primary_staff ?? "Pitching coach",
+    notes: input.notes ?? null,
+    created_at: input.created_at ?? new Date().toISOString()
+  };
+}
+
 export function createAthlete(input) {
   const displayName = input.display_name?.trim();
   if (!displayName) {
@@ -17,6 +34,8 @@ export function createAthlete(input) {
     display_name: displayName,
     throwing_arm: input.throwing_arm ?? "right",
     age_group: input.age_group ?? "college_adult",
+    role: input.role ?? "pitcher",
+    roster_status: input.roster_status ?? "active",
     height_cm: input.height_cm ?? null,
     body_mass_kg: input.body_mass_kg ?? null,
     created_at: input.created_at ?? new Date().toISOString()
@@ -146,12 +165,20 @@ export function createMotionVideo(input) {
   return {
     id: input.id,
     athlete_id: input.athlete_id,
-    status: input.status ?? "uploaded",
+    status: input.status ?? "draft",
     capture_type: input.capture_type ?? "recorded_in_app",
+    capture_source: input.capture_source ?? "smartphone_camera",
     motion_type: MOTION_TYPE,
     camera_view: input.camera_view ?? "open_side",
     frame_rate_fps: input.frame_rate_fps ?? 240,
     resolution: input.resolution ?? "1920x1080",
+    duration_ms: input.duration_ms ?? null,
+    session_label: input.session_label ?? null,
+    file_name: input.file_name ?? null,
+    file_size_bytes: input.file_size_bytes ?? null,
+    notes: input.notes ?? null,
+    archived_at: input.archived_at ?? null,
+    deleted_at: input.deleted_at ?? null,
     captured_at: input.captured_at ?? new Date().toISOString(),
     created_at: input.created_at ?? new Date().toISOString()
   };
@@ -290,10 +317,16 @@ export function createPrototypeDataset() {
       created_at: "2026-05-05T00:00:00Z"
     },
     team: {
-      id: "team_pitching_lab",
-      organization_id: "org_001",
-      name: "College Pitching Group",
-      created_at: "2026-05-05T00:00:00Z"
+      ...createTeam({
+        id: "team_pitching_lab",
+        organization_id: "org_001",
+        name: "College Pitching Group",
+        sport: "baseball",
+        level: "college_adult",
+        primary_staff: "Pitching coach",
+        notes: "Prototype pitching development group",
+        created_at: "2026-05-05T00:00:00Z"
+      })
     },
     athlete,
     romProfile,

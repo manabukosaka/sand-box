@@ -3,6 +3,7 @@ import {
   createAthlete,
   createMotionVideo,
   createPrototypeDataset,
+  createTeam,
   createTrackingRun,
   metricDefinitions,
   updateRomEntry
@@ -103,6 +104,12 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
     const currentRomProfile = getCurrentRomProfile();
     const activeAnalysisRun = getActiveAnalysisRun();
     const activeTrackingRun = getActiveTrackingRun();
+    const analyzedVideoIds = new Set(
+      state.analysisRuns
+        .map((analysisRun) => state.trackingRuns.find((run) => run.id === analysisRun.tracking_run_id))
+        .filter(Boolean)
+        .map((trackingRun) => trackingRun.motion_video_id)
+    );
     const activeShare = state.shareLinks.find(
       (share) => share.analysis_run_id === activeAnalysisRun.id && !share.revoked_at
     );
@@ -112,6 +119,10 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       athlete: activeAthlete,
       romProfile: currentRomProfile,
       video: state.videos[state.videos.length - 1],
+      videos: state.videos.map((video) => ({
+        ...video,
+        analysis_available: analyzedVideoIds.has(video.id)
+      })),
       trackingRun: activeTrackingRun,
       analysisRun: activeAnalysisRun,
       activeShare: activeShare ?? null,
@@ -155,17 +166,92 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       return buildSnapshot();
     },
 
-    submitVideo({ camera_view, frame_rate_fps, lowConfidence = false }) {
+    updateTeamAttributes({ name, sport, level, primary_staff, notes }) {
+      state.team = createTeam({
+        ...state.team,
+        name,
+        sport,
+        level,
+        primary_staff,
+        notes
+      });
+      persist();
+      return buildSnapshot();
+    },
+
+    updateAthleteAttributes({
+      display_name,
+      throwing_arm,
+      age_group,
+      role,
+      roster_status,
+      height_cm,
+      body_mass_kg
+    }) {
+      const athlete = createAthlete({
+        ...getActiveAthlete(),
+        display_name,
+        throwing_arm,
+        age_group,
+        role,
+        roster_status,
+        height_cm,
+        body_mass_kg
+      });
+      state.athletes = state.athletes.map((candidate) => (candidate.id === athlete.id ? athlete : candidate));
+      persist();
+      return buildSnapshot();
+    },
+
+    saveCapturedVideo({
+      capture_source,
+      capture_type,
+      file_name,
+      file_size_bytes,
+      camera_view,
+      frame_rate_fps,
+      session_label,
+      notes
+    }) {
       const athlete = getActiveAthlete();
       const video = createMotionVideo({
         id: nextId("vid", state.videos),
         athlete_id: athlete.id,
+        status: "draft",
+        capture_source,
+        capture_type,
         camera_view,
         frame_rate_fps,
+        session_label,
+        file_name,
+        file_size_bytes,
+        notes,
         captured_at: now(),
         created_at: now()
       });
       state.videos.push(video);
+      persist();
+      return buildSnapshot();
+    },
+
+    submitVideo({ video_id, camera_view, frame_rate_fps, lowConfidence = false }) {
+      const athlete = getActiveAthlete();
+      let video = video_id ? state.videos.find((candidate) => candidate.id === video_id) : null;
+      if (!video) {
+        video = createMotionVideo({
+          id: nextId("vid", state.videos),
+          athlete_id: athlete.id,
+          status: "uploaded",
+          camera_view,
+          frame_rate_fps,
+          captured_at: now(),
+          created_at: now()
+        });
+        state.videos.push(video);
+      } else {
+        video = { ...video, status: "uploaded", camera_view, frame_rate_fps };
+        state.videos = state.videos.map((candidate) => (candidate.id === video.id ? video : candidate));
+      }
       const trackingRun = createTrackingRun({
         id: nextId("trk", state.trackingRuns),
         motion_video_id: video.id,
@@ -183,6 +269,29 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
         trackingRun,
         romProfile: getCurrentRomProfile(),
         analysisVersion: state.analysisRuns.length + 1
+      });
+      state.videos = state.videos.map((candidate) =>
+        candidate.id === video.id ? { ...candidate, status: "analyzed" } : candidate
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    updateVideoStatus({ video_id, status }) {
+      state.videos = state.videos.map((video) => {
+        if (video.id !== video_id) {
+          return video;
+        }
+        if (status === "archived") {
+          return { ...video, status, archived_at: now() };
+        }
+        if (status === "deleted") {
+          return { ...video, status, deleted_at: now() };
+        }
+        if (status === "uploaded" || status === "draft" || status === "analyzed") {
+          return { ...video, status, archived_at: null, deleted_at: null };
+        }
+        return { ...video, status };
       });
       persist();
       return buildSnapshot();

@@ -170,6 +170,36 @@ h2 {
   border-color: #a7dccd;
 }
 
+.status-draft {
+  color: #42524b;
+  background: #eef3f0;
+}
+
+.status-uploaded,
+.status-processing {
+  color: #2f5d9b;
+  background: #e8f0fb;
+  border-color: #c5d7f0;
+}
+
+.status-analyzed {
+  color: #0a5d4c;
+  background: #dff5ed;
+  border-color: #a7dccd;
+}
+
+.status-failed {
+  color: var(--danger);
+  background: #fde8e8;
+  border-color: #f5c2c2;
+}
+
+.status-archived {
+  color: var(--warn);
+  background: #fff4df;
+  border-color: #efcf98;
+}
+
 .tabs {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -367,6 +397,96 @@ h2 {
   padding: 16px;
 }
 
+.inline-fields,
+.library-filters {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.file-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.file-action {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-weight: 800;
+  text-align: center;
+}
+
+.file-action input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.library-title {
+  margin-top: 18px;
+}
+
+.library-filters {
+  grid-template-columns: minmax(180px, 1fr) repeat(3, minmax(130px, 0.5fr));
+  margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.library-list {
+  display: grid;
+  gap: 8px;
+}
+
+.video-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) minmax(88px, auto) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.video-row strong,
+.video-row span {
+  display: block;
+}
+
+.video-row small {
+  color: var(--muted);
+}
+
+.video-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.mini-action {
+  min-height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--accent-strong);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -558,6 +678,17 @@ select {
 
   .metric-row {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .inline-fields,
+  .file-actions,
+  .library-filters,
+  .video-row {
+    grid-template-columns: 1fr;
+  }
+
+  .video-actions {
+    justify-content: flex-start;
   }
 
   .metric-row:first-child {

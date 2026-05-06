@@ -8,15 +8,21 @@ the baseball pitching MVP.
 
 ## Current Prototype
 
-- `app/`: mobile-first PWA prototype for capture, metrics, ROM recalculation, and
-  external sharing flows.
+- `app/`: mobile-first PWA prototype for capture, team/athlete profile editing,
+  video library management, metrics, ROM recalculation, and external sharing
+  flows.
 - `src/domain.mjs`: MVP domain model and analysis/ROM mock logic.
 - `src/mockApi.mjs`: local mock API that follows the MVP contract and persists
   prototype state in browser storage.
-- `tests/`: Node test coverage for athlete creation, ROM versioning, and
-  raw-versus-adjusted analysis separation.
+- `tests/`: Node test coverage for profile editing, video lifecycle states, ROM
+  versioning, sharing, and raw-versus-adjusted analysis separation.
 - `docs/`: requirements, architecture, API contract, evidence metrics, project
   plan, V&V checklist, and ADR.
+- `docs/prototype_acceptance_review.md`: current Milestone 1 prototype
+  acceptance notes and known limits.
+- `docs/tracking_feasibility_gate.md`: Milestone 2 entry gate for mobile stack,
+  tracking model/provider, sample videos, confidence policy, and metric
+  promotion.
 
 ## Commands
 
@@ -32,6 +38,9 @@ The prototype supports English and Japanese. Use the language switch in the app
 header to change display language. Domain IDs and API-facing values stay in
 English so they remain stable across locales.
 
+The local prototype uses browser `localStorage`. Reset site data in the browser
+when you want to return to the seed dataset.
+
 ## Boundary
 
 This product is separate from Mini Datadog. Shared Codex harness rules live in
@@ -43,11 +52,13 @@ Sports Motion App は、インストール型モバイルアプリとして開�
 
 ## 現在のプロトタイプ
 
-- `app/`: 撮影、指標、ROM再計算、外部共有フローを確認するモバイルファーストPWAプロトタイプ。
+- `app/`: 撮影、チーム/選手プロフィール編集、動画ライブラリ管理、指標、ROM再計算、外部共有フローを確認するモバイルファーストPWAプロトタイプ。
 - `src/domain.mjs`: MVPのドメインモデルと解析/ROMのモックロジック。
 - `src/mockApi.mjs`: MVP契約に沿ったローカルモックAPI。ブラウザストレージへプロトタイプ状態を保存します。
-- `tests/`: 選手作成、ROM versioning、raw値と補正値の分離を確認するNodeテスト。
+- `tests/`: プロフィール編集、動画ライフサイクル、ROM versioning、共有、raw値と補正値の分離を確認するNodeテスト。
 - `docs/`: 要求、アーキテクチャ、API契約、エビデンス指標、プロジェクト計画、V&Vチェックリスト、ADR。
+- `docs/prototype_acceptance_review.md`: 現在のMilestone 1プロトタイプの受け入れメモと既知の制約。
+- `docs/tracking_feasibility_gate.md`: mobile stack、tracking model/provider、sample video、confidence policy、metric promotion を扱うMilestone 2 entry gate。
 
 ## コマンド
 
@@ -60,6 +71,8 @@ npm run serve
 `http://127.0.0.1:4173/app/` を開いてください。
 
 プロトタイプは英語と日本語の表示に対応しています。アプリ上部の言語切替で表示言語を変更できます。ドメインIDやAPI向けの値は、localeに依存しないよう英語のまま保持します。
+
+ローカルプロトタイプはブラウザの `localStorage` を使います。初期データに戻したい場合は、ブラウザ側でサイトデータをリセットしてください。
 
 ## 境界
 

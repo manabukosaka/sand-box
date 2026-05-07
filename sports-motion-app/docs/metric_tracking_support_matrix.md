@@ -90,3 +90,13 @@ Each metric needs a promotion record before its maturity changes:
   deferred.
 - Whether pelvis-trunk separation can stay provisional with single-camera
   tracking or must move to experimental until a 3D/multi-view workflow exists.
+
+## First Sample-Run Update Rules
+
+When the first executable sample run is completed:
+
+- add a dated summary section that references the results file under `docs/vv/`;
+- record signal pass/warn/fail counts for each required signal group;
+- mark each metric row as unchanged, promoted, demoted, or still blocked;
+- state any suppression behavior that was confirmed by sample runs;
+- keep unresolved metrics as provisional/experimental until review sign-off.

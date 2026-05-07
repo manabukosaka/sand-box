@@ -37,11 +37,15 @@ the baseball pitching MVP.
   the tracking feasibility gate.
 - `docs/metric_tracking_support_matrix.md`: metric-to-tracking-signal support
   matrix for promotion and suppression decisions.
+- `docs/tracking_sample_run_plan.md`: executable tracking feasibility sample-run
+  checklist used before metric promotion or provider/model commitment.
 - `docs/mobile_test_plan.md`: timing and scope for PWA smoke, Android emulator,
   iOS simulator, and physical-device verification.
 - `docs/native_field_prototype_spike.md`: execution plan for the React Native +
   Expo field prototype spike.
 - `docs/vv/`: V&V evidence templates and safe mobile test result summaries.
+  Includes `tracking_feasibility_results_template.md` for dated candidate
+  evaluation summaries without athlete-identifying media.
 - `mobile/`: isolated React Native + Expo field prototype scaffold. It mirrors
   the PWA skeleton with capture/import, bilingual navigation, local draft
   persistence, permission status, selected-video metadata, phase-overlay

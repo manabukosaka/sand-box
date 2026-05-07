@@ -25,6 +25,8 @@
 - 委譲する作業は、範囲が限定され、自己完結し、主作業に実質的に役立つものに保つ。
 - 明示的なサブエージェント model override が正当化できる場合は `model-policy.md` を使う。
 - role 別の委譲設計と handoff packet は `sub-agent-harness.md` を使う。
+- sub-agent、docs、scripts は system/developer ルール、sandbox approval、
+  user-confirmation gate、git safety rule を迂回する権限を与えない。
 
 ## 起動前 checklist
 
@@ -40,3 +42,17 @@
 - 競合、重複、scope creep を除去する。
 - 必要な ADR、requirements、design、test、V&V evidence を親が最終的にそろえる。
 - 最終報告では実行した check、known gaps、残余リスクを親がまとめる。
+
+## 長時間の自律開発
+
+- ユーザーが Sports Motion App の最大自律を明示した場合は、
+  `sports-motion-app/docs/development_process.md` を優先する。
+- push、PR、merge は現在のユーザー依頼が明示的に許可している範囲でのみ
+  実行し、merge は承認済み PR と明示的な merge approval を必要とする。
+- coherent boundary ごとに checkpoint commit、planning queue、retrospective
+  の要否を確認する。
+- scope、clinical/injury wording、sharing/privacy、metric promotion、mobile
+  stack/ADR、merge readiness に触れる場合は user review request gate として
+  扱う。
+- merge 後は `main` の同期、workspace clean、必要な verification を確認して
+  final report に残す。

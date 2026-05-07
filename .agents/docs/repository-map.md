@@ -33,6 +33,9 @@
 - `sports-motion-app/docs/api_schema.md`: sports motion analysis MVP の API / data contract draft。
 - `sports-motion-app/docs/evidence_metrics.md`: 野球投球 MVP のエビデンス指標カタログ。
 - `sports-motion-app/docs/project_plan.md`: sports motion analysis MVP の段階的実装計画。
+- `sports-motion-app/docs/development_process.md`: Sports Motion App の開発ループ、PR 前チェック、merge 後確認。
+- `sports-motion-app/docs/planning/`: Sports Motion App の自律開発 planning queue。
+- `sports-motion-app/docs/retrospectives/`: Sports Motion App の process retrospective と恒久対策。
 - `sports-motion-app/docs/vuv_checklist.md`: sports motion analysis MVP の verification / validation checklist。
 - `sports-motion-app/docs/adr/`: sports motion analysis app の architecture decision records。
 

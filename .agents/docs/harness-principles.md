@@ -34,6 +34,11 @@
 - bug と UI 変更では、再現、修正、検証を同じ loop で行う。
 - agent が詰まることは、docs、tools、repository structure に不足がある signal として扱う。
 - ユーザーが継続的な commit workflow を求めている場合は、coherent progress を checkpoint commit で捕捉する。
+- ユーザーが Sports Motion App の最大自律を明示した場合は、planning、
+  implementation、verification、PR、approved merge、post-merge confirmation
+  を `sports-motion-app/docs/development_process.md` の loop に沿って扱う。
+- 長い自律作業では、review request gate、retrospective、planning queue、
+  checkpoint commit を repo-readable artifact として残す。
 
 ## 外部文脈と自動化
 

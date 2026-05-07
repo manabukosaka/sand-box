@@ -1,4 +1,4 @@
-const CACHE_NAME = "sports-motion-prototype-v7";
+const CACHE_NAME = "sports-motion-prototype-v18";
 const ASSETS = [
   "./",
   "./index.html",
@@ -7,7 +7,8 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./icon.svg",
   "../src/domain.mjs",
-  "../src/mockApi.mjs"
+  "../src/mockApi.mjs",
+  "../src/trackingAdapter.mjs"
 ];
 
 self.addEventListener("install", (event) => {

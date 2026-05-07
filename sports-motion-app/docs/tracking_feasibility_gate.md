@@ -40,6 +40,20 @@ Record one recommended stack and one backup option for:
 No production stack is selected in this document. The decision must be captured
 in an ADR when made.
 
+The mobile stack gate must include:
+
+- Android emulator smoke for launch, navigation, localization, local draft state,
+  mock API flow, and video-preview layout;
+- iOS simulator smoke for launch, navigation, localization, local draft state,
+  mock API flow, and video-preview layout;
+- physical Android verification for camera capture/import, file metadata, local
+  draft persistence after restart, upload retry, and overlay review;
+- physical iPhone verification for camera capture/import, file metadata, local
+  draft persistence after restart, upload retry, and overlay review.
+
+Emulator/simulator evidence can start the spike, but cannot pass the mobile
+stack gate without physical-device evidence.
+
 ### Tracking Provider Or Model Shortlist
 
 Create a shortlist with at least two credible options. For each candidate,
@@ -59,6 +73,10 @@ record:
 
 Current state: not selected.
 
+Draft shortlist artifact:
+
+- `docs/tracking_shortlist.md`
+
 ### Sample Pitching Video Test Set
 
 Build a test set before choosing a tracking approach. The set must include:
@@ -76,6 +94,10 @@ Build a test set before choosing a tracking approach. The set must include:
 Each sample must record consent/usage rights, athlete age group, camera view,
 frame rate, resolution, duration, capture distance, and whether the whole body
 is visible at foot contact and release.
+
+Draft sample manifest artifact:
+
+- `docs/sample_video_manifest.md`
 
 ## 3. Tracking Acceptance Criteria
 
@@ -126,6 +148,10 @@ sample-video evaluation.
 
 Metric maturity must follow `docs/evidence_metrics.md`.
 
+Draft signal support artifact:
+
+- `docs/metric_tracking_support_matrix.md`
+
 Promotion from experimental to provisional, or provisional to formal, requires:
 
 - required tracking signals are reliably available in the approved capture
@@ -154,6 +180,18 @@ tracking adapter behind the existing mock API boundary:
 - metric suppression based on required signal confidence;
 - evidence and metric maturity labels preserved in the UI.
 
+Prototype contract artifact:
+
+- `src/trackingAdapter.mjs` defines the replaceable adapter shape and a
+  deterministic prototype fixture. It is not a real provider integration.
+- The prototype adapter emits a versioned quality report surface:
+  `warning_reasons`, `suppressed_metric_groups`, and `signal_confidence` in
+  addition to run status, phase events, overall confidence, and failure reason.
+  These fields are placeholders for metric suppression behavior until a real
+  provider is evaluated on the sample-video set.
+- The PWA summary surfaces tracking status, model version, confidence policy
+  version, overall confidence, and phase-event confidence from that adapter.
+
 Do not add production authentication, object storage, or real share-link access
 control in the same slice unless the mobile/backend boundary has been selected.
 
@@ -161,12 +199,14 @@ control in the same slice unless the mobile/backend boundary has been selected.
 
 Before the gate can pass, attach or link:
 
-- mobile stack decision ADR;
-- tracking shortlist review table;
-- sample-video set manifest;
+- mobile stack decision ADR:
+  `docs/adr/0002-mobile-stack-for-field-prototype.md`;
+- tracking shortlist review table: `docs/tracking_shortlist.md`;
+- sample-video set manifest: `docs/sample_video_manifest.md`;
 - sample-video evaluation result summary;
 - confidence/failure policy version;
-- metric promotion decision list;
+- metric promotion decision list and signal support matrix:
+  `docs/metric_tracking_support_matrix.md`;
 - updated V&V checklist items for the selected adapter.
 
 ## 8. Open Questions

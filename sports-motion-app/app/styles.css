@@ -175,6 +175,8 @@ h2 {
   background: #eef3f0;
 }
 
+.status-upload_session_created,
+.status-uploading,
 .status-uploaded,
 .status-processing {
   color: #2f5d9b;
@@ -198,6 +200,19 @@ h2 {
   color: var(--warn);
   background: #fff4df;
   border-color: #efcf98;
+}
+
+.status-completed_with_warnings,
+.status-failed_retryable {
+  color: var(--warn);
+  background: #fff4df;
+  border-color: #efcf98;
+}
+
+.status-failed_unusable {
+  color: var(--danger);
+  background: #fde8e8;
+  border-color: #f5c2c2;
 }
 
 .tabs {

@@ -32,7 +32,11 @@ The MVP uses a hybrid architecture:
 - Capture or import pitching videos.
 - Collect capture context such as athlete, throwing arm, session, and camera-view
   notes.
-- Upload videos with resumable state where supported.
+- Keep local draft metadata until backend upload records and object-storage
+  upload state are confirmed.
+- Upload videos with resumable state where supported, and retry interrupted
+  upload attempts without losing athlete, session, camera-view, or selected-video
+  metadata.
 - Display analysis status, video overlays, phase timeline, metrics, ROM-adjusted
   outputs, evidence notes, and specialist comments.
 - Allow coaches and trainers to edit athlete ROM profiles.
@@ -41,7 +45,10 @@ The MVP uses a hybrid architecture:
 ### API Backend
 
 - Own organizations, teams, users, athletes, permissions, and external shares.
-- Store video metadata and issue upload/download access.
+- Store video metadata and issue scoped upload/download access.
+- Own upload session state, including retryable interruption, completion, and
+  expiration. The backend should not infer formal tracking readiness from local
+  mobile draft state alone.
 - Create tracking and analysis jobs.
 - Persist versioned metric definitions, ROM profiles, tracking runs, analysis
   runs, annotations, and share access logs.
@@ -70,18 +77,23 @@ The MVP uses a hybrid architecture:
 
 1. A coach creates or selects an athlete.
 2. The coach captures or imports a pitching video in the mobile app.
-3. The mobile app uploads the video and metadata to object storage through backend
-   controlled access.
-4. The backend creates a `TrackingRun` job.
-5. The worker produces skeleton time series, phase markers, confidence values,
+3. The mobile app stores a local draft containing team, athlete, session,
+   camera-view, capture source, and selected-video metadata.
+4. The mobile app creates a backend `MotionVideo` draft.
+5. The mobile app requests an upload session, uploads video bytes to object
+   storage through backend-controlled access, and records retry/interruption
+   state locally until the backend confirms completion.
+6. The backend marks the `MotionVideo` uploaded and creates a `TrackingRun` job
+   only after upload completion is confirmed.
+7. The worker produces skeleton time series, phase markers, confidence values,
    and model-version metadata.
-6. The backend creates an `AnalysisRun` using the active `MetricDefinition`
+8. The backend creates an `AnalysisRun` using the active `MetricDefinition`
    versions and selected `RomProfile`.
-7. The worker computes raw metrics, ROM-adjusted metrics, ROM ratios, deviations,
+9. The worker computes raw metrics, ROM-adjusted metrics, ROM ratios, deviations,
    and caution metadata.
-8. The mobile app displays the result and can compare it with the athlete's prior
+10. The mobile app displays the result and can compare it with the athlete's prior
    analysis runs.
-9. A coach can share selected result views with external specialists.
+11. A coach can share selected result views with external specialists.
 
 ## 5. Core Domain Model
 
@@ -90,6 +102,8 @@ The MVP uses a hybrid architecture:
 - `User`: coach, trainer, athlete, admin, or external specialist identity.
 - `Athlete`: player profile and longitudinal motion-analysis subject.
 - `MotionVideo`: uploaded/captured video plus capture metadata.
+- `UploadSession`: scoped upload lease, retry state, and object-storage target for
+  one `MotionVideo`.
 - `TrackingRun`: immutable AI tracking output and model provenance.
 - `AnalysisRun`: raw and ROM-adjusted derived metrics for one tracking run.
 - `RomProfile`: standard and individual ROM values selected for an athlete.
@@ -116,7 +130,11 @@ The MVP uses a hybrid architecture:
 
 ## 7. Failure Modes
 
-- Upload interrupted: keep local pending state and allow retry.
+- Upload interrupted: keep local pending state and backend upload session state
+  separate, allow retry, and do not enqueue tracking until upload completion is
+  confirmed.
+- Upload session expired: keep local draft metadata, request a new upload
+  session, and preserve the original `MotionVideo` draft if the user retries.
 - Unsupported or poor-quality video: mark the tracking run failed with a clear
   reason and keep the original video for review or retry.
 - Low-confidence tracking: complete the run only if enough required signals exist,

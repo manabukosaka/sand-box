@@ -80,6 +80,10 @@ improvement.
   camera-view notes.
 - Captured videos can be saved as managed `MotionVideo` records before formal AI
   tracking is submitted.
+- Upload attempts use an upload-session state so interrupted transfers can be
+  retried without losing athlete, team, session, camera-view, or video metadata.
+- Formal tracking submission and processing queue entry require confirmed upload
+  completion; local draft state alone is not sufficient to start analysis.
 - Users can view, search, filter, and update video metadata by athlete, team,
   capture date, processing status, camera view, and analysis availability.
 - Users can keep videos in draft, uploaded, processing, analyzed, failed, archived,
@@ -217,6 +221,8 @@ The implementation should support these core entities:
 - `Team`: group of athletes and staff within an organization.
 - `Athlete`: player profile and longitudinal analysis subject.
 - `MotionVideo`: uploaded or captured pitching video and capture metadata.
+- `UploadSession`: retryable upload attempt, transfer status, expiration, and
+  storage access envelope for one motion video.
 - `VideoLibrary`: athlete/team-scoped collection and query boundary for managed
   videos.
 - `TrackingRun`: AI tracking output, confidence, phase detection, and model
@@ -255,6 +261,8 @@ The implementation should support these core entities:
 - A pitching video can be captured with the smartphone camera from inside the app,
   saved as a managed video record, assigned to an athlete/team, uploaded, and
   submitted for AI tracking.
+- If upload is interrupted, the app preserves video metadata, allows retry, and
+  blocks AI tracking or processing until upload completion is confirmed.
 - A previously captured or imported video can be found later by athlete, team,
   date, status, or camera view.
 - The system can produce and store a tracking run containing skeleton data, joint

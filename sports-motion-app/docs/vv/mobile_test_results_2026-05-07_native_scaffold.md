@@ -34,8 +34,12 @@ Result: Blocked before emulator/simulator smoke
 
 - Local Node: `18.19.1`
 - Local npm: `9.2.0`
+- Required Node from `sports-motion-app/mobile/package.json`: `>=20.19.4`
 - Generated dependencies include React Native / Metro packages that report Node
   engine requirements of Node `>=20.19.4` or compatible Node 20 versions.
+- `npm run start:dev-client -- --help` can print Expo CLI usage on Node
+  `18.19.1`; this is not enough to start emulator/simulator smoke because the
+  project engine remains `>=20.19.4`.
 
 ## Emulator And Simulator Status
 
@@ -63,4 +67,6 @@ Result: Blocked before emulator/simulator smoke
 ## Next Action
 
 Upgrade the local mobile development runtime to Node `>=20.19.4`, then run the
-Android emulator and iOS simulator smoke cases from `docs/mobile_test_plan.md`.
+runtime readiness gate in `docs/native_field_prototype_spike.md`. After the gate
+is ready, run the Android emulator and iOS simulator smoke cases from
+`docs/mobile_test_plan.md` and create dated V&V result copies under `docs/vv/`.

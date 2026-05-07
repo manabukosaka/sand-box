@@ -88,6 +88,7 @@ require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/sample_vid
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/metric_tracking_support_matrix.md"
 require_ref sports-motion-app/docs/mobile_test_plan.md "docs/vv/mobile_test_results_template.md"
 require_ref sports-motion-app/docs/mobile_test_plan.md "PWA Smoke Scope"
+require_ref sports-motion-app/docs/mobile_test_plan.md "Runtime Readiness Gate"
 require_ref sports-motion-app/docs/mobile_test_plan.md "retryable and unusable tracking failure"
 require_ref sports-motion-app/docs/project_plan.md "prototype tracking adapter"
 require_ref sports-motion-app/docs/project_plan.md "upload session"
@@ -117,13 +118,15 @@ require_ref sports-motion-app/docs/vv/mobile_test_results_template.md "Failed tr
 require_ref sports-motion-app/docs/vv/mobile_test_results_template.md "Suppressed metric reason renders"
 require_ref sports-motion-app/docs/vv/mobile_test_results_template.md "Shared result omits excluded video/evidence"
 require_ref sports-motion-app/docs/native_field_prototype_spike.md "Expo development builds"
+require_ref sports-motion-app/docs/native_field_prototype_spike.md "Runtime Unblock Gate"
+require_ref sports-motion-app/docs/vv/mobile_test_results_2026-05-07_native_scaffold.md "Required Node"
 
 if [[ -f sports-motion-app/package.json ]]; then
   (cd sports-motion-app && npm test)
 fi
 
 while IFS= read -r doc; do
-  require_no_ref "$doc" "will[[:space:]]+(prevent|predict|guarantee|increase|reduce)|diagnos(e|es|ing)[[:space:]]|treat(s|ing)?[[:space:]]|rehab(ilitation)? plan|injury risk score|predict(s|ing)? injury|prevent(s|ing)? injury"
+  require_no_ref "$doc" "will[[:space:]]+(prevent|predict|guarantee|increase|reduce)|diagnos(e|es|ing)[[:space:]]|treat(s|ing)?[[:space:]]+(injury|pain|athlete|patient|condition)|rehab(ilitation)? plan|injury risk score|predict(s|ing)? injury|prevent(s|ing)? injury"
 done < <(find sports-motion-app/docs -name '*.md' -type f | sort)
 
 while IFS= read -r doc; do

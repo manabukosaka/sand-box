@@ -12,6 +12,28 @@ Native spike execution plan: `docs/native_field_prototype_spike.md`.
 
 Record actual runs with `docs/vv/mobile_test_results_template.md`.
 
+## Runtime Readiness Gate
+
+Native emulator/simulator smoke starts only after the runtime gate in
+`docs/native_field_prototype_spike.md` is ready.
+
+Current blocker:
+
+- `sports-motion-app/mobile/package.json` requires Node `>=20.19.4`.
+- Local verification on 2026-05-07 observed Node `18.19.1` and npm `9.2.0`.
+- The Expo dev-client help check can run on Node `18.19.1`, but
+  emulator/simulator smoke must remain `Blocked` until the local runtime is
+  upgraded or an equivalent EAS simulator path is documented.
+
+Before any native smoke run, record:
+
+- `node --version`;
+- `npm --version`;
+- whether the Expo dev-client help check runs without engine failure;
+- whether Android emulator, iOS simulator, or EAS simulator prerequisites are
+  available;
+- the dated V&V result file created under `docs/vv/`.
+
 ## Test Timing
 
 | Stage | Target | When | Purpose | Gate impact |
@@ -51,6 +73,10 @@ Record PWA smoke results with `docs/vv/mobile_test_results_template.md`, using
 ## Emulator And Simulator Smoke Scope
 
 Run this after a minimal native development build exists:
+
+Prerequisite:
+
+- Runtime readiness gate is ready or this run is recorded as blocked.
 
 - app launches without native crash;
 - capture, metrics, ROM, and sharing navigation works;

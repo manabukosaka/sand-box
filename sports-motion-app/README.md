@@ -79,7 +79,8 @@ The native scaffold currently uses Expo SDK 54, `expo-dev-client`,
 `expo-image-picker`, and `@react-native-async-storage/async-storage`. It
 requires Node `>=20.19.4`. Local verification on Node `18.19.1` is blocked
 before emulator/simulator smoke. Use `docs/native_field_prototype_spike.md` for
-EAS development build commands and V&V evidence requirements.
+the runtime readiness gate, EAS development build commands, and V&V evidence
+requirements.
 
 ## Boundary
 
@@ -136,7 +137,8 @@ npm run ios
 native scaffold は現在 Expo SDK 54、`expo-dev-client`、
 `expo-image-picker`、`@react-native-async-storage/async-storage` を使い、Node
 `>=20.19.4` が必要です。ローカル環境の Node `18.19.1` では emulator/simulator
-smoke の前でブロックされます。EAS development build のコマンドとV&V evidence条件は `docs/native_field_prototype_spike.md` で確認してください。
+smoke の前でブロックされます。runtime readiness gate、EAS development build
+のコマンド、V&V evidence条件は `docs/native_field_prototype_spike.md` で確認してください。
 
 ## 境界
 

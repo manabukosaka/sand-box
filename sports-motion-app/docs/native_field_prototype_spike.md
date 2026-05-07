@@ -68,6 +68,49 @@ npx expo install @react-native-async-storage/async-storage
 npx expo start
 ```
 
+## Runtime Unblock Gate
+
+Current local runtime status:
+
+- Required by `sports-motion-app/mobile/package.json`: Node `>=20.19.4`.
+- Observed local runtime on 2026-05-07: Node `18.19.1`, npm `9.2.0`.
+- Expo dev-client help check can run on the current local runtime, but Android
+  emulator and iOS simulator smoke remain blocked locally until Node satisfies
+  the package engine and the relevant emulator/simulator host is available.
+
+Do not accept ADR 0002 or treat emulator/simulator smoke as complete until this
+gate is ready.
+
+Ready criteria:
+
+- `node --version` returns a Node version satisfying `>=20.19.4`.
+- `cd sports-motion-app/mobile && npm run start:dev-client -- --help` or an
+  equivalent non-launch Expo CLI help check exits successfully.
+- emulator/simulator launch commands are run only after the Node engine is
+  satisfied.
+- Android emulator smoke records a dated result under `docs/vv/`.
+- iOS simulator smoke records a dated result under `docs/vv/`, or a blocker
+  explains why iOS simulator execution needs a macOS/Xcode or EAS simulator path.
+- No private athlete media, signing credentials, generated native projects, or
+  EAS build artifacts are committed to git.
+
+Local unblock procedure after Node is upgraded:
+
+```bash
+cd sports-motion-app
+npm test
+cd mobile
+node --version
+npm run start:dev-client -- --help
+npm run android
+npm run ios
+```
+
+If `npm run android` or `npm run ios` launches a simulator/emulator, record the
+result with `docs/vv/mobile_test_results_template.md`. If the command fails
+because of a missing emulator, Xcode host, device runtime, or EAS credential,
+record a blocked dated result instead of changing the mobile stack ADR.
+
 Initial EAS development build commands, after the Expo app exists:
 
 ```bash

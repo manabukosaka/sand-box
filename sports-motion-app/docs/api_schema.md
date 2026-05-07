@@ -85,6 +85,55 @@ analysis, evidence definitions, and specialist comments remain separate.
 }
 ```
 
+Allowed `MotionVideo.status` values:
+
+- `draft`
+- `upload_session_created`
+- `uploading`
+- `uploaded`
+- `processing`
+- `analyzed`
+- `failed_retryable`
+- `failed_unusable`
+- `archived`
+- `deleted`
+
+Mobile clients may keep local draft state before or alongside `draft` and
+`uploading` backend records. Local draft state is not authoritative for formal
+tracking readiness.
+
+### UploadSession
+
+```json
+{
+  "id": "upl_123",
+  "motion_video_id": "vid_123",
+  "status": "active",
+  "upload_method": "presigned_multipart",
+  "upload_url": "https://storage.example/upload/upl_123",
+  "expires_at": "2026-05-05T00:15:00Z",
+  "attempt": 2,
+  "uploaded_bytes": 5242880,
+  "expected_bytes": 48123904,
+  "checksum": null,
+  "last_error": "network_interrupted",
+  "created_at": "2026-05-05T00:01:00Z",
+  "updated_at": "2026-05-05T00:06:00Z"
+}
+```
+
+Allowed `UploadSession.status` values:
+
+- `active`
+- `interrupted_retryable`
+- `completed`
+- `expired`
+- `aborted`
+
+Upload session failures must remain file-transfer and capture-condition focused.
+They must not be presented as athlete quality, readiness, diagnosis, treatment,
+or injury prediction.
+
 ### RomProfile
 
 ```json
@@ -152,7 +201,7 @@ analysis, evidence definitions, and specialist comments remain separate.
 {
   "id": "trk_123",
   "motion_video_id": "vid_123",
-  "status": "completed",
+  "status": "completed_with_warnings",
   "model_name": "markerless_pitching_tracker",
   "model_version": "2026.05.0",
   "started_at": "2026-05-05T00:01:00Z",
@@ -170,9 +219,39 @@ analysis, evidence definitions, and specialist comments remain separate.
       "confidence": 0.86
     }
   ],
-  "overall_confidence": 0.88
+  "signal_confidence": {
+    "shoulder_angle": 0.84,
+    "elbow_angle": 0.82,
+    "trunk_orientation": 0.80
+  },
+  "overall_confidence": 0.88,
+  "confidence_policy_version": "2026.05.0",
+  "warning_reasons": [
+    "phase_event_confidence_below_threshold",
+    "required_signal_confidence_below_threshold:shoulder_angle"
+  ],
+  "suppressed_metric_groups": ["phase_dependent_metrics", "shoulder_rotation_metrics"],
+  "failure_reason": null
 }
 ```
+
+Allowed `TrackingRun.status` values:
+
+- `queued`
+- `processing`
+- `completed`
+- `completed_with_warnings`
+- `failed_retryable`
+- `failed_unusable`
+
+`completed_with_warnings` means the worker produced usable tracking output, but
+one or more phase, joint, or metric groups must be displayed with caution or
+suppressed. Failure reasons must describe capture or measurement conditions, not
+medical diagnosis, injury risk, or athlete readiness.
+
+`warning_reasons` and `suppressed_metric_groups` are policy-versioned tracking
+quality outputs. Analysis workers use them to mark affected metrics as
+suppressed without deleting raw tracking artifacts.
 
 ### AnalysisRun
 
@@ -181,7 +260,11 @@ analysis, evidence definitions, and specialist comments remain separate.
   "id": "ana_123",
   "tracking_run_id": "trk_123",
   "athlete_id": "ath_123",
-  "status": "completed",
+  "status": "completed_with_warnings",
+  "warning_reasons": [
+    "phase_event_confidence_below_threshold",
+    "required_signal_confidence_below_threshold:shoulder_angle"
+  ],
   "analysis_version": 1,
   "metric_definition_versions": [
     {
@@ -200,11 +283,32 @@ analysis, evidence definitions, and specialist comments remain separate.
       "adjusted_unit": "rom_ratio",
       "confidence": 0.82,
       "maturity": "provisional",
+      "display_status": "available",
+      "suppression_reasons": [],
       "cautions": ["single_camera_estimate"]
     }
   ]
 }
 ```
+
+Allowed `AnalysisRun.status` values:
+
+- `completed`
+- `completed_with_warnings`
+
+`completed_with_warnings` means the analysis run was created, but one or more
+metric outputs were suppressed or caution-labeled because of the versioned
+tracking quality policy.
+
+Allowed metric `display_status` values:
+
+- `available`
+- `suppressed_low_confidence`
+
+Suppressed metrics keep `raw_value` for provenance, but clients must not present
+the value as a usable evaluation result. `adjusted_value` should be `null` for
+suppressed metrics, and `suppression_reasons` must remain capture/measurement
+focused.
 
 ### ShareLink
 
@@ -250,6 +354,8 @@ their original ROM profile reference.
 - `GET /videos/{motion_video_id}`
 - `PATCH /videos/{motion_video_id}`
 - `POST /videos/{motion_video_id}/upload-session`
+- `POST /upload-sessions/{upload_session_id}/complete`
+- `POST /upload-sessions/{upload_session_id}/abort`
 - `POST /videos/{motion_video_id}/submit-tracking`
 - `POST /videos/{motion_video_id}/archive`
 - `POST /videos/{motion_video_id}/restore`
@@ -259,6 +365,38 @@ their original ROM profile reference.
 when the user captures video with the smartphone camera. Query endpoints support
 filters for athlete, team, capture date, status, camera view, and analysis
 availability.
+
+`POST /videos/{motion_video_id}/upload-session` creates or renews an
+`UploadSession`. Clients should send capture metadata before requesting upload
+access, then preserve local draft metadata until the backend confirms
+`UploadSession.status = completed` and `MotionVideo.status = uploaded`.
+
+Example upload session request:
+
+```json
+{
+  "file_name": "bullpen-session-1.mp4",
+  "content_type": "video/mp4",
+  "expected_bytes": 48123904,
+  "client_capture_metadata": {
+    "source": "camera",
+    "resolution": "1920x1080",
+    "duration_ms": 4200,
+    "frame_rate_fps": 240
+  }
+}
+```
+
+Example upload completion request:
+
+```json
+{
+  "upload_session_id": "upl_123",
+  "uploaded_bytes": 48123904,
+  "checksum": "sha256:example",
+  "completed_at": "2026-05-05T00:09:00Z"
+}
+```
 
 ### Tracking And Analysis
 
@@ -287,6 +425,11 @@ Metric definitions are read-only for normal team users in the MVP.
 - `GET /shared/{share_token}`
 
 Shared views must return only the scoped analysis result and allowed assets.
+When `ShareLink.include_video` is false, shared responses must omit original
+video and tracking artifact payloads. When `ShareLink.include_evidence` is
+false, shared responses must omit metric-definition details and evidence
+reference details beyond IDs already embedded in the analysis result.
+Expired or revoked shares must fail closed with `410 share_expired_or_revoked`.
 
 ## 5. Required Error Cases
 

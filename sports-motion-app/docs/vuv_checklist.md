@@ -18,17 +18,36 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 
 ## 3. Mobile Flow Verification
 
-- iOS: capture or import a pitching video, attach athlete metadata, upload, view
+- PWA prototype smoke: verify the current browser prototype on desktop and mobile
+  browser sizes before native work starts, including upload-session retry,
+  duplicate active-session prevention, upload-completion gating, ROM
+  recalculation, and share revocation.
+- Android emulator smoke: after the React Native + Expo development build exists,
+  verify launch, navigation, Japanese/English labels, local draft state, mock API
+  flow, upload retry simulation, and video-preview layout.
+- iOS simulator smoke: after the React Native + Expo development build exists,
+  verify launch, navigation, Japanese/English labels, local draft state, mock API
+  flow, upload retry simulation, and video-preview layout.
+- Physical Android verification: capture or import a pitching video, attach
+  athlete metadata, preserve a local draft after app restart, retry upload, view
   processing status, and open the result.
-- Android: capture or import a pitching video, attach athlete metadata, upload,
-  view processing status, and open the result.
+- Physical iPhone verification: capture or import a pitching video, attach
+  athlete metadata, preserve a local draft after app restart, retry upload, view
+  processing status, and open the result.
+- Emulator/simulator results are smoke evidence only. Camera frame rate, video
+  file handling, media-library permissions, and overlay performance require
+  physical-device evidence before the mobile stack ADR can be accepted.
 - Verify interrupted upload recovery or clear retry behavior.
 - Verify poor network state does not lose athlete, ROM, or video metadata.
+- Verify tracking submission is disabled or rejected until upload completion is
+  confirmed by backend upload-session state.
 - Verify result views fit common phone sizes without overlapping metric labels,
   controls, video overlays, or caution text.
 
 ## 4. AI Tracking Verification
 
+- Sample-video evaluation uses `docs/sample_video_manifest.md` and does not
+  commit original videos or identifying athlete metadata to git.
 - Good-quality pitching video produces a completed `TrackingRun`.
 - Low-quality video produces either a completed run with confidence warnings or a
   failed run with a user-understandable reason.
@@ -41,6 +60,8 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 
 ## 5. Metric And Evidence Verification
 
+- Metric support decisions are recorded in
+  `docs/metric_tracking_support_matrix.md` before maturity promotion.
 - Every displayed metric maps to a `MetricDefinition` version.
 - Every formal or provisional metric links to at least one `EvidenceReference`.
 - Evidence notes include population and measurement-context limitations.
@@ -84,9 +105,13 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 
 Before release, collect:
 
-- representative iOS and Android smoke-test notes;
+- representative Android emulator and iOS simulator smoke-test notes;
+- representative physical Android and physical iPhone verification notes;
 - tracking test video matrix and outcomes;
 - metric-definition and evidence-reference snapshot;
 - ROM recalculation test evidence;
 - external sharing access-control evidence;
 - known limitations and residual risks.
+
+Use `docs/vv/mobile_test_results_template.md` for mobile test evidence and keep
+completed non-identifying summaries under `docs/vv/`.

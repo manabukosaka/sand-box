@@ -5,9 +5,12 @@ import {
   createPrototypeDataset,
   createTeam,
   createTrackingRun,
+  createUploadSession,
   metricDefinitions,
+  evidenceReferences,
   updateRomEntry
 } from "./domain.mjs";
+import { createPrototypeTrackingAdapter } from "./trackingAdapter.mjs";
 
 const DEFAULT_RAW_METRICS = Object.freeze([
   {
@@ -55,7 +58,17 @@ function makeShareLink({ id, analysisRunId, includeVideo, includeEvidence, now }
   };
 }
 
-export function createSportsMotionMockApi({ storage, now = () => new Date().toISOString() } = {}) {
+function expiresInMinutes(now, minutes) {
+  const expires = new Date(now);
+  expires.setMinutes(expires.getMinutes() + minutes);
+  return expires.toISOString();
+}
+
+export function createSportsMotionMockApi({
+  storage,
+  now = () => new Date().toISOString(),
+  trackingAdapter = createPrototypeTrackingAdapter()
+} = {}) {
   const storageKey = "sports-motion-api-state";
   function createInitialState() {
     const initial = createPrototypeDataset();
@@ -65,16 +78,20 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       athletes: [initial.athlete],
       romProfiles: [initial.romProfile],
       videos: [initial.video],
+      uploadSessions: [],
       trackingRuns: [initial.trackingRun],
       analysisRuns: [initial.analysisRun],
       shareLinks: [],
       activeAthleteId: initial.athlete.id,
       activeAnalysisRunId: initial.analysisRun.id,
+      activeTrackingRunId: initial.trackingRun.id,
       lowConfidence: false
     };
   }
 
   let state = storage?.getItem(storageKey) ? JSON.parse(storage.getItem(storageKey)) : createInitialState();
+  state.uploadSessions ??= [];
+  state.activeTrackingRunId ??= getActiveAnalysisRun()?.tracking_run_id;
 
   function persist() {
     storage?.setItem(storageKey, JSON.stringify(state));
@@ -94,9 +111,16 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
     return state.analysisRuns.find((run) => run.id === state.activeAnalysisRunId);
   }
 
-  function getActiveTrackingRun() {
+  function getActiveAnalysisTrackingRun() {
     const analysisRun = getActiveAnalysisRun();
     return state.trackingRuns.find((run) => run.id === analysisRun.tracking_run_id);
+  }
+
+  function getActiveTrackingRun() {
+    return (
+      state.trackingRuns.find((run) => run.id === state.activeTrackingRunId) ??
+      getActiveAnalysisTrackingRun()
+    );
   }
 
   function buildSnapshot() {
@@ -119,19 +143,29 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       athlete: activeAthlete,
       romProfile: currentRomProfile,
       video: state.videos[state.videos.length - 1],
+      uploadSessions: state.uploadSessions,
+      activeUploadSession: state.uploadSessions.at(-1) ?? null,
       videos: state.videos.map((video) => ({
         ...video,
         analysis_available: analyzedVideoIds.has(video.id)
       })),
       trackingRun: activeTrackingRun,
       analysisRun: activeAnalysisRun,
+      analysisFreshness: {
+        status:
+          activeAnalysisRun.tracking_run_id === activeTrackingRun.id
+            ? "current_tracking"
+            : "last_valid_analysis",
+        tracking_run_id: activeTrackingRun.id,
+        analysis_tracking_run_id: activeAnalysisRun.tracking_run_id
+      },
       activeShare: activeShare ?? null,
       lowConfidence: state.lowConfidence,
       metricDefinitions
     });
   }
 
-  function createAnalysis({ trackingRun, romProfile, analysisVersion }) {
+  function createAnalysis({ trackingRun, romProfile, analysisVersion, activateTracking = true }) {
     const athlete = getActiveAthlete();
     const analysisRun = buildAnalysisRun({
       id: nextId("ana", state.analysisRuns),
@@ -144,6 +178,9 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
     });
     state.analysisRuns.push(analysisRun);
     state.activeAnalysisRunId = analysisRun.id;
+    if (activateTracking) {
+      state.activeTrackingRunId = trackingRun.id;
+    }
     return analysisRun;
   }
 
@@ -234,7 +271,98 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       return buildSnapshot();
     },
 
-    submitVideo({ video_id, camera_view, frame_rate_fps, lowConfidence = false }) {
+    createUploadSession({ video_id, expected_bytes, file_name, content_type }) {
+      const video = state.videos.find((candidate) => candidate.id === video_id);
+      if (!video) {
+        throw new Error(`unknown video: ${video_id}`);
+      }
+      if (video.status === "deleted" || video.status === "archived") {
+        throw new Error(`cannot upload video in status: ${video.status}`);
+      }
+      if (video.status === "uploaded" || video.status === "processing" || video.status === "analyzed") {
+        throw new Error(`upload already completed for video status: ${video.status}`);
+      }
+      const latestSession = [...state.uploadSessions]
+        .reverse()
+        .find((session) => session.motion_video_id === video_id);
+      if (latestSession?.status === "active") {
+        return buildSnapshot();
+      }
+      const previousAttempts = state.uploadSessions.filter(
+        (session) => session.motion_video_id === video_id
+      ).length;
+      const uploadSession = createUploadSession({
+        id: nextId("upl", state.uploadSessions),
+        motion_video_id: video_id,
+        status: "active",
+        attempt: previousAttempts + 1,
+        expected_bytes: expected_bytes ?? video.file_size_bytes ?? null,
+        upload_method: "prototype_local",
+        upload_url: `mock://uploads/${video_id}/${previousAttempts + 1}`,
+        expires_at: expiresInMinutes(now(), 15),
+        created_at: now(),
+        updated_at: now()
+      });
+      state.uploadSessions.push({
+        ...uploadSession,
+        file_name: file_name ?? video.file_name ?? null,
+        content_type: content_type ?? "video/mp4"
+      });
+      state.videos = state.videos.map((candidate) =>
+        candidate.id === video_id ? { ...candidate, status: "upload_session_created" } : candidate
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    interruptUploadSession({ upload_session_id, uploaded_bytes = 0, last_error = "network_interrupted" }) {
+      const session = state.uploadSessions.find((candidate) => candidate.id === upload_session_id);
+      if (!session) {
+        throw new Error(`unknown upload session: ${upload_session_id}`);
+      }
+      state.uploadSessions = state.uploadSessions.map((candidate) =>
+        candidate.id === upload_session_id
+          ? {
+              ...candidate,
+              status: "interrupted_retryable",
+              uploaded_bytes,
+              last_error,
+              updated_at: now()
+            }
+          : candidate
+      );
+      state.videos = state.videos.map((video) =>
+        video.id === session.motion_video_id ? { ...video, status: "uploading" } : video
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    completeUploadSession({ upload_session_id, uploaded_bytes, checksum = null }) {
+      const session = state.uploadSessions.find((candidate) => candidate.id === upload_session_id);
+      if (!session) {
+        throw new Error(`unknown upload session: ${upload_session_id}`);
+      }
+      state.uploadSessions = state.uploadSessions.map((candidate) =>
+        candidate.id === upload_session_id
+          ? {
+              ...candidate,
+              status: "completed",
+              uploaded_bytes: uploaded_bytes ?? candidate.expected_bytes ?? candidate.uploaded_bytes,
+              checksum,
+              last_error: null,
+              updated_at: now()
+            }
+          : candidate
+      );
+      state.videos = state.videos.map((video) =>
+        video.id === session.motion_video_id ? { ...video, status: "uploaded" } : video
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    submitVideo({ video_id, camera_view, frame_rate_fps, lowConfidence = false, failureReason = null }) {
       const athlete = getActiveAthlete();
       let video = video_id ? state.videos.find((candidate) => candidate.id === video_id) : null;
       if (!video) {
@@ -249,22 +377,35 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
         });
         state.videos.push(video);
       } else {
+        if (video.status !== "uploaded" && video.status !== "analyzed") {
+          throw new Error(`video upload must be completed before tracking: ${video.status}`);
+        }
         video = { ...video, status: "uploaded", camera_view, frame_rate_fps };
         state.videos = state.videos.map((candidate) => (candidate.id === video.id ? video : candidate));
       }
+      const trackingRunId = nextId("trk", state.trackingRuns);
+      const trackingResult = trackingAdapter.run({
+        tracking_run_id: trackingRunId,
+        video,
+        lowConfidence,
+        failureReason,
+        now
+      });
       const trackingRun = createTrackingRun({
-        id: nextId("trk", state.trackingRuns),
+        id: trackingRunId,
         motion_video_id: video.id,
-        started_at: now(),
-        completed_at: now(),
-        overall_confidence: lowConfidence ? 0.58 : 0.88,
-        phase_events: [
-          { name: "foot_contact", frame: 112, confidence: lowConfidence ? 0.58 : 0.91 },
-          { name: "ball_release", frame: 184, confidence: lowConfidence ? 0.56 : 0.86 }
-        ]
+        ...trackingResult
       });
       state.trackingRuns.push(trackingRun);
+      state.activeTrackingRunId = trackingRun.id;
       state.lowConfidence = lowConfidence;
+      if (trackingRun.status === "failed_retryable" || trackingRun.status === "failed_unusable") {
+        state.videos = state.videos.map((candidate) =>
+          candidate.id === video.id ? { ...candidate, status: trackingRun.status } : candidate
+        );
+        persist();
+        return buildSnapshot();
+      }
       createAnalysis({
         trackingRun,
         romProfile: getCurrentRomProfile(),
@@ -278,6 +419,18 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
     },
 
     updateVideoStatus({ video_id, status }) {
+      const currentVideo = state.videos.find((video) => video.id === video_id);
+      if (!currentVideo) {
+        throw new Error(`unknown video: ${video_id}`);
+      }
+      if (
+        status === "processing" &&
+        currentVideo.status !== "uploaded" &&
+        currentVideo.status !== "processing" &&
+        currentVideo.status !== "analyzed"
+      ) {
+        throw new Error(`video upload must be completed before processing: ${currentVideo.status}`);
+      }
       state.videos = state.videos.map((video) => {
         if (video.id !== video_id) {
           return video;
@@ -306,9 +459,10 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       );
       state.romProfiles.push(updated);
       createAnalysis({
-        trackingRun: getActiveTrackingRun(),
+        trackingRun: getActiveAnalysisTrackingRun(),
         romProfile: updated,
-        analysisVersion: state.analysisRuns.length + 1
+        analysisVersion: state.analysisRuns.length + 1,
+        activateTracking: false
       });
       persist();
       return buildSnapshot();
@@ -326,6 +480,30 @@ export function createSportsMotionMockApi({ storage, now = () => new Date().toIS
       state.shareLinks.push(share);
       persist();
       return buildSnapshot();
+    },
+
+    getSharedAnalysis({ share_link_id }) {
+      const share = state.shareLinks.find((candidate) => candidate.id === share_link_id);
+      if (!share) {
+        throw new Error(`unknown share link: ${share_link_id}`);
+      }
+      if (share.revoked_at || new Date(share.expires_at) <= new Date(now())) {
+        throw new Error("share expired or revoked");
+      }
+      const analysisRun = state.analysisRuns.find((run) => run.id === share.analysis_run_id);
+      if (!analysisRun) {
+        throw new Error(`unknown shared analysis: ${share.analysis_run_id}`);
+      }
+      const trackingRun = state.trackingRuns.find((run) => run.id === analysisRun.tracking_run_id);
+      const video = state.videos.find((candidate) => candidate.id === trackingRun?.motion_video_id);
+      return clone({
+        shareLink: share,
+        analysisRun,
+        metricDefinitions: share.include_evidence ? metricDefinitions : [],
+        evidenceReferences: share.include_evidence ? evidenceReferences : [],
+        trackingRun: share.include_video ? trackingRun : null,
+        video: share.include_video ? video : null
+      });
     },
 
     revokeActiveShare() {

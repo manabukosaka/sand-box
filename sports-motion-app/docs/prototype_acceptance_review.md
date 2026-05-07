@@ -16,6 +16,8 @@ guaranteed performance improvement.
   archived, restored, and deleted states.
 - Video library keyword search, status filter, camera-view filter, and
   analysis-availability filter.
+- Prototype upload-session controls for start, interrupt, complete, retry, and
+  upload-completion gating before tracking or processing.
 - Mock AI tracking completion with skeleton/phase/confidence metadata.
 - Evidence metric display with raw values, ROM-adjusted values, confidence, and
   maturity labels.
@@ -29,6 +31,10 @@ guaranteed performance improvement.
   status, age group, height, and body mass.
 - A coach can capture or import a video and keep it as a managed draft before
   submitting it to prototype tracking.
+- A coach can start, interrupt, complete, and retry a prototype upload session
+  while preserving video metadata.
+- The prototype blocks tracking submission and processing queue entry until
+  upload completion has been recorded.
 - A coach can move videos through processing, failed, archived, restored, and
   deleted prototype states without deleting analysis history.
 - A coach can filter the active video library by keyword, status, camera view,
@@ -44,8 +50,9 @@ guaranteed performance improvement.
   production data boundary is chosen.
 - AI markerless tracking is mocked. Real tracking provider/model selection is a
   Milestone 2 gate.
-- Video upload sessions, object storage, authentication, authorization, and real
-  share-link access control are not implemented.
+- Prototype upload-session state is implemented locally only. Object storage,
+  resumable network transfer, authentication, authorization, and real share-link
+  access control are not implemented.
 - Processing and failed states are explicit prototype states; no asynchronous
   worker currently drives them.
 - Evidence definitions are hard-coded prototype data, not yet a managed registry.

@@ -161,6 +161,12 @@ export const metricDefinitions = [
   }
 ];
 
+const metricSuppressionGroups = Object.freeze({
+  metric_shoulder_max_external_rotation: ["shoulder_rotation_metrics", "phase_dependent_metrics"],
+  metric_trunk_rotation_velocity: ["trunk_metrics", "phase_dependent_metrics"],
+  metric_elbow_torque_proxy: ["elbow_torque_proxy", "phase_dependent_metrics"]
+});
+
 export function createMotionVideo(input) {
   return {
     id: input.id,
@@ -184,12 +190,30 @@ export function createMotionVideo(input) {
   };
 }
 
+export function createUploadSession(input) {
+  return {
+    id: input.id,
+    motion_video_id: input.motion_video_id,
+    status: input.status ?? "active",
+    upload_method: input.upload_method ?? "prototype_local",
+    upload_url: input.upload_url ?? `mock://uploads/${input.id}`,
+    expires_at: input.expires_at,
+    attempt: input.attempt ?? 1,
+    uploaded_bytes: input.uploaded_bytes ?? 0,
+    expected_bytes: input.expected_bytes ?? null,
+    checksum: input.checksum ?? null,
+    last_error: input.last_error ?? null,
+    created_at: input.created_at ?? new Date().toISOString(),
+    updated_at: input.updated_at ?? new Date().toISOString()
+  };
+}
+
 export function createTrackingRun(input) {
   return {
     id: input.id,
     motion_video_id: input.motion_video_id,
     status: input.status ?? "completed",
-    model_name: "markerless_pitching_tracker",
+    model_name: input.model_name ?? "markerless_pitching_tracker",
     model_version: input.model_version ?? "prototype.0",
     started_at: input.started_at,
     completed_at: input.completed_at,
@@ -198,7 +222,12 @@ export function createTrackingRun(input) {
       { name: "foot_contact", frame: 112, confidence: 0.91 },
       { name: "ball_release", frame: 184, confidence: 0.86 }
     ],
-    overall_confidence: input.overall_confidence ?? 0.88
+    signal_confidence: input.signal_confidence ?? {},
+    overall_confidence: input.overall_confidence ?? 0.88,
+    confidence_policy_version: input.confidence_policy_version ?? "prototype-policy.0",
+    warning_reasons: input.warning_reasons ?? [],
+    suppressed_metric_groups: input.suppressed_metric_groups ?? [],
+    failure_reason: input.failure_reason ?? null
   };
 }
 
@@ -210,6 +239,15 @@ export function calculateRomRatio(rawValue, romEntry) {
   return Number(((rawValue - romEntry.individual_min_deg) / range).toFixed(3));
 }
 
+function isMetricSuppressed(metricDefinitionId, trackingRun) {
+  const suppressedGroups = trackingRun.suppressed_metric_groups ?? [];
+  if (suppressedGroups.includes("all_metrics")) {
+    return true;
+  }
+  const metricGroups = metricSuppressionGroups[metricDefinitionId] ?? [];
+  return metricGroups.some((group) => suppressedGroups.includes(group));
+}
+
 export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetrics, analysis_version, created_at }) {
   const metrics = rawMetrics.map((rawMetric) => {
     const definition = metricDefinitions.find((metric) => metric.id === rawMetric.metric_definition_id);
@@ -219,8 +257,11 @@ export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetr
     const shoulderRom = romProfile.entries.find(
       (entry) => entry.joint === "shoulder" && entry.movement === "external_rotation"
     );
+    const suppressed = isMetricSuppressed(definition.id, trackingRun);
     const adjustedValue =
-      rawMetric.unit === "deg" && shoulderRom ? calculateRomRatio(rawMetric.raw_value, shoulderRom) : null;
+      !suppressed && rawMetric.unit === "deg" && shoulderRom
+        ? calculateRomRatio(rawMetric.raw_value, shoulderRom)
+        : null;
     return {
       metric_definition_id: definition.id,
       raw_value: rawMetric.raw_value,
@@ -229,18 +270,28 @@ export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetr
       adjusted_unit: adjustedValue === null ? null : "rom_ratio",
       confidence: rawMetric.confidence,
       maturity: definition.maturity,
+      display_status: suppressed ? "suppressed_low_confidence" : "available",
+      suppression_reasons: suppressed ? trackingRun.warning_reasons ?? [] : [],
       cautions: [
         "single_camera_estimate",
-        ...(definition.maturity === metricMaturity.EXPERIMENTAL ? ["experimental_metric"] : [])
+        ...(definition.maturity === metricMaturity.EXPERIMENTAL ? ["experimental_metric"] : []),
+        ...(suppressed ? ["tracking_signal_suppressed"] : [])
       ]
     };
   });
+  const analysisWarningReasons = [
+    ...new Set(metrics.flatMap((metric) => metric.suppression_reasons ?? []))
+  ];
+  const analysisStatus = metrics.some((metric) => metric.display_status !== "available")
+    ? "completed_with_warnings"
+    : "completed";
 
   return {
     id,
     tracking_run_id: trackingRun.id,
     athlete_id: athlete.id,
-    status: "completed",
+    status: analysisStatus,
+    warning_reasons: analysisWarningReasons,
     analysis_version: analysis_version ?? 1,
     metric_definition_versions: metricDefinitions.map((metric) => ({
       metric_definition_id: metric.id,

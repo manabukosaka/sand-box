@@ -1,0 +1,20 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Sports Motion App native spike
+sports-motion-app/mobile/node_modules/
+sports-motion-app/mobile/.expo/
+sports-motion-app/mobile/.expo-shared/
+sports-motion-app/mobile/android/
+sports-motion-app/mobile/ios/
+sports-motion-app/mobile/dist/
+sports-motion-app/mobile/build/
+sports-motion-app/mobile/.eas/
+
+# Keep local private test media and V&V artifacts out of git.
+sports-motion-app/private-media/
+sports-motion-app/docs/vv/private/

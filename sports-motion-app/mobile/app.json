@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "Sports Motion",
+    "slug": "sports-motion-field-prototype",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "bundleIdentifier": "com.example.sportsmotion.prototype",
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "Sports Motion uses the camera to capture pitching videos for motion analysis review.",
+        "NSPhotoLibraryUsageDescription": "Sports Motion imports pitching videos selected by the coach or trainer."
+      }
+    },
+    "android": {
+      "package": "com.example.sportsmotion.prototype",
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_VIDEO"
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "edgeToEdgeEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}

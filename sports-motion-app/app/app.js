@@ -1,4 +1,5 @@
 import { createSportsMotionMockApi } from "../src/mockApi.mjs";
+import { trackingFailureReason } from "../src/trackingAdapter.mjs";
 
 const translations = {
   en: {
@@ -10,6 +11,38 @@ const translations = {
     teamLabel: "College pitching group",
     analysisContext: "Single-camera markerless estimate · specialist support only",
     analysisStatus: "Analysis complete",
+    trackingStatus: {
+      completed: "Tracking complete",
+      completed_with_warnings: "Tracking warnings",
+      failed_retryable: "Tracking retry needed",
+      failed_unusable: "Tracking failed"
+    },
+    trackingSummary: ({ modelVersion, policyVersion, confidence }) =>
+      `Model ${modelVersion} · policy ${policyVersion} · ${confidence}% confidence`,
+    trackingFailureSummary: ({ modelVersion, policyVersion, reason }) =>
+      `Model ${modelVersion} · policy ${policyVersion} · ${reason}`,
+    analysisFreshness: {
+      current_tracking: "Metrics match the current tracking run.",
+      last_valid_analysis: "Metrics show the last valid analysis; the latest tracking run has no metric output.",
+      completed_with_warnings: "Analysis completed with suppressed low-confidence metrics."
+    },
+    trackingFailureReasons: {
+      low_athlete_visibility: "Athlete visibility too low",
+      missing_required_phases: "Required pitching phases not detected",
+      unsupported_camera_view: "Unsupported camera view"
+    },
+    trackingWarningReasons: {
+      overall_confidence_below_caution_threshold: "Overall confidence below caution threshold",
+      phase_event_confidence_below_threshold: "Phase-event confidence below threshold",
+      required_signal_confidence_below_threshold: "Required signal confidence below threshold"
+    },
+    trackingSignals: {
+      shoulder_angle: "shoulder angle",
+      elbow_angle: "elbow angle",
+      trunk_orientation: "trunk orientation",
+      hip_pelvis: "hip/pelvis",
+      lower_body: "lower body"
+    },
     romStatus: (version) => `ROM v${version}`,
     tabs: {
       capture: "Capture",
@@ -89,17 +122,26 @@ const translations = {
     withoutAnalysis: "Without analysis",
     videoStatus: {
       draft: "Draft",
+      upload_session_created: "Upload session",
+      uploading: "Uploading",
       uploaded: "Uploaded",
       processing: "Processing",
       analyzed: "Analyzed",
       failed: "Failed",
+      failed_retryable: "Retry needed",
+      failed_unusable: "Unusable",
       archived: "Archived",
       deleted: "Deleted"
     },
     videoActions: {
+      startUpload: "Start upload",
+      interruptUpload: "Interrupt upload",
+      completeUpload: "Complete upload",
       submit: "Submit",
       queue: "Queue",
       fail: "Fail",
+      failRetryable: "Retry tracking",
+      failUnusable: "Reject tracking",
       archive: "Archive",
       restore: "Restore",
       delete: "Delete"
@@ -117,6 +159,7 @@ const translations = {
       experimental: "experimental"
     },
     notApplicable: "N/A",
+    suppressed: "Suppressed",
     ratio: "ratio",
     romHeading: "ROM profile",
     romSubtitle: "Manual override enabled",
@@ -143,9 +186,14 @@ const translations = {
       videoDeleted: "Video marked deleted in the prototype library.",
       profileSaved: "Team and athlete attributes saved for this prototype session.",
       trackingComplete: "Prototype tracking run completed with skeleton, phases, confidence, and model version.",
+      trackingRetryable: "Prototype tracking failed from capture conditions. The video remains available for retry.",
+      trackingUnusable: "Prototype tracking rejected this capture setup. Recapture with supported conditions.",
       lowConfidence: "Low-confidence joints and experimental metrics are flagged before specialist review.",
       shareCreated: "External share created with scoped result access.",
-      shareRevoked: "Share access fails closed after revocation."
+      shareRevoked: "Share access fails closed after revocation.",
+      uploadStarted: "Prototype upload session created. Tracking is still gated until completion.",
+      uploadInterrupted: "Prototype upload interrupted. Video metadata remains available for retry.",
+      uploadCompleted: "Prototype upload completed. Tracking or processing can now start."
     },
     shareActive: "Active share: analysis result only · expires in 30 days.",
     shareRevoked: "Share revoked. External viewers can no longer access this result."
@@ -159,6 +207,38 @@ const translations = {
     teamLabel: "大学・社会人投手グループ",
     analysisContext: "単眼カメラのマーカーレス推定 · 専門評価補助",
     analysisStatus: "解析完了",
+    trackingStatus: {
+      completed: "Tracking完了",
+      completed_with_warnings: "Tracking注意",
+      failed_retryable: "Tracking再試行",
+      failed_unusable: "Tracking失敗"
+    },
+    trackingSummary: ({ modelVersion, policyVersion, confidence }) =>
+      `モデル ${modelVersion} · policy ${policyVersion} · 信頼度 ${confidence}%`,
+    trackingFailureSummary: ({ modelVersion, policyVersion, reason }) =>
+      `モデル ${modelVersion} · policy ${policyVersion} · ${reason}`,
+    analysisFreshness: {
+      current_tracking: "指標は現在のtracking runに対応しています。",
+      last_valid_analysis: "指標は最後の有効解析を表示しています。最新tracking runには指標出力がありません。",
+      completed_with_warnings: "低信頼度の指標を抑制したうえで解析が完了しました。"
+    },
+    trackingFailureReasons: {
+      low_athlete_visibility: "選手の視認性が低すぎます",
+      missing_required_phases: "必要な投球フェーズを検出できません",
+      unsupported_camera_view: "未対応の撮影方向です"
+    },
+    trackingWarningReasons: {
+      overall_confidence_below_caution_threshold: "全体信頼度が注意閾値未満",
+      phase_event_confidence_below_threshold: "フェーズ信頼度が閾値未満",
+      required_signal_confidence_below_threshold: "必須シグナル信頼度が閾値未満"
+    },
+    trackingSignals: {
+      shoulder_angle: "肩角度",
+      elbow_angle: "肘角度",
+      trunk_orientation: "体幹方向",
+      hip_pelvis: "股関節/骨盤",
+      lower_body: "下肢"
+    },
     romStatus: (version) => `ROM v${version}`,
     tabs: {
       capture: "撮影",
@@ -238,17 +318,26 @@ const translations = {
     withoutAnalysis: "解析なし",
     videoStatus: {
       draft: "下書き",
+      upload_session_created: "アップロード準備",
+      uploading: "アップロード中",
       uploaded: "アップロード済み",
       processing: "処理中",
       analyzed: "解析済み",
       failed: "失敗",
+      failed_retryable: "再試行が必要",
+      failed_unusable: "使用不可",
       archived: "アーカイブ",
       deleted: "削除済み"
     },
     videoActions: {
+      startUpload: "アップロード開始",
+      interruptUpload: "アップロード中断",
+      completeUpload: "アップロード完了",
       submit: "送信",
       queue: "キュー投入",
       fail: "失敗にする",
+      failRetryable: "Tracking再試行",
+      failUnusable: "Tracking不可",
       archive: "保管",
       restore: "復元",
       delete: "削除"
@@ -266,6 +355,7 @@ const translations = {
       experimental: "実験的"
     },
     notApplicable: "対象外",
+    suppressed: "抑制",
     ratio: "比率",
     romHeading: "ROMプロファイル",
     romSubtitle: "手入力による上書きが有効",
@@ -291,9 +381,14 @@ const translations = {
       videoDeleted: "プロトタイプの動画ライブラリで削除済みにしました。",
       profileSaved: "チームと選手属性をこのプロトタイプセッションに保存しました。",
       trackingComplete: "骨格、フェーズ、信頼度、モデルバージョンを含むプロトタイプ解析が完了しました。",
+      trackingRetryable: "撮影条件によりプロトタイプtrackingが失敗しました。動画は再試行用に保持されます。",
+      trackingUnusable: "この撮影条件ではプロトタイプtrackingを利用できません。対応した条件で再撮影してください。",
       lowConfidence: "専門レビュー前に、低信頼度の関節と実験的指標を明示しています。",
       shareCreated: "解析結果に限定した外部共有を作成しました。",
-      shareRevoked: "共有を無効化しました。外部アクセスは失敗クローズになります。"
+      shareRevoked: "共有を無効化しました。外部アクセスは失敗クローズになります。",
+      uploadStarted: "プロトタイプのアップロードセッションを作成しました。完了するまでtrackingには進めません。",
+      uploadInterrupted: "プロトタイプのアップロードを中断しました。動画メタデータは再試行用に保持されます。",
+      uploadCompleted: "プロトタイプのアップロードが完了しました。trackingまたはprocessingに進めます。"
     },
     shareActive: "有効な共有: 解析結果のみ · 30日後に期限切れ。",
     shareRevoked: "共有を無効化しました。外部閲覧者はこの結果にアクセスできません。"
@@ -337,10 +432,20 @@ const state = {
   selectedVideoId: null,
   romVersion: 1,
   shoulderRomMax: 115,
-  lowConfidence: false,
+  tracking: {
+    status: "completed",
+    modelVersion: "prototype.0",
+    confidencePolicyVersion: "prototype-policy.0",
+    overallConfidence: 0.88,
+    phaseEvents: [],
+    failureReason: null
+  },
+  analysisFreshness: "current_tracking",
+  analysisRunStatus: "completed",
   shareActive: false,
   lastNotice: "default",
   metrics: [],
+  uploadSessions: [],
   videos: []
 };
 
@@ -490,8 +595,25 @@ function confidenceLabel(value) {
   return `${Math.round(value * 100)}%`;
 }
 
+function confidencePercent(value) {
+  return Math.round(value * 100);
+}
+
 function optionalNumber(value) {
   return value === "" ? null : Number(value);
+}
+
+function localizedSuppressionReasons(reasons) {
+  return reasons
+    .map((reason) => {
+      const [reasonKey, signalKey] = reason.split(":");
+      const reasonLabel = t(`trackingWarningReasons.${reasonKey}`) ?? reasonKey;
+      if (!signalKey) {
+        return reasonLabel;
+      }
+      return `${reasonLabel}: ${t(`trackingSignals.${signalKey}`) ?? signalKey}`;
+    })
+    .join(" · ");
 }
 
 function localizedNotice() {
@@ -502,6 +624,30 @@ function localizedNotice() {
     return t("notices.videoStaged")(state.cameraView, state.frameRate);
   }
   return t(`notices.${state.lastNotice}`) ?? t("notices.default");
+}
+
+function trackingContextLabel() {
+  if (state.tracking.failureReason) {
+    return t("trackingFailureSummary")({
+      modelVersion: state.tracking.modelVersion,
+      policyVersion: state.tracking.confidencePolicyVersion,
+      reason: t(`trackingFailureReasons.${state.tracking.failureReason}`)
+    }) + ` · ${t(`analysisFreshness.${state.analysisFreshness}`)}`;
+  }
+  const trackingSummary = t("trackingSummary")({
+    modelVersion: state.tracking.modelVersion,
+    policyVersion: state.tracking.confidencePolicyVersion,
+    confidence: confidencePercent(state.tracking.overallConfidence)
+  });
+  const warningSummary =
+    state.analysisRunStatus === "completed_with_warnings"
+      ? ` · ${t("analysisFreshness.completed_with_warnings")}`
+      : "";
+  return `${trackingSummary} · ${t(`analysisFreshness.${state.analysisFreshness}`)}${warningSummary}`;
+}
+
+function latestUploadSession(videoId) {
+  return [...state.uploadSessions].reverse().find((session) => session.motion_video_id === videoId) ?? null;
 }
 
 function renderVideoLibrary() {
@@ -528,10 +674,28 @@ function renderVideoLibrary() {
         .some((value) => String(value).toLowerCase().includes(query));
     })
     .map((video) => {
+      const uploadSession = latestUploadSession(video.id);
       const selected = video.id === state.selectedVideoId ? " selected" : "";
       const label = video.session_label || video.file_name || video.id;
       const analysisState = video.analysis_available ? t("withAnalysis") : t("withoutAnalysis");
-      const meta = `${t(`videoStatus.${video.status}`)} · ${t(`cameraViews.${video.camera_view}`)} · ${analysisState} · ${video.frame_rate_fps} fps`;
+      const uploadState = uploadSession ? ` · upload ${uploadSession.status}` : "";
+      const meta = `${t(`videoStatus.${video.status}`)}${uploadState} · ${t(`cameraViews.${video.camera_view}`)} · ${analysisState} · ${video.frame_rate_fps} fps`;
+      const isLocked = ["archived", "uploaded", "processing", "analyzed"].includes(video.status);
+      const canStartUpload = !isLocked && uploadSession?.status !== "active";
+      const canInterruptUpload = uploadSession?.status === "active";
+      const canCompleteUpload =
+        uploadSession?.status === "active" || uploadSession?.status === "interrupted_retryable";
+      const uploadActions = [
+        canStartUpload
+          ? `<button class="mini-action" type="button" data-video-action="startUpload" data-video-id="${video.id}">${t("videoActions.startUpload")}</button>`
+          : "",
+        canInterruptUpload
+          ? `<button class="mini-action" type="button" data-video-action="interruptUpload" data-video-id="${video.id}">${t("videoActions.interruptUpload")}</button>`
+          : "",
+        canCompleteUpload
+          ? `<button class="mini-action" type="button" data-video-action="completeUpload" data-video-id="${video.id}">${t("videoActions.completeUpload")}</button>`
+          : ""
+      ].join("");
       const archiveAction =
         video.status === "archived"
           ? `<button class="mini-action" type="button" data-video-action="restore" data-video-id="${video.id}">${t("videoActions.restore")}</button>`
@@ -540,9 +704,16 @@ function renderVideoLibrary() {
         video.status === "archived"
           ? ""
           : `
+            ${uploadActions}
             <button class="mini-action" type="button" data-video-action="queue" data-video-id="${video.id}">${t("videoActions.queue")}</button>
             <button class="mini-action" type="button" data-video-action="fail" data-video-id="${video.id}">${t("videoActions.fail")}</button>
+            <button class="mini-action" type="button" data-video-action="failRetryable" data-video-id="${video.id}">${t("videoActions.failRetryable")}</button>
+            <button class="mini-action" type="button" data-video-action="failUnusable" data-video-id="${video.id}">${t("videoActions.failUnusable")}</button>
           `;
+      const submitAction =
+        video.status === "archived"
+          ? ""
+          : `<button class="mini-action" type="button" data-video-action="submit" data-video-id="${video.id}">${t("videoActions.submit")}</button>`;
       return `
         <div class="video-row${selected}">
           <div>
@@ -551,7 +722,7 @@ function renderVideoLibrary() {
           </div>
           <span class="status-pill status-${video.status}">${t(`videoStatus.${video.status}`)}</span>
           <div class="video-actions">
-            <button class="mini-action" type="button" data-video-action="submit" data-video-id="${video.id}">${t("videoActions.submit")}</button>
+            ${submitAction}
             ${workflowActions}
             ${archiveAction}
             <button class="mini-action" type="button" data-video-action="delete" data-video-id="${video.id}">${t("videoActions.delete")}</button>
@@ -571,15 +742,26 @@ function renderMetrics() {
   ];
 
   state.metrics.forEach((metric) => {
+    const isSuppressed = metric.displayStatus === "suppressed_low_confidence";
+    const rawValue = isSuppressed ? t("suppressed") : formatMetricValue(metric);
     const romAdjusted =
-      metric.romAdjusted === null ? t("notApplicable") : `${metric.romAdjusted.toFixed(3)} ${t("ratio")}`;
+      isSuppressed
+        ? t("suppressed")
+        : metric.romAdjusted === null
+          ? t("notApplicable")
+          : `${metric.romAdjusted.toFixed(3)} ${t("ratio")}`;
     rows.push(`
       <div class="metric-row">
         <div class="metric-name">
           <strong>${t(`metricNames.${metric.key}`)}</strong>
           <span>${metric.evidence}</span>
+          ${
+            isSuppressed && metric.suppressionReasons.length
+              ? `<span>${localizedSuppressionReasons(metric.suppressionReasons)}</span>`
+              : ""
+          }
         </div>
-        <span>${formatMetricValue(metric)}</span>
+        <span>${rawValue}</span>
         <span>${romAdjusted}</span>
         <span>${confidenceLabel(state.lowConfidence ? Math.min(metric.confidence, 0.58) : metric.confidence)}</span>
         <span class="maturity ${metric.maturity}">${t(`maturity.${metric.maturity}`)}</span>
@@ -613,6 +795,11 @@ function renderStaticText() {
     }
   });
   setText("romStatus", t("romStatus")(state.romVersion));
+  setText("analysisStatus", t(`trackingStatus.${state.tracking.status}`));
+  document.querySelector("#analysisStatus").className =
+    state.tracking.status === "completed"
+      ? "status-pill status-complete"
+      : `status-pill status-${state.tracking.status}`;
   setText("shareState", state.shareActive ? t("shareActive") : t("noShare"));
   setText("notice", localizedNotice());
 
@@ -644,8 +831,17 @@ function syncFromSnapshot(snapshot) {
   state.romVersion = snapshot.romProfile.version;
   state.shoulderRomMax = shoulderRom.individual_max_deg;
   state.lowConfidence = snapshot.lowConfidence;
+  state.tracking.status = snapshot.trackingRun.status;
+  state.tracking.modelVersion = snapshot.trackingRun.model_version;
+  state.tracking.confidencePolicyVersion = snapshot.trackingRun.confidence_policy_version;
+  state.tracking.overallConfidence = snapshot.trackingRun.overall_confidence;
+  state.tracking.phaseEvents = snapshot.trackingRun.phase_events;
+  state.tracking.failureReason = snapshot.trackingRun.failure_reason;
+  state.analysisFreshness = snapshot.analysisFreshness.status;
+  state.analysisRunStatus = snapshot.analysisRun.status;
   state.shareActive = Boolean(snapshot.activeShare);
   state.videos = snapshot.videos;
+  state.uploadSessions = snapshot.uploadSessions;
   state.selectedVideoId = snapshot.video.id;
   state.metrics = snapshot.analysisRun.metrics.map((metric) => {
     const definition = snapshot.metricDefinitions.find(
@@ -658,7 +854,9 @@ function syncFromSnapshot(snapshot) {
       confidence: metric.confidence,
       maturity: metric.maturity,
       evidence: definition.reference_ids.join(", "),
-      romAdjusted: metric.adjusted_value
+      romAdjusted: metric.adjusted_value,
+      displayStatus: metric.display_status,
+      suppressionReasons: metric.suppression_reasons ?? []
     };
   });
 
@@ -685,6 +883,18 @@ function renderAll() {
   shoulderRomValue.textContent = `${state.shoulderRomMax}°`;
   renderStaticText();
   setText("teamLabel", state.team.name);
+  setText("analysisContext", trackingContextLabel());
+  setText("modelVersion", `Model ${state.tracking.modelVersion}`);
+  setText("phaseFootContact", t("phases.footContact"));
+  setText("phaseRelease", t("phases.release"));
+  const footContact = state.tracking.phaseEvents.find((event) => event.name === "foot_contact");
+  const release = state.tracking.phaseEvents.find((event) => event.name === "ball_release");
+  if (footContact) {
+    setText("phaseFootContact", `${t("phases.footContact")} ${confidenceLabel(footContact.confidence)}`);
+  }
+  if (release) {
+    setText("phaseRelease", `${t("phases.release")} ${confidenceLabel(release.confidence)}`);
+  }
   renderMetrics();
   renderVideoLibrary();
 }
@@ -754,6 +964,85 @@ function saveVideoFromFile(file, source) {
   renderAll();
 }
 
+function submitVideoThroughPrototypeUpload(videoId, lowConfidence, failureReason = null) {
+  const video = state.videos.find((candidate) => candidate.id === videoId);
+  let snapshot = api.getSnapshot();
+  if (video?.status !== "uploaded" && video?.status !== "analyzed") {
+    snapshot = api.createUploadSession({
+      video_id: videoId,
+      expected_bytes: video?.file_size_bytes ?? null,
+      file_name: video?.file_name ?? null,
+      content_type: "video/mp4"
+    });
+    snapshot = api.completeUploadSession({
+      upload_session_id: snapshot.activeUploadSession.id,
+      uploaded_bytes: video?.file_size_bytes ?? null,
+      checksum: null
+    });
+  }
+  return api.submitVideo({
+    video_id: videoId,
+    camera_view: cameraView.value,
+    frame_rate_fps: Number(frameRate.value),
+    lowConfidence,
+    failureReason
+  });
+}
+
+function completePrototypeUpload(videoId) {
+  const video = state.videos.find((candidate) => candidate.id === videoId);
+  if (!video || video.status === "uploaded" || video.status === "analyzed") {
+    return api.getSnapshot();
+  }
+  const latestSession = latestUploadSession(videoId);
+  const sessionSnapshot =
+    latestSession?.status === "active" || latestSession?.status === "interrupted_retryable"
+      ? api.getSnapshot()
+      : api.createUploadSession({
+          video_id: videoId,
+          expected_bytes: video.file_size_bytes ?? null,
+          file_name: video.file_name ?? null,
+          content_type: "video/mp4"
+        });
+  const uploadSession = latestSession?.status === "active" || latestSession?.status === "interrupted_retryable"
+    ? latestSession
+    : sessionSnapshot.activeUploadSession;
+  return api.completeUploadSession({
+    upload_session_id: uploadSession.id,
+    uploaded_bytes: video.file_size_bytes ?? null,
+    checksum: null
+  });
+}
+
+function startPrototypeUpload(videoId) {
+  const video = state.videos.find((candidate) => candidate.id === videoId);
+  if (
+    !video ||
+    video.status === "uploaded" ||
+    video.status === "processing" ||
+    video.status === "analyzed"
+  ) {
+    return api.getSnapshot();
+  }
+  return api.createUploadSession({
+    video_id: videoId,
+    expected_bytes: video.file_size_bytes ?? null,
+    file_name: video.file_name ?? null,
+    content_type: "video/mp4"
+  });
+}
+
+function interruptPrototypeUpload(videoId) {
+  const uploadSession = latestUploadSession(videoId);
+  if (!uploadSession || uploadSession.status !== "active") {
+    return api.getSnapshot();
+  }
+  return api.interruptUploadSession({
+    upload_session_id: uploadSession.id,
+    uploaded_bytes: Math.min(uploadSession.expected_bytes ?? 0, 1024)
+  });
+}
+
 document.querySelector("#submitVideo").addEventListener("click", () => {
   updateAthlete();
   api.updateAthleteProfile({
@@ -761,27 +1050,13 @@ document.querySelector("#submitVideo").addEventListener("click", () => {
     camera_view: cameraView.value,
     frame_rate_fps: Number(frameRate.value)
   });
-  syncFromSnapshot(
-    api.submitVideo({
-      video_id: state.selectedVideoId,
-      camera_view: cameraView.value,
-      frame_rate_fps: Number(frameRate.value),
-      lowConfidence: false
-    })
-  );
+  syncFromSnapshot(submitVideoThroughPrototypeUpload(state.selectedVideoId, false));
   state.lastNotice = "trackingComplete";
   renderAll();
 });
 
 document.querySelector("#mockFailure").addEventListener("click", () => {
-  syncFromSnapshot(
-    api.submitVideo({
-      video_id: state.selectedVideoId,
-      camera_view: cameraView.value,
-      frame_rate_fps: Number(frameRate.value),
-      lowConfidence: true
-    })
-  );
+  syncFromSnapshot(submitVideoThroughPrototypeUpload(state.selectedVideoId, true));
   state.lastNotice = "lowConfidence";
   renderAll();
 });
@@ -845,22 +1120,35 @@ videoLibrary.addEventListener("click", (event) => {
   }
   const videoId = button.dataset.videoId;
   const action = button.dataset.videoAction;
-  if (action === "submit") {
-    syncFromSnapshot(
-      api.submitVideo({
-        video_id: videoId,
-        camera_view: cameraView.value,
-        frame_rate_fps: Number(frameRate.value),
-        lowConfidence: false
-      })
-    );
+  if (action === "startUpload") {
+    syncFromSnapshot(startPrototypeUpload(videoId));
+    state.lastNotice = "uploadStarted";
+  } else if (action === "interruptUpload") {
+    syncFromSnapshot(interruptPrototypeUpload(videoId));
+    state.lastNotice = "uploadInterrupted";
+  } else if (action === "completeUpload") {
+    syncFromSnapshot(completePrototypeUpload(videoId));
+    state.lastNotice = "uploadCompleted";
+  } else if (action === "submit") {
+    syncFromSnapshot(submitVideoThroughPrototypeUpload(videoId, false));
     state.lastNotice = "trackingComplete";
   } else if (action === "queue") {
+    syncFromSnapshot(completePrototypeUpload(videoId));
     syncFromSnapshot(api.updateVideoStatus({ video_id: videoId, status: "processing" }));
     state.lastNotice = "videoQueued";
   } else if (action === "fail") {
     syncFromSnapshot(api.updateVideoStatus({ video_id: videoId, status: "failed" }));
     state.lastNotice = "videoFailed";
+  } else if (action === "failRetryable") {
+    syncFromSnapshot(
+      submitVideoThroughPrototypeUpload(videoId, false, trackingFailureReason.LOW_ATHLETE_VISIBILITY)
+    );
+    state.lastNotice = "trackingRetryable";
+  } else if (action === "failUnusable") {
+    syncFromSnapshot(
+      submitVideoThroughPrototypeUpload(videoId, false, trackingFailureReason.UNSUPPORTED_CAMERA_VIEW)
+    );
+    state.lastNotice = "trackingUnusable";
   } else if (action === "archive") {
     syncFromSnapshot(api.updateVideoStatus({ video_id: videoId, status: "archived" }));
     state.lastNotice = "videoArchived";

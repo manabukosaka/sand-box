@@ -21,6 +21,17 @@ Implemented prototype capabilities:
 - English/Japanese bilingual UI.
 - Domain model in `sports-motion-app/src/domain.mjs`.
 - Local mock API in `sports-motion-app/src/mockApi.mjs`.
+- Prototype `UploadSession` state in the mock API; tracking submission is gated
+  until upload completion is recorded, and prototype processing state cannot be
+  entered from a draft video.
+- PWA video library controls for starting, interrupting, completing, and retrying
+  prototype upload sessions.
+- Active upload session creation is idempotent per video, while interrupted
+  upload sessions can create a new retry attempt.
+- Replaceable prototype tracking adapter contract in
+  `sports-motion-app/src/trackingAdapter.mjs`.
+- Prototype tracking failure policy for warning, retryable failure, and unusable
+  failure states based on capture/measurement conditions.
 - Browser `localStorage` state for the prototype.
 - Smartphone camera and video import file inputs.
 - Managed video draft, archive, restore, and delete states.
@@ -34,12 +45,33 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/prototype_acceptance_review.md`.
 - Draft Milestone 2 tracking feasibility gate in
   `sports-motion-app/docs/tracking_feasibility_gate.md`.
-- 14 Node tests covering domain and mock API behavior.
+- Proposed mobile stack ADR in
+  `sports-motion-app/docs/adr/0002-mobile-stack-for-field-prototype.md`.
+- Draft tracking provider/model shortlist in
+  `sports-motion-app/docs/tracking_shortlist.md`.
+- Draft sample-video manifest in
+  `sports-motion-app/docs/sample_video_manifest.md`.
+- Draft metric tracking support matrix in
+  `sports-motion-app/docs/metric_tracking_support_matrix.md`.
+- Mobile V&V evidence template in
+  `sports-motion-app/docs/vv/mobile_test_results_template.md`.
+- Native field prototype spike plan in
+  `sports-motion-app/docs/native_field_prototype_spike.md`.
+- Isolated React Native + Expo native scaffold under `sports-motion-app/mobile`
+  with capture/import, bilingual navigation, local draft persistence, metrics,
+  ROM, sharing prototype surfaces, permission status display, selected-video
+  metadata display, a phase-overlay placeholder, and local-only upload retry
+  simulation.
+- Native emulator/simulator smoke is blocked until the local Node runtime is
+  upgraded from `18.19.1` to `>=20.19.4`.
+- 24 Node tests covering domain, mock API, upload-session gating/retry, tracking
+  adapter behavior, and tracking failure policy.
 
 Not yet implemented:
 
 - Production mobile stack.
-- Real backend API, authentication, object storage, or upload sessions.
+- Production backend API, authentication, object storage, or real resumable
+  upload transport.
 - Real AI markerless tracking pipeline.
 - Multi-team and multi-athlete management beyond the active prototype records.
 - Full video filtering by athlete, team, and capture date.
@@ -81,6 +113,10 @@ Already completed in prototype:
 
 - PWA shell with capture, metrics, ROM, and sharing views.
 - Local domain model and mock API boundary.
+- Deterministic prototype `TrackingAdapter` boundary for future provider/model
+  replacement.
+- PWA summary display for tracking status, model version, confidence policy, and
+  phase-event confidence.
 - Smartphone camera/import entry points.
 - Managed video records with draft/archive/delete behavior.
 - Active-session team and athlete attribute editing, including baseball profile
@@ -123,11 +159,18 @@ Entry gate:
 
 - `docs/tracking_feasibility_gate.md` is reviewed and moved from draft to a
   Go, Conditional Go, or No-Go decision.
-- Mobile stack decision is recorded in an ADR.
-- AI tracking provider/model shortlist is recorded with versions, licensing,
+- Mobile stack decision ADR is reviewed and either accepted or sent back for a
+  spike.
+- Android emulator and iOS simulator smoke results exist for the native
+  development build.
+- Physical Android and physical iPhone verification results exist for capture,
+  import, local draft persistence, upload retry, and overlay review before the
+  mobile stack ADR can be accepted.
+- AI tracking provider/model shortlist is reviewed with versions, licensing,
   cost, latency, privacy, and validation notes.
 - Sample pitching-video test set exists with consent/usage rights and capture
   metadata.
+- Metric tracking support matrix is reviewed for each initial evidence metric.
 - Markerless tracking confidence and failure policy is drafted from sample-set
   results.
 - Formal/provisional/experimental metric promotion policy is agreed.
@@ -142,11 +185,15 @@ Work items:
   application data rather than hard-coded prototype constants.
 - Implement raw metric calculation for the initial pitching metric candidates.
 - Implement ROM post-processing while preserving raw values.
+- Implement backend-owned upload sessions and prevent tracking jobs from being
+  enqueued until upload completion is confirmed.
 - Label low-confidence and experimental metrics in all result views.
 
 Exit criteria:
 
 - A sample pitching video produces visible skeleton overlay and phase markers.
+- Interrupted upload retry preserves draft/video metadata and tracking submission
+  waits for confirmed upload completion.
 - Raw and ROM-adjusted metrics are stored separately and reference model,
   metric-definition, and ROM-profile versions.
 - Low-confidence videos produce understandable failed or caution states.

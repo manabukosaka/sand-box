@@ -17,6 +17,7 @@
 - Rust: backend 変更に見合う場合は `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
 - Frontend: frontend 変更に見合う場合は `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
 - Sports Motion App docs: requirements、architecture、API schema、evidence metrics、project plan、V&V、ADR の整合性を `check-sports-motion-docs.sh` で確認する。
+- Sports Motion App process: `sports-motion-app/docs/development_process.md` に沿って project plan、acceptance/prototype notes、V&V evidence、schema/tests の同期を確認する。
 - UI: 実用的な範囲で layout、responsiveness、accessibility basics、screenshot または browser evidence を確認する。
 - Data/auth/deployment: rollback、recovery、migration、residual risk を明示する。
 
@@ -29,14 +30,14 @@
 
 ## リリースゲート
 
-- Git 運用の source of truth は `mini-datadog/CONTRIBUTING.md`。
+- Git 運用の source of truth は対象プロダクトごとに分ける。Mini Datadog は `mini-datadog/CONTRIBUTING.md`、Sports Motion App は `sports-motion-app/docs/development_process.md`。
 - `main` は常に deployable に保つ。原則として直接 commit / push せず、作業 branch から PR 経由で merge する。
 - branch、commit、PR、push、merge は明示的に要求された時だけ行う。
 - 作業 branch は `<type>/<issue-or-short-desc>` 形式にする。例: `docs/codex-workflow`、`fix/lint-config`。
 - commit する場合は Conventional Commits を使う。
 - PR を開く場合は repository PR template を使う。
 - PR template の Overview、ADR / Decision、Security Check、V&V Status、Screenshots / Logs、World-Class Quality Assurance は空欄や placeholder のまま残さない。
-- PR 作成と push は `.agents/scripts/codex-pr.sh` を標準入口にする。
+- PR 作成と push は `.agents/scripts/codex-pr.sh` を標準入口にする。Sports Motion App では `--sports-motion-app` preset を使う。
 - 承認済み PR の merge は `.agents/scripts/codex-merge.sh` を標準入口にする。
 - PR 前に self-review と関連 check を行う。
 - merge は CI / check 通過後、明示的なユーザー承認後だけ行う。

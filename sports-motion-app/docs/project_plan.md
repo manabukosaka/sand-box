@@ -55,6 +55,8 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/metric_tracking_support_matrix.md`.
 - Mobile V&V evidence template in
   `sports-motion-app/docs/vv/mobile_test_results_template.md`.
+- Sports Motion App development process, autonomous planning queue, and
+  retrospective notes are tracked in `sports-motion-app/docs/`.
 - Native field prototype spike plan in
   `sports-motion-app/docs/native_field_prototype_spike.md`.
 - Isolated React Native + Expo native scaffold under `sports-motion-app/mobile`
@@ -64,8 +66,9 @@ Implemented prototype capabilities:
   simulation.
 - Native emulator/simulator smoke is blocked until the local Node runtime is
   upgraded from `18.19.1` to `>=20.19.4`.
-- 24 Node tests covering domain, mock API, upload-session gating/retry, tracking
-  adapter behavior, and tracking failure policy.
+- Node test suite covering domain, mock API, upload session gating/retry,
+  prototype tracking adapter behavior, tracking failure policy, metric
+  suppression, and share scope behavior.
 
 Not yet implemented:
 
@@ -126,6 +129,8 @@ Already completed in prototype:
 - Explicit prototype transitions for processing and failed video states.
 - ROM-adjusted recalculation as a separate layer from raw values.
 - Prototype result sharing and revocation.
+- Prototype metric suppression based on tracking quality and confidence policy.
+- Prototype share scope behavior for video, evidence notes, and comments.
 - Local prototype acceptance review notes.
 
 Remaining work:

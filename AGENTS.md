@@ -13,7 +13,7 @@
   - Backend: Rust, Axum, Tokio, DuckDB。
   - Frontend: TypeScript, React, Next.js, Tailwind CSS。
 - Product: Sports Motion App。野球投球 MVP から始める sports motion analysis mobile app。
-  - Current phase: documentation-first。requirements、architecture、API contract、evidence metrics、project plan、V&V、ADR を `sports-motion-app/docs/` に保持する。
+  - Current phase and process: `sports-motion-app/docs/project_plan.md` と `sports-motion-app/docs/development_process.md` を優先参照する。
   - Key constraints: installable iOS/Android app、hybrid cloud analysis、AI markerless tracking、ROM post-processing、evidence-backed baseball metrics。
 - Goal: 粗いユーザー依頼を、対象プロダクトごとの要件、設計、実装、テスト、V&V 証跡へ変換する。
 
@@ -37,7 +37,7 @@
 - `.agents/skills/`: Gemini のロール観点から移植した Codex skills。
 - `mini-datadog/docs/`: product requirements、design、ADR、API docs、V&V、setup docs。
 - `sports-motion-app/docs/`: Sports Motion App の requirements、architecture、API contract、evidence metrics、project plan、V&V、ADR。
-- `mini-datadog/CONTRIBUTING.md`: branch、commit、PR、review、quality check の source of truth。
+- `mini-datadog/CONTRIBUTING.md`: Mini Datadog の branch、commit、PR、review、quality check の source of truth。
 - `GEMINI.md` と `.gemini/`: Gemini 設定。ユーザーが明示的に Gemini 変更を求めない限り変更しない。
 
 ## 運用原則
@@ -59,12 +59,13 @@
 - 広範な Codex 環境 verification には `.agents/scripts/verify.sh` を実行する。
 - Mini Datadog の広範な verification は `.agents/scripts/verify.sh --mini-datadog` を使う。
 - Sports Motion App の docs / contract verification は `.agents/scripts/verify.sh --sports-motion-app` を使う。
+- Sports Motion App の開発プロセスと PR 前チェックは `sports-motion-app/docs/development_process.md` を優先する。
 - Backend: 関連する `cargo fmt --check`、`cargo clippy`、`cargo test` を実行する。
 - Frontend: 関連する `npm run lint`、存在する場合は `npm test`、必要に応じて `npm run build` を実行する。
 - UI: 実用的な範囲で layout、responsive、accessibility basics、screenshot / browser evidence を確認する。
 - data、auth、deployment、destructive behavior では、残余リスクと rollback / recovery consideration を明示する。
 - ユーザーが継続的な commit を求めている場合は、作業の区切りで `.agents/scripts/codex-checkpoint.sh` を使う。
-- Git 運用は `mini-datadog/CONTRIBUTING.md` に従う。原則として `main` へ直接 commit / push せず、`<type>/<issue-or-short-desc>` branch から PR 経由で merge する。
+- Git 運用は対象プロダクトの process / contributing doc に従う。原則として `main` へ直接 commit / push せず、`<type>/<issue-or-short-desc>` branch から PR 経由で merge する。
 
 ## Codex 制約
 

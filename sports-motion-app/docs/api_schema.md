@@ -134,6 +134,15 @@ Upload session failures must remain file-transfer and capture-condition focused.
 They must not be presented as athlete quality, readiness, diagnosis, treatment,
 or injury prediction.
 
+Upload-session ownership rules:
+
+- backend state is authoritative for formal tracking readiness;
+- local draft or local upload simulation is non-authoritative;
+- `MotionVideo.status = uploaded` requires backend-confirmed
+  `UploadSession.status = completed`;
+- `POST /videos/{motion_video_id}/submit-tracking` must fail with
+  `422 video_not_ready_for_tracking` until that completion is confirmed.
+
 ### RomProfile
 
 ```json
@@ -371,6 +380,19 @@ availability.
 access, then preserve local draft metadata until the backend confirms
 `UploadSession.status = completed` and `MotionVideo.status = uploaded`.
 
+Session idempotency and lifecycle contract:
+
+- If an `active` session exists for the video, create must return that active
+  session instead of creating duplicates.
+- If the latest session is `interrupted_retryable`, `expired`, or `aborted`,
+  create may return a new session with `attempt = previous_attempt + 1`.
+- `complete` is accepted only for `active` sessions and must set the related
+  video status to `uploaded`.
+- `abort` is accepted only for `active` sessions and must preserve video draft
+  metadata.
+- `submit-tracking` is idempotent for an uploaded video while a queued or
+  processing tracking run exists.
+
 Example upload session request:
 
 ```json
@@ -440,6 +462,10 @@ Expired or revoked shares must fail closed with `410 share_expired_or_revoked`.
 - `422 tracking_confidence_too_low`: analysis cannot calculate required signals.
 - `422 unsupported_metric_definition`: metric is not valid for this motion type.
 - `422 video_not_ready_for_tracking`: video is not uploaded or is archived/deleted.
+- `409 upload_session_not_active`: completion/abort requested for a non-active
+  session.
+- `409 duplicate_active_upload_session`: conflicting attempt to create another
+  active session for the same video.
 - `410 share_expired_or_revoked`: external share is no longer available.
 
 ## 6. Security And Audit Requirements

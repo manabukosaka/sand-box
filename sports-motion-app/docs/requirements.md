@@ -84,6 +84,10 @@ improvement.
   retried without losing athlete, team, session, camera-view, or video metadata.
 - Formal tracking submission and processing queue entry require confirmed upload
   completion; local draft state alone is not sufficient to start analysis.
+- Backend upload-session state is authoritative for readiness. Local draft or
+  local upload simulation cannot transition a video to tracking-ready state.
+- Upload-session creation is idempotent for active attempts per video, and retry
+  attempts create a new session only after interruption, expiration, or abort.
 - Users can view, search, filter, and update video metadata by athlete, team,
   capture date, processing status, camera view, and analysis availability.
 - Users can keep videos in draft, uploaded, processing, analyzed, failed, archived,

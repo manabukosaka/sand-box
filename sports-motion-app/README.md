@@ -31,6 +31,8 @@ the baseball pitching MVP.
   promotion.
 - `docs/adr/0002-mobile-stack-for-field-prototype.md`: proposed mobile stack
   decision for the first installable field prototype.
+- `docs/adr/0003-backend-upload-session-boundary.md`: proposed backend ownership
+  boundary for upload-session lifecycle and tracking readiness.
 - `docs/tracking_shortlist.md`: draft tracking provider/model shortlist for
   feasibility review.
 - `docs/sample_video_manifest.md`: sample pitching-video manifest template for

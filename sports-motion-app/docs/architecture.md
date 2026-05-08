@@ -127,6 +127,8 @@ The MVP uses a hybrid architecture:
   The UI must expose confidence and measurement-context limits.
 - Keep external sharing result-scoped, expiring, and revocable.
   Sharing must not grant broad organization or athlete history access by default.
+- Make backend `UploadSession` state authoritative for formal tracking readiness.
+  Local draft/upload UI state improves continuity but cannot enqueue tracking.
 
 ## 7. Failure Modes
 
@@ -135,6 +137,10 @@ The MVP uses a hybrid architecture:
   confirmed.
 - Upload session expired: keep local draft metadata, request a new upload
   session, and preserve the original `MotionVideo` draft if the user retries.
+- Duplicate upload-session request: return current active session instead of
+  creating conflicting active sessions.
+- Duplicate tracking submission: treat as idempotent while an existing run is
+  queued/processing, and avoid duplicate worker enqueue.
 - Unsupported or poor-quality video: mark the tracking run failed with a clear
   reason and keep the original video for review or retry.
 - Low-confidence tracking: complete the run only if enough required signals exist,

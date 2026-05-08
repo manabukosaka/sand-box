@@ -62,6 +62,7 @@ docs=(
   sports-motion-app/docs/adr/README.md
   sports-motion-app/docs/adr/0001-hybrid-analysis-and-versioned-results.md
   sports-motion-app/docs/adr/0002-mobile-stack-for-field-prototype.md
+  sports-motion-app/docs/adr/0003-backend-upload-session-boundary.md
 )
 
 for doc in "${docs[@]}"; do
@@ -84,6 +85,7 @@ require_ref sports-motion-app/docs/evidence_metrics.md "Experimental"
 require_ref sports-motion-app/docs/vuv_checklist.md "diagnosis"
 require_ref sports-motion-app/docs/adr/README.md "0001"
 require_ref sports-motion-app/docs/adr/README.md "0002"
+require_ref sports-motion-app/docs/adr/README.md "0003"
 require_ref sports-motion-app/README.md "docs/tracking_feasibility_gate.md"
 require_ref sports-motion-app/README.md "docs/native_field_prototype_spike.md"
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/sample_video_manifest.md"
@@ -101,6 +103,7 @@ require_ref sports-motion-app/docs/project_plan.md "upload session"
 require_ref sports-motion-app/docs/project_plan.md "share scope"
 require_ref sports-motion-app/docs/project_plan.md "metric suppression"
 require_ref sports-motion-app/docs/project_plan.md "development process"
+require_ref sports-motion-app/docs/project_plan.md "upload-session state machine"
 require_ref sports-motion-app/docs/development_process.md "Maximum Autonomy Mode"
 require_ref sports-motion-app/docs/development_process.md "User Review Request Gates"
 require_ref sports-motion-app/docs/development_process.md "explicitly approved merge"
@@ -127,6 +130,10 @@ require_ref sports-motion-app/docs/native_field_prototype_spike.md "Expo develop
 require_ref sports-motion-app/docs/native_field_prototype_spike.md "Runtime Unblock Gate"
 require_ref sports-motion-app/docs/vv/mobile_test_results_2026-05-07_native_scaffold.md "Required Node"
 require_ref sports-motion-app/docs/vv/tracking_feasibility_results_template.md "Gate Recommendation"
+require_ref sports-motion-app/docs/requirements.md "Backend upload-session state is authoritative"
+require_ref sports-motion-app/docs/api_schema.md "Session idempotency and lifecycle contract"
+require_ref sports-motion-app/docs/architecture.md "UploadSession"
+require_ref sports-motion-app/docs/adr/0003-backend-upload-session-boundary.md "Status"
 
 if [[ -f sports-motion-app/package.json ]]; then
   (cd sports-motion-app && npm test)

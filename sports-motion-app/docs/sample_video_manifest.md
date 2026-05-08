@@ -94,6 +94,21 @@ Each adapter/provider run against a sample must produce:
 | `failure_reason` | required on failure | Capture/measurement reason only |
 | `metric_support_notes` | yes | Link to metric support matrix review |
 
+## Run Batch Header
+
+For each dated evaluation batch, record:
+
+| Field | Required | Notes |
+| --- | --- | --- |
+| `run_batch_id` | yes | Example: `tv_2026_05_20_a` |
+| `run_date` | yes | ISO date |
+| `candidate_id` | yes | From shortlist |
+| `candidate_version` | yes | Exact tested version |
+| `adapter_version` | yes | Tracking adapter version |
+| `confidence_policy_version` | yes | Policy version used for suppression/failures |
+| `manifest_version` | yes | Snapshot or commit reference |
+| `results_doc` | yes | Dated results file under `docs/vv/` |
+
 ## Gate Use
 
 The sample set can support a Conditional Go only when:

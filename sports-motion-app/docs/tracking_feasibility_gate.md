@@ -204,6 +204,10 @@ Before the gate can pass, attach or link:
 - tracking shortlist review table: `docs/tracking_shortlist.md`;
 - sample-video set manifest: `docs/sample_video_manifest.md`;
 - sample-video evaluation result summary;
+- executable run checklist:
+  `docs/tracking_sample_run_plan.md`;
+- dated run result file based on:
+  `docs/vv/tracking_feasibility_results_template.md`;
 - confidence/failure policy version;
 - metric promotion decision list and signal support matrix:
   `docs/metric_tracking_support_matrix.md`;
@@ -220,3 +224,18 @@ Before the gate can pass, attach or link:
   artifacts during feasibility testing?
 - Who signs off on evidence metric promotion: product, biomechanics specialist,
   QA, or all three?
+
+## 9. First Executable Slice Scope
+
+The first tracking feasibility sample run slice is limited to:
+
+- run planning and evidence templates;
+- sample coverage and blocked-state clarity;
+- candidate run result recording shape;
+- metric classification proposal workflow.
+
+It does not, by itself:
+
+- accept or reject ADR 0002;
+- promote metrics to formal maturity;
+- commit to a production provider/model integration.

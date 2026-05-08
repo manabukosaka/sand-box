@@ -53,6 +53,9 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/sample_video_manifest.md`.
 - Draft metric tracking support matrix in
   `sports-motion-app/docs/metric_tracking_support_matrix.md`.
+- Tracking feasibility sample-run execution checklist in
+  `sports-motion-app/docs/tracking_sample_run_plan.md` and dated results
+  template in `sports-motion-app/docs/vv/tracking_feasibility_results_template.md`.
 - Mobile V&V evidence template in
   `sports-motion-app/docs/vv/mobile_test_results_template.md`.
 - Sports Motion App development process, autonomous planning queue, and

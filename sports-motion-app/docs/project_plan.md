@@ -83,6 +83,8 @@ Not yet implemented:
 - Multi-team and multi-athlete management beyond the active prototype records.
 - Full video filtering by athlete, team, and capture date.
 - Real access control for external sharing.
+- Production backend upload-session state machine and queue-idempotent tracking
+  submit flow are still design-only and not implemented.
 
 ## 3. Milestone 0: Discovery / Stack / Evidence Validation
 

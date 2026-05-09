@@ -20,7 +20,8 @@ Native emulator/simulator smoke starts only after the runtime gate in
 Current blocker:
 
 - `sports-motion-app/mobile/package.json` requires Node `>=20.19.4`.
-- Local verification on 2026-05-07 observed Node `18.19.1` and npm `9.2.0`.
+- Local verification on 2026-05-07 and 2026-05-09 observed Node `18.19.1`
+  and npm `9.2.0`.
 - The Expo dev-client help check can run on Node `18.19.1`, but
   emulator/simulator smoke must remain `Blocked` until the local runtime is
   upgraded or an equivalent EAS simulator path is documented.
@@ -33,6 +34,11 @@ Before any native smoke run, record:
 - whether Android emulator, iOS simulator, or EAS simulator prerequisites are
   available;
 - the dated V&V result file created under `docs/vv/`.
+
+Current dated blocker evidence:
+
+- `docs/vv/mobile_test_results_2026-05-07_native_scaffold.md`
+- `docs/vv/mobile_test_results_2026-05-09_runtime_gate.md`
 
 ## Test Timing
 

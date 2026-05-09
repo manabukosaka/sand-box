@@ -51,6 +51,8 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/tracking_shortlist.md`.
 - Draft sample-video manifest in
   `sports-motion-app/docs/sample_video_manifest.md`.
+- Tracking feasibility sample readiness is blocked because the manifest contains
+  only placeholder rows and no approved private sample set yet.
 - Draft metric tracking support matrix in
   `sports-motion-app/docs/metric_tracking_support_matrix.md`.
 - Tracking feasibility sample-run execution checklist in

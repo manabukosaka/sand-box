@@ -3,6 +3,7 @@
 Status: Draft execution-ready checklist
 Owner: Sports Motion biomechanics / product / QA
 Created: 2026-05-08
+Last reviewed: 2026-05-09
 
 This plan turns the tracking feasibility gate into an executable review slice.
 It does not select a production tracking provider and does not change the mobile
@@ -39,6 +40,11 @@ Required output:
 - explicit decision: `ready_for_run` or `blocked`.
 
 If blocked, stop and record the blocker in the dated results file.
+
+Current readiness: `blocked`. The 2026-05-09 readiness check found that the
+manifest still contains only placeholder sample IDs and no approved private
+sample set. Candidate execution must not start until sample coverage and usage
+rights are complete.
 
 ## Step 3: Candidate Run Execution
 

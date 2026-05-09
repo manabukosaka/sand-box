@@ -61,6 +61,7 @@ docs=(
   sports-motion-app/docs/vv/share_access_results_template.md
   sports-motion-app/docs/vv/share_access_results_2026-05-09.md
   sports-motion-app/docs/vv/tracking_feasibility_results_template.md
+  sports-motion-app/docs/vv/tracking_feasibility_results_2026-05-09_sample_readiness.md
   sports-motion-app/docs/adr/README.md
   sports-motion-app/docs/adr/0001-hybrid-analysis-and-versioned-results.md
   sports-motion-app/docs/adr/0002-mobile-stack-for-field-prototype.md
@@ -98,6 +99,8 @@ require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/tracking_s
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/vv/tracking_feasibility_results_template.md"
 require_ref sports-motion-app/docs/tracking_sample_run_plan.md "results_template"
 require_ref sports-motion-app/docs/tracking_sample_run_plan.md "Review Gate Request"
+require_ref sports-motion-app/docs/tracking_sample_run_plan.md "Current readiness"
+require_ref sports-motion-app/docs/sample_video_manifest.md "Current readiness decision"
 require_ref sports-motion-app/docs/mobile_test_plan.md "docs/vv/mobile_test_results_template.md"
 require_ref sports-motion-app/docs/mobile_test_plan.md "PWA Smoke Scope"
 require_ref sports-motion-app/docs/mobile_test_plan.md "Runtime Readiness Gate"
@@ -141,6 +144,8 @@ require_ref sports-motion-app/docs/native_field_prototype_spike.md "Expo develop
 require_ref sports-motion-app/docs/native_field_prototype_spike.md "Runtime Unblock Gate"
 require_ref sports-motion-app/docs/vv/mobile_test_results_2026-05-07_native_scaffold.md "Required Node"
 require_ref sports-motion-app/docs/vv/tracking_feasibility_results_template.md "Gate Recommendation"
+require_ref sports-motion-app/docs/vv/tracking_feasibility_results_2026-05-09_sample_readiness.md "Blocked before candidate execution"
+require_ref sports-motion-app/docs/vv/tracking_feasibility_results_2026-05-09_sample_readiness.md "Usage rights approved"
 require_ref sports-motion-app/docs/requirements.md "Backend upload-session state is authoritative"
 require_ref sports-motion-app/docs/api_schema.md "Session idempotency and lifecycle contract"
 require_ref sports-motion-app/docs/architecture.md "UploadSession"

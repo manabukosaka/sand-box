@@ -19,6 +19,8 @@ Current evidence notes:
   evidence and Node runtime blocker note.
 - `mobile_test_results_2026-05-09_runtime_gate.md`: current Node runtime gate
   recheck confirming emulator/simulator smoke remains blocked.
+- `tracking_feasibility_results_2026-05-09_sample_readiness.md`: current sample
+  coverage readiness check confirming candidate tracking runs remain blocked.
 
 Use `docs/vuv_checklist.md` as the checklist source of truth and link completed
 evidence back to the relevant milestone or gate.

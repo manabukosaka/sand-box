@@ -1,8 +1,9 @@
 # Sample Pitching Video Manifest
 
-Status: Draft template, no real athlete media committed
+Status: Draft template, no approved sample set yet
 Owner: Sports Motion product / QA
 Created: 2026-05-06
+Last reviewed: 2026-05-09
 
 This manifest defines the sample-video set needed for the Milestone 2 tracking
 feasibility gate. Do not commit original videos, athlete names, faces, consent
@@ -39,6 +40,10 @@ or assured performance claims.
 | Known bad framing | 3 | 0 | Missing |
 
 Minimum total before gate review: 25 samples.
+
+Current readiness decision: `blocked`. The repository contains placeholder rows
+only. No private sample has approved usage rights, complete metadata, and a
+non-identifying artifact reference ready for candidate evaluation.
 
 ## Manifest Fields
 

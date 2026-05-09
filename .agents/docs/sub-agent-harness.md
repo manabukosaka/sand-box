@@ -70,6 +70,15 @@ checks.
 Sports Motion App の最大自律作業では、ユーザーが sub-agent 活用を明示した
 場合、親 Codex は次の sidecar review を優先する。
 
+3 レーン標準（既定）:
+
+1. Product lane
+2. Architecture lane
+3. QA/Release lane
+
+Security lane は sharing/privacy、external access-control、athlete-identifying
+data 境界に変更がある時だけ追加する。
+
 - Sports Motion Product: MVP scope、review request gate、外部共有、ROM、
   evidence-backed metric の product risk を確認する。
 - Sports Mobile Architect: installable iOS/Android、cloud analysis、upload、

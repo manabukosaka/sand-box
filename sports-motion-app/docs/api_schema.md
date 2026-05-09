@@ -324,14 +324,32 @@ focused.
 ```json
 {
   "id": "shr_123",
+  "share_token": "tok_shr_123",
   "analysis_run_id": "ana_123",
   "created_by_user_id": "usr_123",
   "scope": "analysis_result_only",
-  "include_video": true,
-  "include_comments": true,
+  "include_video": false,
+  "include_overlays": false,
+  "include_comments": false,
+  "include_evidence": false,
   "expires_at": "2026-06-05T00:00:00Z",
   "revoked_at": null,
+  "token_last_rotated_at": "2026-05-05T00:05:00Z",
   "created_at": "2026-05-05T00:05:00Z"
+}
+```
+
+### ShareAccessLog
+
+```json
+{
+  "id": "shl_123",
+  "share_link_id": "shr_123",
+  "accessed_at": "2026-05-07T10:00:00Z",
+  "result": "allowed",
+  "reason": null,
+  "client_fingerprint": "sha256:coarse",
+  "ip_country_code": "JP"
 }
 ```
 
@@ -444,6 +462,7 @@ Metric definitions are read-only for normal team users in the MVP.
 - `POST /analysis-runs/{analysis_run_id}/share-links`
 - `GET /share-links/{share_link_id}`
 - `POST /share-links/{share_link_id}/revoke`
+- `POST /share-links/{share_link_id}/rotate-token`
 - `GET /shared/{share_token}`
 
 Shared views must return only the scoped analysis result and allowed assets.
@@ -451,7 +470,23 @@ When `ShareLink.include_video` is false, shared responses must omit original
 video and tracking artifact payloads. When `ShareLink.include_evidence` is
 false, shared responses must omit metric-definition details and evidence
 reference details beyond IDs already embedded in the analysis result.
+When `ShareLink.include_overlays` is false, shared responses must omit skeleton
+overlay payloads and phase visualization assets.
+When `ShareLink.include_comments` is false, shared responses must omit
+specialist comments or annotations in the shared payload.
 Expired or revoked shares must fail closed with `410 share_expired_or_revoked`.
+
+`share_link_id` is an internal management ID for staff/admin APIs. `share_token`
+is the external viewer token used by `/shared/{share_token}`.
+`POST /share-links/{share_link_id}/rotate-token` issues a new active token and
+invalidates the previous token.
+
+Share endpoints for audit evidence:
+
+- `GET /share-links/{share_link_id}/access-logs`
+
+Access logs are append-only. External viewers cannot query logs directly.
+Log result values are `allowed` or `denied`.
 
 ## 5. Required Error Cases
 
@@ -467,6 +502,8 @@ Expired or revoked shares must fail closed with `410 share_expired_or_revoked`.
 - `409 duplicate_active_upload_session`: conflicting attempt to create another
   active session for the same video.
 - `410 share_expired_or_revoked`: external share is no longer available.
+- `403 shared_scope_forbidden`: share token exists but requested field scope is
+  not allowed by include flags.
 
 ## 6. Security And Audit Requirements
 
@@ -474,6 +511,7 @@ Expired or revoked shares must fail closed with `410 share_expired_or_revoked`.
 - External share access must be scoped to one analysis result by default.
 - Share access attempts are logged with timestamp, share ID, and coarse client
   metadata.
+- Share include flags must be enforced server-side regardless of client request.
 - Users can revoke shares without deleting the underlying analysis.
 - Analysis and metric-version provenance must be available to authorized coaches
   and trainers.

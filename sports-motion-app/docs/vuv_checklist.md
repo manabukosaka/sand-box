@@ -88,13 +88,20 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 - Prior analyses can be compared without mixing metric versions silently.
 - Share link can be created for one analysis result.
 - Share scope controls whether video, comments, and evidence notes are visible.
+- Share scope controls whether overlays are visible.
+- Shared metric tables remain limited to one analysis result and are treated as
+  the minimum shared payload in MVP.
+- Default share scope excludes video, overlays, comments, and evidence details
+  unless explicitly included.
 - Expired or revoked share links fail closed.
 - Share access attempts are logged.
+- Revoked or expired external access attempts are logged as denied.
 
 ## 8. Security And Privacy Verification
 
 - Users cannot access athletes outside their organization/team scope.
 - External share viewers cannot enumerate other athletes, teams, or analysis runs.
+- External share viewers cannot query share access logs.
 - Revoking a share does not delete the analysis but blocks further external
   access.
 - User-facing exports or shared views preserve caution labels.

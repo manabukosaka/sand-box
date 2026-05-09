@@ -60,6 +60,8 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/vv/mobile_test_results_template.md`.
 - Sports Motion App development process, autonomous planning queue, and
   retrospective notes are tracked in `sports-motion-app/docs/`.
+- Sub-agent execution defaults to a 3-lane review pattern (Product,
+  Architecture, QA) with conditional Security lane for sharing/privacy slices.
 - Native field prototype spike plan in
   `sports-motion-app/docs/native_field_prototype_spike.md`.
 - Isolated React Native + Expo native scaffold under `sports-motion-app/mobile`
@@ -85,6 +87,8 @@ Not yet implemented:
 - Real access control for external sharing.
 - Production backend upload-session state machine and queue-idempotent tracking
   submit flow are still design-only and not implemented.
+- Production share-scope enforcement and access-log API behavior remain
+  design-level until backend implementation and V&V evidence are completed.
 
 ## 3. Milestone 0: Discovery / Stack / Evidence Validation
 
@@ -280,6 +284,12 @@ Exit criteria:
   tracking or historical analysis versions.
 - Coach shares selected analysis externally, then revokes access and verifies the
   external view is unavailable.
+- Coach confirms shared-result defaults are minimum disclosure and metric tables
+  remain the required minimum payload for a valid shared analysis.
+- Coach confirms share expiry policy behavior (fixed MVP TTL) and verifies denied
+  external access after expiry.
+- Internal staff confirms share access logs capture allowed and denied attempts,
+  including revoked or expired access attempts.
 
 ## 9. Risks And Decision Gates
 

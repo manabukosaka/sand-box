@@ -129,6 +129,10 @@ The MVP uses a hybrid architecture:
   Sharing must not grant broad organization or athlete history access by default.
 - Make backend `UploadSession` state authoritative for formal tracking readiness.
   Local draft/upload UI state improves continuity but cannot enqueue tracking.
+- Enforce share include flags server-side and treat external links as minimum
+  disclosure by default.
+- Keep `share_link_id` as an internal management identifier and expose only
+  `share_token` on external shared-result endpoints.
 
 ## 7. Failure Modes
 
@@ -150,6 +154,12 @@ The MVP uses a hybrid architecture:
 - ROM profile updated: existing results can be recalculated, but old ROM-adjusted
   outputs remain auditable.
 - Share revoked or expired: external access fails closed.
+- Share include scope mismatch: deny requested fields and keep response scoped to
+  explicit include flags.
+- Share token rotated: invalidate the previous token and keep current share scope
+  unchanged.
+- Share access log unavailable: preserve core access behavior and retry log append
+  asynchronously without widening scope.
 
 ## 8. Open Architecture Decisions
 

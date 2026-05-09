@@ -48,6 +48,8 @@ the baseball pitching MVP.
 - `docs/vv/`: V&V evidence templates and safe mobile test result summaries.
   Includes `tracking_feasibility_results_template.md` for dated candidate
   evaluation summaries without athlete-identifying media.
+- `docs/adr/0004-scoped-share-access-and-audit.md`: proposed scoped share
+  boundary and access-log audit rules for external specialist review.
 - `mobile/`: isolated React Native + Expo field prototype scaffold. It mirrors
   the PWA skeleton with capture/import, bilingual navigation, local draft
   persistence, permission status, selected-video metadata, phase-overlay

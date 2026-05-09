@@ -147,7 +147,7 @@ const translations = {
       delete: "Delete"
     },
     metricsHeading: "Evidence metrics",
-    modelVersion: "Model prototype.0",
+    modelVersion: "Model prototype.",
     metricHeaders: ["Metric", "Raw", "ROM adjusted", "Confidence", "Maturity"],
     metricNames: {
       shoulder: "Shoulder max external rotation",
@@ -170,9 +170,17 @@ const translations = {
     shareSubtitle: "Analysis result only",
     includeVideo: "Include video overlay",
     includeEvidence: "Include evidence notes",
+    includeOverlays: "Include metric overlays",
+    includeComments: "Include specialist comments",
     createShare: "Create share",
+    rotateShareToken: "Rotate token",
+    loadShareLogs: "Load access logs",
     revokeShare: "Revoke",
     noShare: "No active external share.",
+    shareLogsEmpty: "No access log entries yet.",
+    shareLogsDenied: "Access logs require internal staff scope.",
+    shareLogRow: ({ result, scope, reason, time }) =>
+      `${time} · ${result} · ${scope}${reason ? ` · ${reason}` : ""}`,
     notices: {
       default: "Specialist evaluation support. Outputs are not medical diagnosis or injury prediction.",
       recalculated: (version) =>
@@ -190,12 +198,13 @@ const translations = {
       trackingUnusable: "Prototype tracking rejected this capture setup. Recapture with supported conditions.",
       lowConfidence: "Low-confidence joints and experimental metrics are flagged before specialist review.",
       shareCreated: "External share created with scoped result access.",
+      shareTokenRotated: "Share token rotated. Previous token should be treated as invalid.",
       shareRevoked: "Share access fails closed after revocation.",
       uploadStarted: "Prototype upload session created. Tracking is still gated until completion.",
       uploadInterrupted: "Prototype upload interrupted. Video metadata remains available for retry.",
       uploadCompleted: "Prototype upload completed. Tracking or processing can now start."
     },
-    shareActive: "Active share: analysis result only · expires in 30 days.",
+    shareActive: "Active share: analysis result only · expires in 3 days.",
     shareRevoked: "Share revoked. External viewers can no longer access this result."
   },
   ja: {
@@ -343,7 +352,7 @@ const translations = {
       delete: "削除"
     },
     metricsHeading: "エビデンス指標",
-    modelVersion: "モデル prototype.0",
+    modelVersion: "モデル prototype.",
     metricHeaders: ["指標", "Raw値", "ROM補正", "信頼度", "成熟度"],
     metricNames: {
       shoulder: "肩最大外旋",
@@ -366,9 +375,17 @@ const translations = {
     shareSubtitle: "解析結果のみ",
     includeVideo: "動画オーバーレイを含める",
     includeEvidence: "エビデンス注記を含める",
+    includeOverlays: "指標オーバーレイを含める",
+    includeComments: "専門家コメントを含める",
     createShare: "共有を作成",
+    rotateShareToken: "トークン更新",
+    loadShareLogs: "アクセスログを取得",
     revokeShare: "無効化",
     noShare: "有効な外部共有はありません。",
+    shareLogsEmpty: "アクセスログはまだありません。",
+    shareLogsDenied: "アクセスログの参照には内部スタッフ権限が必要です。",
+    shareLogRow: ({ result, scope, reason, time }) =>
+      `${time} · ${result} · ${scope}${reason ? ` · ${reason}` : ""}`,
     notices: {
       default: "専門評価補助です。出力は医療診断や傷害予測ではありません。",
       recalculated: (version) => `ROM v${version} で補正レイヤーを再計算しました。Raw tracking値は保持されています。`,
@@ -385,12 +402,13 @@ const translations = {
       trackingUnusable: "この撮影条件ではプロトタイプtrackingを利用できません。対応した条件で再撮影してください。",
       lowConfidence: "専門レビュー前に、低信頼度の関節と実験的指標を明示しています。",
       shareCreated: "解析結果に限定した外部共有を作成しました。",
+      shareTokenRotated: "共有トークンを更新しました。以前のトークンは無効として扱います。",
       shareRevoked: "共有を無効化しました。外部アクセスは失敗クローズになります。",
       uploadStarted: "プロトタイプのアップロードセッションを作成しました。完了するまでtrackingには進めません。",
       uploadInterrupted: "プロトタイプのアップロードを中断しました。動画メタデータは再試行用に保持されます。",
       uploadCompleted: "プロトタイプのアップロードが完了しました。trackingまたはprocessingに進めます。"
     },
-    shareActive: "有効な共有: 解析結果のみ · 30日後に期限切れ。",
+    shareActive: "有効な共有: 解析結果のみ · 3日後に期限切れ。",
     shareRevoked: "共有を無効化しました。外部閲覧者はこの結果にアクセスできません。"
   }
 };
@@ -411,7 +429,7 @@ const state = {
     role: "pitcher",
     rosterStatus: "active",
     ageGroup: "college_adult",
-    heightCm: 185,
+    heightCm: 8,
     bodyMassKg: 88
   },
   team: {
@@ -422,7 +440,7 @@ const state = {
     notes: "Prototype pitching development group"
   },
   cameraView: "open_side",
-  frameRate: 240,
+  frameRate: 24,
   filters: {
     query: "",
     status: "all",
@@ -430,13 +448,13 @@ const state = {
     analysis: "all"
   },
   selectedVideoId: null,
-  romVersion: 1,
-  shoulderRomMax: 115,
+  romVersion: ,
+  shoulderRomMax: ,
   tracking: {
     status: "completed",
-    modelVersion: "prototype.0",
-    confidencePolicyVersion: "prototype-policy.0",
-    overallConfidence: 0.88,
+    modelVersion: "prototype.",
+    confidencePolicyVersion: "prototype-policy.",
+    overallConfidence: .88,
     phaseEvents: [],
     failureReason: null
   },
@@ -480,7 +498,10 @@ const shoulderRom = document.querySelector("#shoulderRom");
 const shoulderRomValue = document.querySelector("#shoulderRomValue");
 const notice = document.querySelector("#notice");
 const revokeShare = document.querySelector("#revokeShare");
+const rotateShareToken = document.querySelector("#rotateShareToken");
 const shareState = document.querySelector("#shareState");
+const loadShareLogs = document.querySelector("#loadShareLogs");
+const shareLogList = document.querySelector("#shareLogList");
 
 const textTargets = {
   appEyebrow: "appEyebrow",
@@ -553,7 +574,11 @@ const textTargets = {
   shareSubtitle: "shareSubtitle",
   includeVideoLabel: "includeVideo",
   includeEvidenceLabel: "includeEvidence",
+  includeOverlaysLabel: "includeOverlays",
+  includeCommentsLabel: "includeComments",
   createShare: "createShare",
+  rotateShareToken: "rotateShareToken",
+  loadShareLogs: "loadShareLogs",
   revokeShare: "revokeShare"
 };
 
@@ -592,11 +617,11 @@ function formatMetricValue(metric) {
 }
 
 function confidenceLabel(value) {
-  return `${Math.round(value * 100)}%`;
+  return `${Math.round(value * )}%`;
 }
 
 function confidencePercent(value) {
-  return Math.round(value * 100);
+  return Math.round(value * );
 }
 
 function optionalNumber(value) {
@@ -763,7 +788,7 @@ function renderMetrics() {
         </div>
         <span>${rawValue}</span>
         <span>${romAdjusted}</span>
-        <span>${confidenceLabel(state.lowConfidence ? Math.min(metric.confidence, 0.58) : metric.confidence)}</span>
+        <span>${confidenceLabel(state.lowConfidence ? Math.min(metric.confidence, .8) : metric.confidence)}</span>
         <span class="maturity ${metric.maturity}">${t(`maturity.${metric.maturity}`)}</span>
       </div>
     `);
@@ -808,6 +833,28 @@ function renderStaticText() {
     option.classList.toggle("active", active);
     option.setAttribute("aria-pressed", String(active));
   });
+}
+
+function renderShareLogs(logs, errorKey = null) {
+  if (errorKey) {
+    shareLogList.innerHTML = `<div class="share-log-row"><strong>${t(errorKey)}</strong></div>`;
+    return;
+  }
+  if (!logs.length) {
+    shareLogList.innerHTML = `<div class="share-log-row"><strong>${t("shareLogsEmpty")}</strong></div>`;
+    return;
+  }
+  shareLogList.innerHTML = logs
+    .map((entry) => {
+      const row = t("shareLogRow")({
+        result: entry.result,
+        scope: entry.requester_scope,
+        reason: entry.reason,
+        time: new Date(entry.accessed_at).toLocaleString(state.language === "ja" ? "ja-JP" : "en-US")
+      });
+      return `<div class="share-log-row"><strong>${row}</strong><small>${entry.id}</small></div>`;
+    })
+    .join("");
 }
 
 function syncFromSnapshot(snapshot) {
@@ -876,6 +923,8 @@ function syncFromSnapshot(snapshot) {
   frameRate.value = state.frameRate;
   shoulderRom.value = state.shoulderRomMax;
   revokeShare.disabled = !state.shareActive;
+  rotateShareToken.disabled = !state.shareActive;
+  loadShareLogs.disabled = !state.shareActive;
 }
 
 function renderAll() {
@@ -1039,7 +1088,7 @@ function interruptPrototypeUpload(videoId) {
   }
   return api.interruptUploadSession({
     upload_session_id: uploadSession.id,
-    uploaded_bytes: Math.min(uploadSession.expected_bytes ?? 0, 1024)
+    uploaded_bytes: Math.min(uploadSession.expected_bytes ?? , 24)
   });
 }
 
@@ -1067,12 +1116,12 @@ shoulderRom.addEventListener("input", () => {
 });
 
 captureVideoInput.addEventListener("change", () => {
-  saveVideoFromFile(captureVideoInput.files[0], "smartphone_camera");
+  saveVideoFromFile(captureVideoInput.files[], "smartphone_camera");
   captureVideoInput.value = "";
 });
 
 importVideoInput.addEventListener("change", () => {
-  saveVideoFromFile(importVideoInput.files[0], "media_library");
+  saveVideoFromFile(importVideoInput.files[], "media_library");
   importVideoInput.value = "";
 });
 
@@ -1168,10 +1217,13 @@ document.querySelector("#createShare").addEventListener("click", () => {
   syncFromSnapshot(
     api.createShare({
       includeVideo: document.querySelector("#includeVideo").checked,
-      includeEvidence: document.querySelector("#includeEvidence").checked
+      includeEvidence: document.querySelector("#includeEvidence").checked,
+      includeOverlays: document.querySelector("#includeOverlays").checked,
+      includeComments: document.querySelector("#includeComments").checked
     })
   );
   state.lastNotice = "shareCreated";
+  renderShareLogs([]);
   renderAll();
 });
 
@@ -1180,6 +1232,34 @@ revokeShare.addEventListener("click", () => {
   state.lastNotice = "shareRevoked";
   renderAll();
   shareState.textContent = t("shareRevoked");
+  renderShareLogs([]);
+});
+
+rotateShareToken.addEventListener("click", () => {
+  const snapshot = api.getSnapshot();
+  if (!snapshot.activeShare) {
+    return;
+  }
+  syncFromSnapshot(api.rotateShareToken({ share_link_id: snapshot.activeShare.id }));
+  state.lastNotice = "shareTokenRotated";
+  renderAll();
+});
+
+loadShareLogs.addEventListener("click", () => {
+  const snapshot = api.getSnapshot();
+  if (!snapshot.activeShare) {
+    renderShareLogs([]);
+    return;
+  }
+  try {
+    const logs = api.getShareAccessLogs({
+      share_link_id: snapshot.activeShare.id,
+      requester_scope: "internal_staff"
+    });
+    renderShareLogs(logs);
+  } catch {
+    renderShareLogs([], "shareLogsDenied");
+  }
 });
 
 if ("serviceWorker" in navigator) {
@@ -1187,4 +1267,5 @@ if ("serviceWorker" in navigator) {
 }
 
 syncFromSnapshot(api.getSnapshot());
+renderShareLogs([]);
 renderAll();

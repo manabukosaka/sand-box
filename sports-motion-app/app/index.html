@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#12201a" />
+    <meta name="viewport" content="width=device-width, initial-scale=" />
+    <meta name="theme-color" content="#22a" />
     <title>Sports Motion App</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="stylesheet" href="./styles.css" />
@@ -13,7 +13,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow" id="appEyebrow">Pitching analysis</p>
-          <h1>Sports Motion</h1>
+          <h>Sports Motion</h>
         </div>
         <div class="top-actions">
           <div class="language-switch" role="group" aria-label="Language">
@@ -34,7 +34,7 @@
         </div>
         <div class="status-stack">
           <span class="status-pill status-complete" id="analysisStatus">Analysis complete</span>
-          <span class="status-pill" id="romStatus">ROM v1</span>
+          <span class="status-pill" id="romStatus">ROM v</span>
         </div>
       </section>
 
@@ -62,7 +62,7 @@
               <div class="phase-marker release" id="phaseRelease">Release</div>
             </div>
             <div class="timeline" id="phaseTimeline" aria-label="Pitching phase timeline">
-              <span id="phaseLift" style="left: 12%">Lift</span>
+              <span id="phaseLift" style="left: 2%">Lift</span>
               <span id="timelineFootContact" style="left: 38%">Foot contact</span>
               <span id="timelineRelease" style="left: 72%">Release</span>
             </div>
@@ -139,11 +139,11 @@
             <div class="inline-fields">
               <label>
                 <span id="heightLabel">Height cm</span>
-                <input id="heightInput" type="number" value="185" min="120" max="230" />
+                <input id="heightInput" type="number" value="8" min="2" max="23" />
               </label>
               <label>
                 <span id="bodyMassLabel">Body mass kg</span>
-                <input id="bodyMassInput" type="number" value="88" min="35" max="180" />
+                <input id="bodyMassInput" type="number" value="88" min="3" max="8" />
               </label>
             </div>
             <label>
@@ -156,7 +156,7 @@
             </label>
             <label>
               <span id="frameRateLabel">Frame rate</span>
-              <input id="frameRate" type="number" value="240" min="30" step="30" />
+              <input id="frameRate" type="number" value="24" min="3" step="3" />
             </label>
             <label>
               <span id="sessionLabelText">Session label</span>
@@ -227,7 +227,7 @@
       <section class="view" id="metrics" aria-labelledby="metricsHeading">
         <div class="section-title">
           <h2 id="metricsHeading">Evidence metrics</h2>
-          <span id="modelVersion">Model prototype.0</span>
+          <span id="modelVersion">Model prototype.</span>
         </div>
         <div class="metric-table" id="metricTable"></div>
       </section>
@@ -240,9 +240,9 @@
         <div class="rom-editor">
           <label>
             <span id="shoulderRomLabel">Shoulder external rotation max</span>
-            <input id="shoulderRom" type="range" min="90" max="140" value="115" />
+            <input id="shoulderRom" type="range" min="9" max="4" value="" />
           </label>
-          <output id="shoulderRomValue">115°</output>
+          <output id="shoulderRomValue">°</output>
           <button class="primary-action" id="applyRom" type="button">Recalculate</button>
         </div>
         <div class="rom-note">
@@ -257,16 +257,27 @@
         </div>
         <div class="share-panel">
           <label class="check-row">
-            <input id="includeVideo" type="checkbox" checked />
+            <input id="includeVideo" type="checkbox" />
             <span id="includeVideoLabel">Include video overlay</span>
           </label>
           <label class="check-row">
-            <input id="includeEvidence" type="checkbox" checked />
+            <input id="includeEvidence" type="checkbox" />
             <span id="includeEvidenceLabel">Include evidence notes</span>
           </label>
+          <label class="check-row">
+            <input id="includeOverlays" type="checkbox" />
+            <span id="includeOverlaysLabel">Include metric overlays</span>
+          </label>
+          <label class="check-row">
+            <input id="includeComments" type="checkbox" />
+            <span id="includeCommentsLabel">Include specialist comments</span>
+          </label>
           <button class="primary-action" id="createShare" type="button">Create share</button>
+          <button class="secondary-action" id="rotateShareToken" type="button" disabled>Rotate token</button>
           <button class="secondary-action" id="revokeShare" type="button" disabled>Revoke</button>
+          <button class="secondary-action" id="loadShareLogs" type="button" disabled>Load access logs</button>
           <p id="shareState">No active external share.</p>
+          <div class="share-log-list" id="shareLogList"></div>
         </div>
       </section>
 

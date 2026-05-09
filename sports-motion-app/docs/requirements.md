@@ -168,9 +168,19 @@ improvement.
   external specialist by invite or limited-access link.
 - Shared results can include or exclude raw video, overlays, metric tables,
   comments, and evidence notes.
+- Metric tables are part of the minimum analysis-result payload in MVP and are
+  always visible when a share is valid.
 - A share link has an expiration date, revocation state, access scope, and access
   log.
+- Share TTL policy for MVP is fixed to 30 days from issue time and is not
+  user-configurable in the prototype UI.
 - Revoked or expired shares are inaccessible to external viewers.
+- Share links default to minimum disclosure until include flags are explicitly
+  enabled.
+- Share links are scoped to a single analysis result and cannot enumerate athlete
+  history, team roster, or unrelated analysis runs.
+- Internal staff can review share access logs after revocation/expiry for audit
+  evidence.
 
 ## 5. Evidence Baseline
 
@@ -255,6 +265,8 @@ The implementation should support these core entities:
 - User-facing language must avoid diagnosis, treatment claims, and definitive
   injury prediction.
 - Shared analysis data must be revocable.
+- Shared analysis scope must be server-enforced even if client requests broader
+  fields.
 
 ## 8. Acceptance Criteria
 
@@ -276,8 +288,17 @@ The implementation should support these core entities:
 - A ROM profile or metric definition change can trigger re-analysis without
   overwriting the original raw tracking output or historical analysis version.
 - Experimental or low-confidence metrics are visibly labeled before sharing.
+- A coach can share an analysis externally and confirm default minimum disclosure
+  (`include_video=false`, `include_overlays=false`, `include_comments=false`,
+  `include_evidence=false`).
+- A coach can verify share expiry (`expires_at`) follows MVP TTL policy and
+  external viewers are denied access after expiry.
 - A coach can share an analysis externally, then revoke access and verify that
   the external viewer can no longer open it.
+- Internal staff can verify access-log records include allowed and denied access
+  attempts for the shared analysis.
+- Shared view text does not present diagnosis, treatment, definitive injury
+  prediction, or guaranteed performance improvement claims.
 
 ## 9. Open Risks And Follow-Up Decisions
 

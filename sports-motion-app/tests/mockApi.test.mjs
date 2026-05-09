@@ -382,11 +382,15 @@ test("share creation and revocation is scoped to active analysis", () => {
   assert.equal(shared.activeShare.include_video, true);
   assert.equal(shared.activeShare.revoked_at, null);
 
-  const sharedView = api.getSharedAnalysis({ share_link_id: shared.activeShare.id });
+  const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
 
   assert.equal(sharedView.analysisRun.id, shared.analysisRun.id);
   assert.equal(sharedView.trackingRun.id, shared.analysisRun.tracking_run_id);
   assert.equal(sharedView.video.id, shared.trackingRun.motion_video_id);
+  assert.equal(Object.hasOwn(sharedView, "team"), false);
+  assert.equal(Object.hasOwn(sharedView, "athlete"), false);
+  assert.equal(Object.hasOwn(sharedView, "analysisRuns"), false);
+  assert.equal(Object.hasOwn(sharedView, "athletes"), false);
   assert.ok(sharedView.metricDefinitions.length > 0);
   assert.ok(sharedView.evidenceReferences.length > 0);
 
@@ -394,7 +398,7 @@ test("share creation and revocation is scoped to active analysis", () => {
 
   assert.equal(revoked.activeShare, null);
   assert.throws(
-    () => api.getSharedAnalysis({ share_link_id: shared.activeShare.id }),
+    () => api.getSharedAnalysis({ share_token: shared.activeShare.share_token }),
     /share expired or revoked/
   );
 });
@@ -402,11 +406,146 @@ test("share creation and revocation is scoped to active analysis", () => {
 test("shared analysis view omits video and evidence when not included", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
   const shared = api.createShare({ includeVideo: false, includeEvidence: false });
-  const sharedView = api.getSharedAnalysis({ share_link_id: shared.activeShare.id });
+  const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
 
   assert.equal(sharedView.analysisRun.id, shared.analysisRun.id);
   assert.equal(sharedView.trackingRun, null);
   assert.equal(sharedView.video, null);
   assert.deepEqual(sharedView.metricDefinitions, []);
   assert.deepEqual(sharedView.evidenceReferences, []);
+  assert.equal(sharedView.overlays, null);
+  assert.equal(sharedView.comments, null);
+});
+
+test("shared analysis includes overlays and comments only when explicitly scoped", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const shared = api.createShare({
+    includeOverlays: true,
+    includeComments: true,
+    includeVideo: false,
+    includeEvidence: false
+  });
+  const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
+
+  assert.deepEqual(sharedView.overlays, []);
+  assert.deepEqual(sharedView.comments, []);
+  assert.equal(sharedView.trackingRun, null);
+  assert.equal(sharedView.video, null);
+  assert.deepEqual(sharedView.metricDefinitions, []);
+  assert.deepEqual(sharedView.evidenceReferences, []);
+});
+
+test("share defaults to minimum disclosure and logs successful access", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const shared = api.createShare({});
+
+  assert.equal(shared.activeShare.include_video, false);
+  assert.equal(shared.activeShare.include_evidence, false);
+  assert.equal(shared.activeShare.include_overlays, false);
+  assert.equal(shared.activeShare.include_comments, false);
+  assert.ok(shared.activeShare.token_last_rotated_at);
+  assert.ok(shared.activeShare.share_token);
+
+  api.getSharedAnalysis({
+    share_token: shared.activeShare.share_token,
+    requester_scope: "external_viewer",
+    requester_id: "ext_demo"
+  });
+
+  const logs = api.getShareAccessLogs({
+    share_link_id: shared.activeShare.id,
+    requester_scope: "internal_staff"
+  });
+  const successLog = logs.at(-1);
+  assert.equal(successLog.result, "allowed");
+  assert.equal(successLog.analysis_run_id, shared.analysisRun.id);
+  assert.equal(successLog.requester_scope, "external_viewer");
+  assert.equal(successLog.requester_id, "ext_demo");
+});
+
+test("share access denial is logged and logs are not exposed externally", () => {
+  const tick = (() => {
+    const stamps = ["2026-05-05T00:00:00Z", "2026-06-10T00:00:00Z", "2026-06-10T00:00:10Z"];
+    let index = 0;
+    return () => stamps[Math.min(index++, stamps.length - 1)];
+  })();
+  const api = createSportsMotionMockApi({ now: tick });
+  const shared = api.createShare({ includeVideo: true, includeEvidence: true });
+
+  assert.throws(
+    () => api.getSharedAnalysis({ share_token: shared.activeShare.share_token, requester_scope: "external_viewer" }),
+    /share expired or revoked/
+  );
+
+  const logs = api.getShareAccessLogs({
+    share_link_id: shared.activeShare.id,
+    requester_scope: "internal_staff"
+  });
+  const deniedLog = logs.at(-1);
+  assert.equal(deniedLog.result, "denied");
+  assert.equal(deniedLog.reason, "expired_or_revoked");
+  assert.equal(deniedLog.analysis_run_id, shared.analysisRun.id);
+
+  assert.throws(
+    () => api.getShareAccessLogs({ share_link_id: shared.activeShare.id, requester_scope: "external_viewer" }),
+    /require internal staff scope/
+  );
+});
+
+test("creating a new share revokes previous active share for the same analysis", () => {
+  const tick = (() => {
+    const stamps = ["2026-05-05T00:00:00Z", "2026-05-05T00:01:00Z", "2026-05-05T00:02:00Z"];
+    let index = 0;
+    return () => stamps[Math.min(index++, stamps.length - 1)];
+  })();
+  const api = createSportsMotionMockApi({ now: tick });
+  const first = api.createShare({ includeVideo: true, includeEvidence: false });
+  const firstShareId = first.activeShare.id;
+  const second = api.createShare({ includeVideo: false, includeEvidence: true });
+
+  assert.notEqual(second.activeShare.id, firstShareId);
+  assert.equal(second.activeShare.revoked_at, null);
+  assert.throws(
+    () => api.getSharedAnalysis({ share_token: first.activeShare.share_token }),
+    /share expired or revoked/
+  );
+});
+
+test("active share token can be rotated", () => {
+  const tick = (() => {
+    const stamps = ["2026-05-05T00:00:00Z", "2026-05-05T00:10:00Z", "2026-05-05T00:20:00Z"];
+    let index = 0;
+    return () => stamps[Math.min(index++, stamps.length - 1)];
+  })();
+  const api = createSportsMotionMockApi({ now: tick });
+  const created = api.createShare({});
+  const shareId = created.activeShare.id;
+  const firstToken = created.activeShare.share_token;
+  const firstRotatedAt = created.activeShare.token_last_rotated_at;
+
+  const rotated = api.rotateShareToken({ share_link_id: shareId });
+
+  assert.equal(rotated.activeShare.id, shareId);
+  assert.notEqual(rotated.activeShare.share_token, firstToken);
+  assert.notEqual(rotated.activeShare.token_last_rotated_at, firstRotatedAt);
+  assert.throws(() => api.getSharedAnalysis({ share_token: firstToken }), /unknown share token/);
+});
+
+test("revoked share access attempt is denied and logged", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const shared = api.createShare({});
+  api.revokeActiveShare();
+
+  assert.throws(
+    () => api.getSharedAnalysis({ share_token: shared.activeShare.share_token, requester_scope: "external_viewer" }),
+    /share expired or revoked/
+  );
+
+  const logs = api.getShareAccessLogs({
+    share_link_id: shared.activeShare.id,
+    requester_scope: "internal_staff"
+  });
+  const denied = logs.at(-1);
+  assert.equal(denied.result, "denied");
+  assert.equal(denied.reason, "expired_or_revoked");
 });

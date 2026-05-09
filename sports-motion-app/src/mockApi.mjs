@@ -41,17 +41,34 @@ function nextId(prefix, collection) {
   return `${prefix}_${String(collection.length + 1).padStart(3, "0")}`;
 }
 
-function makeShareLink({ id, analysisRunId, includeVideo, includeEvidence, now }) {
+function nextShareToken(state, shareId) {
+  state.shareTokenCounter += 1;
+  return `tok_${shareId}_${state.shareTokenCounter}`;
+}
+
+function makeShareLink({
+  id,
+  analysisRunId,
+  includeVideo = false,
+  includeEvidence = false,
+  includeOverlays = false,
+  includeComments = false,
+  now
+}) {
   const created = new Date(now);
   const expires = new Date(created);
   expires.setDate(created.getDate() + 30);
   return {
     id,
+    share_token: `tok_${id}`,
     analysis_run_id: analysisRunId,
     created_by_user_id: "usr_coach",
     scope: "analysis_result_only",
-    include_video: includeVideo,
-    include_evidence: includeEvidence,
+    include_video: Boolean(includeVideo),
+    include_evidence: Boolean(includeEvidence),
+    include_overlays: Boolean(includeOverlays),
+    include_comments: Boolean(includeComments),
+    token_last_rotated_at: created.toISOString(),
     expires_at: expires.toISOString(),
     revoked_at: null,
     created_at: created.toISOString()
@@ -82,6 +99,8 @@ export function createSportsMotionMockApi({
       trackingRuns: [initial.trackingRun],
       analysisRuns: [initial.analysisRun],
       shareLinks: [],
+      shareAccessLogs: [],
+      shareTokenCounter: 0,
       activeAthleteId: initial.athlete.id,
       activeAnalysisRunId: initial.analysisRun.id,
       activeTrackingRunId: initial.trackingRun.id,
@@ -91,6 +110,8 @@ export function createSportsMotionMockApi({
 
   let state = storage?.getItem(storageKey) ? JSON.parse(storage.getItem(storageKey)) : createInitialState();
   state.uploadSessions ??= [];
+  state.shareAccessLogs ??= [];
+  state.shareTokenCounter ??= 0;
   state.activeTrackingRunId ??= getActiveAnalysisRun()?.tracking_run_id;
 
   function persist() {
@@ -182,6 +203,30 @@ export function createSportsMotionMockApi({
       state.activeTrackingRunId = trackingRun.id;
     }
     return analysisRun;
+  }
+
+  function appendShareAccessLog({
+    share_link_id,
+    analysis_run_id = null,
+    result,
+    reason = null,
+    requester_scope = "external_viewer",
+    requester_id = null,
+    client_fingerprint = "sha256:prototype",
+    ip_country_code = "JP"
+  }) {
+    state.shareAccessLogs.push({
+      id: nextId("sal", state.shareAccessLogs),
+      share_link_id,
+      analysis_run_id,
+      accessed_at: now(),
+      requester_scope,
+      requester_id,
+      client_fingerprint,
+      ip_country_code,
+      result,
+      reason
+    });
   }
 
   return {
@@ -468,21 +513,29 @@ export function createSportsMotionMockApi({
       return buildSnapshot();
     },
 
-    createShare({ includeVideo, includeEvidence }) {
+    createShare({ includeVideo, includeEvidence, includeOverlays, includeComments }) {
       const activeAnalysis = getActiveAnalysisRun();
+      state.shareLinks = state.shareLinks.map((candidate) =>
+        candidate.analysis_run_id === activeAnalysis.id && !candidate.revoked_at
+          ? { ...candidate, revoked_at: now(), revoked_reason: "superseded_by_new_share" }
+          : candidate
+      );
       const share = makeShareLink({
         id: nextId("shr", state.shareLinks),
         analysisRunId: activeAnalysis.id,
         includeVideo,
         includeEvidence,
+        includeOverlays,
+        includeComments,
         now: now()
       });
+      share.share_token = nextShareToken(state, share.id);
       state.shareLinks.push(share);
       persist();
       return buildSnapshot();
     },
 
-    getSharedAnalysis({ share_link_id }) {
+    rotateShareToken({ share_link_id }) {
       const share = state.shareLinks.find((candidate) => candidate.id === share_link_id);
       if (!share) {
         throw new Error(`unknown share link: ${share_link_id}`);
@@ -490,20 +543,96 @@ export function createSportsMotionMockApi({
       if (share.revoked_at || new Date(share.expires_at) <= new Date(now())) {
         throw new Error("share expired or revoked");
       }
+      state.shareLinks = state.shareLinks.map((candidate) =>
+        candidate.id === share_link_id
+          ? { ...candidate, token_last_rotated_at: now(), updated_at: now() }
+          : candidate
+      );
+      state.shareLinks = state.shareLinks.map((candidate) =>
+        candidate.id === share_link_id
+          ? { ...candidate, share_token: nextShareToken(state, candidate.id) }
+          : candidate
+      );
+      appendShareAccessLog({
+        share_link_id: share.id,
+        analysis_run_id: share.analysis_run_id,
+        result: "allowed",
+        reason: "token_rotated",
+        requester_scope: "internal_staff"
+      });
+      persist();
+      return buildSnapshot();
+    },
+
+    getSharedAnalysis({ share_token, requester_scope = "external_viewer", requester_id = null }) {
+      const share = state.shareLinks.find(
+        (candidate) => candidate.share_token === share_token
+      );
+      if (!share) {
+        throw new Error(`unknown share token: ${share_token}`);
+      }
+      if (share.revoked_at || new Date(share.expires_at) <= new Date(now())) {
+        appendShareAccessLog({
+          share_link_id: share.id,
+          analysis_run_id: share.analysis_run_id,
+          result: "denied",
+          reason: "expired_or_revoked",
+          requester_scope,
+          requester_id
+        });
+        persist();
+        throw new Error("share expired or revoked");
+      }
       const analysisRun = state.analysisRuns.find((run) => run.id === share.analysis_run_id);
       if (!analysisRun) {
+        appendShareAccessLog({
+          share_link_id: share.id,
+          analysis_run_id: share.analysis_run_id,
+          result: "denied",
+          reason: "analysis_not_found",
+          requester_scope,
+          requester_id
+        });
+        persist();
         throw new Error(`unknown shared analysis: ${share.analysis_run_id}`);
       }
       const trackingRun = state.trackingRuns.find((run) => run.id === analysisRun.tracking_run_id);
       const video = state.videos.find((candidate) => candidate.id === trackingRun?.motion_video_id);
-      return clone({
+      const response = clone({
         shareLink: share,
         analysisRun,
         metricDefinitions: share.include_evidence ? metricDefinitions : [],
         evidenceReferences: share.include_evidence ? evidenceReferences : [],
+        overlays: share.include_overlays ? [] : null,
+        comments: share.include_comments ? [] : null,
         trackingRun: share.include_video ? trackingRun : null,
         video: share.include_video ? video : null
       });
+      appendShareAccessLog({
+        share_link_id: share.id,
+        analysis_run_id: share.analysis_run_id,
+        result: "allowed",
+        reason: null,
+        requester_scope,
+        requester_id
+      });
+      persist();
+      return response;
+    },
+
+    getShareAccessLogs({ share_link_id, requester_scope = "internal_staff" }) {
+      if (requester_scope !== "internal_staff") {
+        throw new Error("share access logs require internal staff scope");
+      }
+      const share = state.shareLinks.find((candidate) => candidate.id === share_link_id);
+      if (!share) {
+        throw new Error(`unknown share link: ${share_link_id}`);
+      }
+      return clone(
+        state.shareAccessLogs
+          .filter((log) => log.share_link_id === share_link_id)
+          .sort((a, b) => new Date(a.accessed_at).getTime() - new Date(b.accessed_at).getTime())
+      );
     },
 
     revokeActiveShare() {
@@ -512,7 +641,9 @@ export function createSportsMotionMockApi({
         return snapshot;
       }
       state.shareLinks = state.shareLinks.map((share) =>
-        share.id === snapshot.activeShare.id ? { ...share, revoked_at: now() } : share
+        share.id === snapshot.activeShare.id
+          ? { ...share, revoked_at: now(), revoked_reason: "manual_revoke" }
+          : share
       );
       persist();
       return buildSnapshot();

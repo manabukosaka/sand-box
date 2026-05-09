@@ -91,6 +91,33 @@ Manual merge, merge without review request, or repeated work without a
 retrospective is an exception. Record the exception and permanent correction in
 `docs/retrospectives/`.
 
+## 3-Lane Standard For Sub-Agent Work
+
+When sub-agent parallel work is explicitly requested, Sports Motion App uses
+the 3-lane standard by default:
+
+1. Product lane: requirements, acceptance wording, and review-gate implications.
+2. Architecture lane: app, mock API, and docs contract alignment.
+3. QA lane: tests, V&V evidence, and verification/check-script coverage.
+
+Security lane is added only when sharing/privacy, identity scope, or external
+access-control behavior changes.
+
+Parent Codex keeps the critical path:
+
+1. scope freeze for the current coherent slice;
+2. review-request gate judgment;
+3. acceptance/rejection of sub-agent findings with repo evidence;
+4. final verification and residual-risk summary.
+
+Sub-agent prompt contract for token efficiency:
+
+- one question per read-only task;
+- 3-6 files maximum per task;
+- output format fixed to `Finding / Evidence(file:line) / Impact / Decision needed`;
+- state explicit non-target scope in the prompt;
+- avoid intermediate wait loops; dispatch in parallel and collect once.
+
 ## User Review Request Gates
 
 Request user review before proceeding when a slice:

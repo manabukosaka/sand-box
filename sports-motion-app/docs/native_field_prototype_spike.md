@@ -3,7 +3,7 @@
 Status: In progress
 Owner: Sports Motion mobile / QA
 Created: 2026-05-06
-Last updated: 2026-05-07
+Last updated: 2026-05-09
 
 This spike determines whether React Native with Expo development builds can
 support the first installable Sports Motion App field prototype.
@@ -47,10 +47,10 @@ core field workflow. Do not replace the current PWA prototype during this spike.
 - Added local-only upload retry simulation. The native shell can move selected
   video metadata through ready, uploading, interrupted, retry, and submitted
   states without sending private media to storage.
-- Expo package installation completed, but local emulator/simulator smoke is
+- Expo package installation completed, but local emulator/simulator smoke remains
   blocked until the local Node runtime is upgraded from `18.19.1` to
   `>=20.19.4`, matching React Native / Metro engine requirements observed during
-  install.
+  install and rechecked on 2026-05-09.
 - No original athlete videos, identifying screenshots, Android native build
   output, or iOS native build output are committed.
 
@@ -74,6 +74,7 @@ Current local runtime status:
 
 - Required by `sports-motion-app/mobile/package.json`: Node `>=20.19.4`.
 - Observed local runtime on 2026-05-07: Node `18.19.1`, npm `9.2.0`.
+- Rechecked local runtime on 2026-05-09: Node `18.19.1`, npm `9.2.0`.
 - Expo dev-client help check can run on the current local runtime, but Android
   emulator and iOS simulator smoke remain blocked locally until Node satisfies
   the package engine and the relevant emulator/simulator host is available.

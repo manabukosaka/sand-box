@@ -70,8 +70,8 @@ Implemented prototype capabilities:
   metadata display, a phase-overlay placeholder, and local-only upload retry
   simulation.
 - Native emulator/simulator smoke is blocked until the local Node runtime is
-  upgraded from `18.19.1` to `>=20.19.4`; the runtime readiness gate and blocked
-  V&V evidence are documented in the native spike and mobile test plan.
+  upgraded from `18.19.1` to `>=20.19.4`; the latest blocked runtime check is
+  recorded in the native spike, mobile test plan, and dated V&V evidence.
 - Node test suite covering domain, mock API, upload session gating/retry,
   prototype tracking adapter behavior, tracking failure policy, metric
   suppression, and share scope behavior.

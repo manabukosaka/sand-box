@@ -21,7 +21,8 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 - PWA prototype smoke: verify the current browser prototype on desktop and mobile
   browser sizes before native work starts, including upload-session retry,
   duplicate active-session prevention, upload-completion gating, ROM
-  recalculation, and share revocation.
+  recalculation, local selected-video playback, manual phase correction, and
+  share revocation.
 - Android emulator smoke: after the React Native + Expo development build exists,
   verify launch, navigation, Japanese/English labels, local draft state, mock API
   flow, upload retry simulation, and video-preview layout.
@@ -48,7 +49,12 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 
 - Sample-video evaluation uses `docs/sample_video_manifest.md` and does not
   commit original videos or identifying athlete metadata to git.
+- Sample collection follows `docs/sample_acquisition_protocol.md` before any
+  provider/model candidate run starts.
 - Good-quality pitching video produces a completed `TrackingRun`.
+- Browser MediaPipe baseline can run on a selected local video and produce a
+  prototype `TrackingRun`; this is feasibility evidence only until sample-set
+  validation is complete.
 - Low-quality video produces either a completed run with confidence warnings or a
   failed run with a user-understandable reason.
 - Tracking output includes model version, artifact reference, phase events, joint
@@ -56,6 +62,9 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 - Skeleton overlay aligns with the athlete well enough for specialist review in
   the approved test set.
 - Foot contact and ball release markers are visible and expose confidence.
+- Manual foot-contact and ball-release correction from playback time creates a
+  `TrackingCorrection`, a derived `TrackingRun`, and a new `AnalysisRun` without
+  overwriting the source tracking artifact.
 - Raw tracking artifacts are not overwritten by recalculation.
 
 ## 5. Metric And Evidence Verification
@@ -85,9 +94,13 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 
 - Athlete history lists videos, tracking status, analysis results, ROM versions,
   and comments in chronological order.
+- Analysis review packets keep reviewer notes, caution acknowledgement, and
+  review-request status separate from raw and ROM-adjusted metric values.
 - Prior analyses can be compared without mixing metric versions silently.
 - Share link can be created for one analysis result.
 - Share scope controls whether video, comments, and evidence notes are visible.
+- Shared comments are omitted by default and included only when comment scope is
+  explicitly enabled.
 - Share scope controls whether overlays are visible.
 - Shared metric tables remain limited to one analysis result and are treated as
   the minimum shared payload in MVP.

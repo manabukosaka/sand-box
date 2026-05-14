@@ -9,6 +9,8 @@ Result: Blocked before candidate execution
 
 - Reviewed the sample-video manifest coverage needed for the Milestone 2
   tracking feasibility gate.
+- Added a sample acquisition protocol for privacy-safe collection before
+  candidate execution.
 - Confirmed that no original athlete videos, consent forms, identifying media,
   or private artifact links are committed to git.
 - Did not run a tracking provider/model candidate.
@@ -41,6 +43,7 @@ Result: Blocked before candidate execution
 - Private sample storage location approved for evaluator access.
 - Consent and usage-right evidence outside git.
 - Opaque sample IDs with complete capture metadata.
+- Sample intake follows `docs/sample_acquisition_protocol.md`.
 - At least one approved sample per required case type before any Conditional Go
   review.
 - Full minimum sample count before a stronger Go recommendation.

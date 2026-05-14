@@ -63,6 +63,23 @@ Initial stance:
 - Do not use for formal pitching metrics until sample-set results prove the
   required signals are reliable.
 
+Current prototype implementation:
+
+- A browser baseline adapter is available in
+  `sports-motion-app/src/browserPoseAdapter.mjs`.
+- The PWA can run this adapter on a selected local video and feed the resulting
+  pose-landmark confidence into the existing `TrackingRun` and `AnalysisRun`
+  pipeline.
+- Runtime and model assets are loaded from local app paths documented in
+  `docs/ai_model_assets.md`, not from CDN model URLs.
+- The PWA model selector exposes Lite, Full, and Heavy local model entries so a
+  newer model can be added as a new registry entry and evaluated without
+  replacing historical evidence.
+- Phase events are still approximate prototype events derived from video
+  duration, not validated baseball phase detection.
+- This implementation is only a feasibility harness until approved sample videos,
+  licensing/version review, and metric-support review are complete.
+
 ### OpenCap
 
 Potential role:

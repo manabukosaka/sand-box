@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#22a" />
     <title>Sports Motion App</title>
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -13,7 +13,7 @@
       <header class="topbar">
         <div>
           <p class="eyebrow" id="appEyebrow">Pitching analysis</p>
-          <h>Sports Motion</h>
+          <h1>Sports Motion</h1>
         </div>
         <div class="top-actions">
           <div class="language-switch" role="group" aria-label="Language">
@@ -42,12 +42,14 @@
         <button class="tab active" id="captureTab" type="button" data-view="capture">Capture</button>
         <button class="tab" id="metricsTab" type="button" data-view="metrics">Metrics</button>
         <button class="tab" type="button" data-view="rom">ROM</button>
+        <button class="tab" id="reviewTab" type="button" data-view="review">Review</button>
         <button class="tab" id="shareTab" type="button" data-view="share">Share</button>
       </nav>
 
       <section class="view active" id="capture" aria-labelledby="captureHeading">
         <div class="panel-grid">
           <div class="video-panel">
+            <video class="video-player" id="videoPlayer" controls playsinline aria-label="Selected pitching video"></video>
             <div class="video-stage" id="videoStage" role="img" aria-label="Pitching video preview with skeleton overlay">
               <div class="mound"></div>
               <div class="pitcher">
@@ -65,6 +67,21 @@
               <span id="phaseLift" style="left: 2%">Lift</span>
               <span id="timelineFootContact" style="left: 38%">Foot contact</span>
               <span id="timelineRelease" style="left: 72%">Release</span>
+            </div>
+            <div class="correction-panel" aria-labelledby="correctionHeading">
+              <div>
+                <h2 id="correctionHeading">Manual phase correction</h2>
+                <p id="correctionHelp">Set phase markers from the current video time.</p>
+              </div>
+              <label>
+                <span id="correctionReasonLabel">Correction note</span>
+                <input id="correctionReason" type="text" value="Manual video review" />
+              </label>
+              <div class="button-row">
+                <button class="secondary-action" id="setFootContact" type="button">Set foot contact</button>
+                <button class="secondary-action" id="setRelease" type="button">Set release</button>
+              </div>
+              <div class="correction-state" id="correctionState">No manual corrections yet.</div>
             </div>
           </div>
 
@@ -139,11 +156,11 @@
             <div class="inline-fields">
               <label>
                 <span id="heightLabel">Height cm</span>
-                <input id="heightInput" type="number" value="8" min="2" max="23" />
+                <input id="heightInput" type="number" value="185" min="120" max="230" />
               </label>
               <label>
                 <span id="bodyMassLabel">Body mass kg</span>
-                <input id="bodyMassInput" type="number" value="88" min="3" max="8" />
+                <input id="bodyMassInput" type="number" value="88" min="30" max="180" />
               </label>
             </div>
             <label>
@@ -156,7 +173,11 @@
             </label>
             <label>
               <span id="frameRateLabel">Frame rate</span>
-              <input id="frameRate" type="number" value="24" min="3" step="3" />
+              <input id="frameRate" type="number" value="240" min="30" step="30" />
+            </label>
+            <label>
+              <span id="poseModelLabel">AI model</span>
+              <select id="poseModel"></select>
             </label>
             <label>
               <span id="sessionLabelText">Session label</span>
@@ -174,6 +195,7 @@
             </div>
             <div class="button-row">
               <button class="primary-action" id="submitVideo" type="button">Submit video</button>
+              <button class="secondary-action" id="runAiBaseline" type="button">Run AI baseline</button>
               <button class="secondary-action" id="mockFailure" type="button">Flag low confidence</button>
             </div>
           </div>
@@ -240,13 +262,55 @@
         <div class="rom-editor">
           <label>
             <span id="shoulderRomLabel">Shoulder external rotation max</span>
-            <input id="shoulderRom" type="range" min="9" max="4" value="" />
+            <input id="shoulderRom" type="range" min="90" max="140" value="115" />
           </label>
           <output id="shoulderRomValue">°</output>
           <button class="primary-action" id="applyRom" type="button">Recalculate</button>
         </div>
         <div class="rom-note">
           Raw AI estimates stay unchanged. Recalculation creates a new ROM-adjusted analysis layer.
+        </div>
+      </section>
+
+      <section class="view" id="review" aria-labelledby="reviewHeading">
+        <div class="section-title">
+          <h2 id="reviewHeading">User review packet</h2>
+          <span id="reviewSubtitle">Analysis values stay unchanged</span>
+        </div>
+        <div class="review-grid">
+          <div class="review-summary" id="reviewSummary"></div>
+          <div class="review-form">
+            <label>
+              <span id="reviewerRoleLabel">Reviewer role</span>
+              <select id="reviewerRole">
+                <option id="reviewerCoach" value="coach">Coach</option>
+                <option id="reviewerTrainer" value="trainer">Trainer</option>
+                <option id="reviewerAthlete" value="athlete">Athlete</option>
+                <option id="reviewerExternalSpecialist" value="external_specialist">External specialist</option>
+              </select>
+            </label>
+            <label>
+              <span id="reviewerNameLabel">Reviewer name</span>
+              <input id="reviewerName" type="text" value="Pitching coach" />
+            </label>
+            <label>
+              <span id="reviewSummaryLabel">Review summary</span>
+              <textarea id="reviewSummaryInput" rows="4"></textarea>
+            </label>
+            <label>
+              <span id="reviewActionsLabel">Action items</span>
+              <textarea id="reviewActionsInput" rows="3"></textarea>
+            </label>
+            <label class="check-row">
+              <input id="reviewCautionAcknowledged" type="checkbox" />
+              <span id="reviewCautionLabel">Caution labels acknowledged</span>
+            </label>
+            <div class="button-row">
+              <button class="secondary-action" id="saveReviewDraft" type="button">Save draft</button>
+              <button class="primary-action" id="submitReview" type="button">Request user review</button>
+            </div>
+            <p id="reviewState">Review draft</p>
+          </div>
         </div>
       </section>
 

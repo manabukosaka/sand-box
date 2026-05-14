@@ -124,6 +124,53 @@ test("mock API can run through an injected tracking adapter", () => {
   assert.equal(snapshot.trackingRun.phase_events[0].frame, 88);
 });
 
+test("mock API can ingest browser AI baseline tracking results", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-13T00:00:00Z" });
+  const saved = api.saveCapturedVideo({
+    capture_source: "media_library",
+    capture_type: "imported_from_library",
+    file_name: "baseline.mp4",
+    file_size_bytes: 4096,
+    camera_view: "open_side",
+    frame_rate_fps: 240
+  });
+  const videoId = saved.videos.at(-1).id;
+  const session = api.createUploadSession({ video_id: videoId, expected_bytes: 4096 });
+  api.completeUploadSession({
+    upload_session_id: session.activeUploadSession.id,
+    uploaded_bytes: 4096
+  });
+  const snapshot = api.submitVideoWithTrackingResult({
+    video_id: videoId,
+    camera_view: "open_side",
+    frame_rate_fps: 240,
+    trackingResult: {
+      status: "completed",
+      model_name: "mediapipe_pose_landmarker_web",
+      model_version: "pose_landmarker_lite.float16.v1",
+      started_at: "2026-05-13T00:00:00Z",
+      completed_at: "2026-05-13T00:00:00Z",
+      artifact_uri: "local://tracking/local_1/mediapipe-pose-baseline.json",
+      phase_events: [{ name: "foot_contact", frame: 100, confidence: 0.91 }],
+      signal_confidence: {
+        shoulder_angle: 0.91,
+        elbow_angle: 0.9,
+        trunk_orientation: 0.88
+      },
+      overall_confidence: 0.9,
+      confidence_policy_version: "prototype-policy.1",
+      warning_reasons: [],
+      suppressed_metric_groups: [],
+      failure_reason: null
+    }
+  });
+
+  assert.equal(snapshot.trackingRun.model_name, "mediapipe_pose_landmarker_web");
+  assert.equal(snapshot.trackingRun.artifact_uri, "local://tracking/local_1/mediapipe-pose-baseline.json");
+  assert.equal(snapshot.videos.find((video) => video.id === videoId).status, "analyzed");
+  assert.equal(snapshot.analysisRun.tracking_run_id, snapshot.trackingRun.id);
+});
+
 test("failed tracking run does not create a new analysis run", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
   const saved = api.saveCapturedVideo({
@@ -374,6 +421,52 @@ test("ROM update creates a new ROM profile and recalculated analysis without rep
   assert.equal(shoulder.adjusted_value, 0.982);
 });
 
+test("phase correction creates a derived tracking run, new analysis, and correction history", () => {
+  const tick = (() => {
+    const stamps = ["2026-05-13T00:00:00Z", "2026-05-13T00:01:00Z", "2026-05-13T00:02:00Z"];
+    let index = 0;
+    return () => stamps[Math.min(index++, stamps.length - 1)];
+  })();
+  const api = createSportsMotionMockApi({ now: tick });
+  const before = api.getSnapshot();
+  const corrected = api.applyPhaseCorrection({
+    event_name: "ball_release",
+    corrected_frame: 190,
+    corrected_time_ms: 792,
+    reason: "Manual video review matched release frame.",
+    corrected_by_name: "Coach Rivera"
+  });
+  const sourceRelease = before.trackingRun.phase_events.find((event) => event.name === "ball_release");
+  const correctedRelease = corrected.trackingRun.phase_events.find((event) => event.name === "ball_release");
+
+  assert.notEqual(corrected.trackingRun.id, before.trackingRun.id);
+  assert.notEqual(corrected.analysisRun.id, before.analysisRun.id);
+  assert.equal(corrected.trackingRun.source_tracking_run_id, before.trackingRun.id);
+  assert.equal(corrected.trackingRun.correction_status, "manual_corrected");
+  assert.equal(sourceRelease.frame, 184);
+  assert.equal(correctedRelease.frame, 190);
+  assert.equal(correctedRelease.time_ms, 792);
+  assert.equal(corrected.trackingCorrections.length, 1);
+  assert.equal(corrected.trackingCorrections[0].original_frame, 184);
+  assert.equal(corrected.trackingCorrections[0].corrected_frame, 190);
+  assert.equal(corrected.trackingCorrections[0].analysis_run_id, before.analysisRun.id);
+  assert.equal(corrected.analysisRun.tracking_run_id, corrected.trackingRun.id);
+});
+
+test("phase correction requires an existing phase event", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-13T00:00:00Z" });
+
+  assert.throws(
+    () =>
+      api.applyPhaseCorrection({
+        event_name: "stride_peak",
+        corrected_frame: 120,
+        corrected_time_ms: 500
+      }),
+    /phase event not found/
+  );
+});
+
 test("share creation and revocation is scoped to active analysis", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
   const shared = api.createShare({ includeVideo: true, includeEvidence: true });
@@ -419,6 +512,13 @@ test("shared analysis view omits video and evidence when not included", () => {
 
 test("shared analysis includes overlays and comments only when explicitly scoped", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  api.updateAnalysisReviewDraft({
+    reviewer_role: "coach",
+    reviewer_name: "Coach Rivera",
+    summary: "Share only after the caution labels are acknowledged.",
+    action_items: "Review phase timing with the athlete.",
+    caution_acknowledged: true
+  });
   const shared = api.createShare({
     includeOverlays: true,
     includeComments: true,
@@ -428,7 +528,8 @@ test("shared analysis includes overlays and comments only when explicitly scoped
   const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
 
   assert.deepEqual(sharedView.overlays, []);
-  assert.deepEqual(sharedView.comments, []);
+  assert.equal(sharedView.comments.length, 1);
+  assert.equal(sharedView.comments[0].summary, "Share only after the caution labels are acknowledged.");
   assert.equal(sharedView.trackingRun, null);
   assert.equal(sharedView.video, null);
   assert.deepEqual(sharedView.metricDefinitions, []);
@@ -548,4 +649,51 @@ test("revoked share access attempt is denied and logged", () => {
   const denied = logs.at(-1);
   assert.equal(denied.result, "denied");
   assert.equal(denied.reason, "expired_or_revoked");
+});
+
+test("analysis review draft persists and submission preserves caution evidence", () => {
+  const storage = createMemoryStorage();
+  const api = createSportsMotionMockApi({ storage, now: () => "2026-05-05T00:00:00Z" });
+  api.submitVideo({
+    camera_view: "open_side",
+    frame_rate_fps: 240,
+    lowConfidence: true
+  });
+  const drafted = api.updateAnalysisReviewDraft({
+    reviewer_role: "coach",
+    reviewer_name: "Coach Rivera",
+    summary: "Review the suppressed metrics before sharing.",
+    action_items: "Confirm capture quality and repeat if visibility remains low.",
+    caution_acknowledged: true
+  });
+
+  assert.equal(drafted.activeAnalysisReview.status, "draft");
+  assert.equal(drafted.activeAnalysisReview.caution_acknowledged, true);
+  assert.equal(drafted.analysisRun.status, "completed_with_warnings");
+  assert.ok(drafted.analysisRun.warning_reasons.length > 0);
+
+  const restored = createSportsMotionMockApi({ storage, now: () => "2026-05-05T00:01:00Z" });
+  const submitted = restored.submitAnalysisReview({
+    analysis_review_id: drafted.activeAnalysisReview.id
+  });
+
+  assert.equal(submitted.activeAnalysisReview.status, "ready_for_user_review");
+  assert.equal(submitted.activeAnalysisReview.submitted_at, "2026-05-05T00:01:00Z");
+  assert.equal(submitted.analysisRun.metrics.every((metric) => metric.display_status === "suppressed_low_confidence"), true);
+});
+
+test("analysis review submission blocks until cautions are acknowledged", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const drafted = api.updateAnalysisReviewDraft({
+    reviewer_role: "trainer",
+    reviewer_name: "Trainer A",
+    summary: "Ready for review after caution acknowledgement.",
+    action_items: "Confirm ROM profile source.",
+    caution_acknowledged: false
+  });
+
+  assert.throws(
+    () => api.submitAnalysisReview({ analysis_review_id: drafted.activeAnalysisReview.id }),
+    /caution_acknowledged/
+  );
 });

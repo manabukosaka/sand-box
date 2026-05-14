@@ -8,6 +8,32 @@ Proposed
 
 2026-05-06
 
+## 2026-05-13 Refresh
+
+The original decision still stands with one clarification: production mobile
+implementation should be TypeScript-first React Native with Expo development
+builds, not plain JavaScript. The dependency-free JavaScript PWA remains a fast
+prototype and acceptance reference only.
+
+This refresh was made after revisiting current mobile stack signals:
+
+- React Native New Architecture is production-ready and enabled by default in
+  current React Native projects. Its bridge removal and JSI path are especially
+  relevant for video, camera, and native-module escape hatches.
+- React Native 0.84 makes Hermes V1 the default JavaScript engine and continues
+  removing legacy architecture paths, which improves the long-term outlook for
+  React Native performance and maintenance.
+- Expo EAS Build remains a strong internal distribution path for installable iOS
+  and Android field prototypes.
+- Flutter remains the backup when custom overlay rendering or cross-platform UI
+  smoothness becomes the dominant risk.
+- Kotlin Multiplatform / Compose Multiplatform is now a credible modern option,
+  but it adds Kotlin/iOS interop complexity and is a better fit if the team wants
+  Kotlin-shared product/domain logic or a more native-first organization.
+- Fully native SwiftUI and Jetpack Compose remain the performance ceiling, but
+  they create two product implementations before tracking and metric feasibility
+  are settled.
+
 ## Context
 
 Sports Motion App must become an installable iOS and Android app for field
@@ -35,8 +61,8 @@ guaranteed performance claims.
 
 ## Decision
 
-Use React Native with Expo development builds as the recommended stack for the
-first installable field prototype.
+Use TypeScript-first React Native with Expo development builds as the
+recommended stack for the first installable field prototype.
 
 Use Flutter as the backup stack if the React Native/Expo spike fails on camera
 capture, local video handling, overlay performance, build/distribution
@@ -47,10 +73,13 @@ prototype reaches parity for the Milestone 1 acceptance scenarios.
 
 ## Rationale
 
-React Native with Expo is the best fit for the next slice because:
+TypeScript-first React Native with Expo is the best fit for the next slice
+because:
 
-- the current prototype is JavaScript-based, so domain and UI behavior can be
-  migrated incrementally;
+- the current prototype is JavaScript-based, so domain behavior and API contract
+  tests can be migrated incrementally while adding static typing;
+- TypeScript gives better maintainability than plain JavaScript for the app's
+  evolving analysis, review, correction, and sharing contracts;
 - Expo development builds support installable internal test builds while keeping
   a faster iteration loop than fully native apps;
 - EAS Build supports development, preview, and production build profiles for iOS
@@ -83,6 +112,8 @@ Recommended.
 Strengths:
 
 - strong fit with the existing JavaScript prototype;
+- TypeScript can harden API/domain contracts without losing the current
+  iteration speed;
 - good internal distribution path through EAS profiles;
 - faster field-prototype iteration;
 - native module escape hatch when needed;
@@ -113,6 +144,24 @@ Risks:
 - adds Dart to the project;
 - backend/API/domain sharing with JavaScript prototype would become a translation
   task.
+
+### Kotlin Multiplatform With Compose Multiplatform
+
+Watch-list / conditional alternative.
+
+Strengths:
+
+- modern declarative UI with Android-native roots and iOS support;
+- useful if the team prefers Kotlin for shared domain and data logic;
+- can share more strongly typed product contracts across platforms than a
+  JavaScript PWA.
+
+Risks:
+
+- smaller iOS production-history surface than React Native or Flutter for many
+  teams;
+- native video/camera packages and iOS interop must be spiked carefully;
+- would require a larger language and tooling shift from the current prototype.
 
 ### Native iOS And Native Android
 
@@ -197,9 +246,15 @@ Go/No-Go:
   <https://docs.expo.dev/build/eas-json/>
 - React Native New Architecture overview:
   <https://reactnative.dev/architecture/landing-page>
+- React Native 0.84 release notes:
+  <https://reactnative.dev/blog/2026/02/11/react-native-0.84>
 - React Native Turbo Native Modules introduction:
   <https://reactnative.dev/docs/turbo-native-modules-introduction>
 - Flutter camera plugin recipe:
   <https://docs.flutter.dev/cookbook/plugins/picture-using-camera>
 - Flutter video player recipe:
   <https://docs.flutter.dev/cookbook/plugins/play-video>
+- Flutter performance best practices:
+  <https://docs.flutter.dev/perf/best-practices>
+- Compose Multiplatform compatibility:
+  <https://kotlinlang.org/docs/multiplatform/compose-compatibility-and-versioning.html>

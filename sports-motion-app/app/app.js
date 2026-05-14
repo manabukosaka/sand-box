@@ -1,4 +1,9 @@
 import { createSportsMotionMockApi } from "../src/mockApi.mjs";
+import {
+  mediaPipePoseBaselineConfig,
+  poseModelRegistry,
+  runMediaPipePoseBaseline
+} from "../src/browserPoseAdapter.mjs";
 import { trackingFailureReason } from "../src/trackingAdapter.mjs";
 
 const translations = {
@@ -48,6 +53,7 @@ const translations = {
       capture: "Capture",
       metrics: "Metrics",
       rom: "ROM",
+      review: "Review",
       share: "Share"
     },
     videoPreviewLabel: "Pitching video preview with skeleton overlay",
@@ -104,7 +110,18 @@ const translations = {
       closed_side: "Closed side"
     },
     frameRateLabel: "Frame rate",
+    poseModelLabel: "AI model",
+    selectedVideoLabel: "Selected pitching video",
+    correctionHeading: "Manual phase correction",
+    correctionHelp: "Set phase markers from the current video time.",
+    correctionReasonLabel: "Correction note",
+    setFootContact: "Set foot contact",
+    setRelease: "Set release",
+    correctionEmpty: "No manual corrections yet.",
+    correctionRow: ({ eventName, frame, timeMs, source }) =>
+      `${eventName.replace("_", " ")} · frame ${frame} · ${(timeMs / 1000).toFixed(2)}s · ${source}`,
     submitVideo: "Submit video",
+    runAiBaseline: "Run AI baseline",
     flagLowConfidence: "Flag low confidence",
     sessionLabel: "Session label",
     captureVideo: "Record with camera",
@@ -166,6 +183,36 @@ const translations = {
     shoulderRomLabel: "Shoulder external rotation max",
     recalculate: "Recalculate",
     romNote: "Raw AI estimates stay unchanged. Recalculation creates a new ROM-adjusted analysis layer.",
+    reviewHeading: "User review packet",
+    reviewSubtitle: "Analysis values stay unchanged",
+    reviewerRole: "Reviewer role",
+    reviewerName: "Reviewer name",
+    reviewSummaryLabel: "Review summary",
+    reviewActionsLabel: "Action items",
+    reviewCautionLabel: "Caution labels acknowledged",
+    saveReviewDraft: "Save draft",
+    submitReview: "Request user review",
+    reviewStatus: {
+      draft: "Review draft",
+      ready_for_user_review: "User review requested",
+      reviewed: "Reviewed"
+    },
+    reviewerRoles: {
+      coach: "Coach",
+      trainer: "Trainer",
+      athlete: "Athlete",
+      external_specialist: "External specialist"
+    },
+    reviewSummaryItems: {
+      analysis: "Analysis",
+      tracking: "Tracking",
+      provenance: "Provenance",
+      phases: "Phase confidence",
+      rom: "ROM version",
+      warnings: "Warnings",
+      suppressed: "Suppressed metrics",
+      caution: "Single-camera estimates, experimental metrics, and suppressed outputs remain caution-labeled."
+    },
     shareHeading: "External review",
     shareSubtitle: "Analysis result only",
     includeVideo: "Include video overlay",
@@ -194,9 +241,17 @@ const translations = {
       videoDeleted: "Video marked deleted in the prototype library.",
       profileSaved: "Team and athlete attributes saved for this prototype session.",
       trackingComplete: "Prototype tracking run completed with skeleton, phases, confidence, and model version.",
+      aiBaselineStarted: "Running local MediaPipe pose baseline on the selected video.",
+      aiBaselineComplete: "AI baseline completed from local video frames. Review confidence before sharing.",
+      aiBaselineUnavailable: "AI baseline needs a selected local video file plus local MediaPipe bundle, wasm, and model files.",
       trackingRetryable: "Prototype tracking failed from capture conditions. The video remains available for retry.",
       trackingUnusable: "Prototype tracking rejected this capture setup. Recapture with supported conditions.",
       lowConfidence: "Low-confidence joints and experimental metrics are flagged before specialist review.",
+      reviewDraftSaved: "Review draft saved without changing analysis values.",
+      reviewSubmitted: "User review requested. Caution labels stay attached to the analysis packet.",
+      reviewNeedsCaution: "Acknowledge caution labels before requesting user review.",
+      phaseCorrectionApplied: "Manual phase correction saved as a new tracking and analysis run.",
+      phaseCorrectionNeedsVideo: "Select a local video and run or submit analysis before correcting phase markers.",
       shareCreated: "External share created with scoped result access.",
       shareTokenRotated: "Share token rotated. Previous token should be treated as invalid.",
       shareRevoked: "Share access fails closed after revocation.",
@@ -253,6 +308,7 @@ const translations = {
       capture: "撮影",
       metrics: "指標",
       rom: "ROM",
+      review: "レビュー",
       share: "共有"
     },
     videoPreviewLabel: "骨格オーバーレイ付き投球動画プレビュー",
@@ -309,7 +365,18 @@ const translations = {
       closed_side: "クローズ側"
     },
     frameRateLabel: "フレームレート",
+    poseModelLabel: "AIモデル",
+    selectedVideoLabel: "選択中の投球動画",
+    correctionHeading: "手動フェーズ補正",
+    correctionHelp: "現在の動画再生位置からフェーズマーカーを設定します。",
+    correctionReasonLabel: "補正メモ",
+    setFootContact: "接地を設定",
+    setRelease: "リリースを設定",
+    correctionEmpty: "手動補正はまだありません。",
+    correctionRow: ({ eventName, frame, timeMs, source }) =>
+      `${eventName === "foot_contact" ? "接地" : "リリース"} · frame ${frame} · ${(timeMs / 1000).toFixed(2)}秒 · ${source}`,
     submitVideo: "動画を送信",
+    runAiBaseline: "AI baseline解析",
     flagLowConfidence: "低信頼度を表示",
     sessionLabel: "セッション名",
     captureVideo: "カメラで撮影",
@@ -371,6 +438,36 @@ const translations = {
     shoulderRomLabel: "肩外旋 最大可動域",
     recalculate: "再計算",
     romNote: "Raw AI推定値は変更せず、ROM補正済みの解析レイヤーを新しく作成します。",
+    reviewHeading: "ユーザーレビュー依頼",
+    reviewSubtitle: "解析値は変更しません",
+    reviewerRole: "レビュアー種別",
+    reviewerName: "レビュアー名",
+    reviewSummaryLabel: "レビュー要約",
+    reviewActionsLabel: "アクション項目",
+    reviewCautionLabel: "注意ラベルを確認済み",
+    saveReviewDraft: "下書き保存",
+    submitReview: "ユーザーレビュー依頼",
+    reviewStatus: {
+      draft: "レビュー下書き",
+      ready_for_user_review: "ユーザーレビュー依頼済み",
+      reviewed: "レビュー済み"
+    },
+    reviewerRoles: {
+      coach: "コーチ",
+      trainer: "トレーナー",
+      athlete: "選手",
+      external_specialist: "外部専門家"
+    },
+    reviewSummaryItems: {
+      analysis: "解析",
+      tracking: "Tracking",
+      provenance: "由来",
+      phases: "フェーズ信頼度",
+      rom: "ROMバージョン",
+      warnings: "注意",
+      suppressed: "抑制指標",
+      caution: "単眼カメラ推定、実験的指標、抑制された出力の注意ラベルは保持されます。"
+    },
     shareHeading: "外部レビュー",
     shareSubtitle: "解析結果のみ",
     includeVideo: "動画オーバーレイを含める",
@@ -398,9 +495,17 @@ const translations = {
       videoDeleted: "プロトタイプの動画ライブラリで削除済みにしました。",
       profileSaved: "チームと選手属性をこのプロトタイプセッションに保存しました。",
       trackingComplete: "骨格、フェーズ、信頼度、モデルバージョンを含むプロトタイプ解析が完了しました。",
+      aiBaselineStarted: "選択したローカル動画で MediaPipe pose baseline を実行しています。",
+      aiBaselineComplete: "ローカル動画フレームからAI baseline解析が完了しました。共有前に信頼度を確認してください。",
+      aiBaselineUnavailable: "AI baselineには選択済みローカル動画と、ローカルMediaPipe bundle、wasm、model fileが必要です。",
       trackingRetryable: "撮影条件によりプロトタイプtrackingが失敗しました。動画は再試行用に保持されます。",
       trackingUnusable: "この撮影条件ではプロトタイプtrackingを利用できません。対応した条件で再撮影してください。",
       lowConfidence: "専門レビュー前に、低信頼度の関節と実験的指標を明示しています。",
+      reviewDraftSaved: "解析値を変更せず、レビュー下書きを保存しました。",
+      reviewSubmitted: "ユーザーレビューを依頼しました。注意ラベルは解析パケットに保持されます。",
+      reviewNeedsCaution: "ユーザーレビュー依頼前に注意ラベルを確認してください。",
+      phaseCorrectionApplied: "手動フェーズ補正を新しい tracking / analysis run として保存しました。",
+      phaseCorrectionNeedsVideo: "フェーズ補正前にローカル動画を選択し、解析を送信または実行してください。",
       shareCreated: "解析結果に限定した外部共有を作成しました。",
       shareTokenRotated: "共有トークンを更新しました。以前のトークンは無効として扱います。",
       shareRevoked: "共有を無効化しました。外部アクセスは失敗クローズになります。",
@@ -429,7 +534,7 @@ const state = {
     role: "pitcher",
     rosterStatus: "active",
     ageGroup: "college_adult",
-    heightCm: 8,
+    heightCm: 185,
     bodyMassKg: 88
   },
   team: {
@@ -440,7 +545,8 @@ const state = {
     notes: "Prototype pitching development group"
   },
   cameraView: "open_side",
-  frameRate: 24,
+  frameRate: 240,
+  poseModelId: mediaPipePoseBaselineConfig.default_model_id,
   filters: {
     query: "",
     status: "all",
@@ -448,18 +554,30 @@ const state = {
     analysis: "all"
   },
   selectedVideoId: null,
-  romVersion: ,
-  shoulderRomMax: ,
+  romVersion: 1,
+  shoulderRomMax: 115,
   tracking: {
     status: "completed",
-    modelVersion: "prototype.",
-    confidencePolicyVersion: "prototype-policy.",
-    overallConfidence: .88,
+    modelVersion: "prototype.0",
+    confidencePolicyVersion: "prototype-policy.0",
+    overallConfidence: 0.88,
     phaseEvents: [],
     failureReason: null
   },
   analysisFreshness: "current_tracking",
   analysisRunStatus: "completed",
+  selectedVideoFile: null,
+  selectedVideoUrl: null,
+  trackingCorrections: [],
+  analysisReview: {
+    id: null,
+    reviewerRole: "coach",
+    reviewerName: "Pitching coach",
+    summary: "",
+    actionItems: "",
+    status: "draft",
+    cautionAcknowledged: false
+  },
   shareActive: false,
   lastNotice: "default",
   metrics: [],
@@ -486,6 +604,10 @@ const heightInput = document.querySelector("#heightInput");
 const bodyMassInput = document.querySelector("#bodyMassInput");
 const cameraView = document.querySelector("#cameraView");
 const frameRate = document.querySelector("#frameRate");
+const poseModel = document.querySelector("#poseModel");
+const videoPlayer = document.querySelector("#videoPlayer");
+const correctionReason = document.querySelector("#correctionReason");
+const correctionState = document.querySelector("#correctionState");
 const sessionLabel = document.querySelector("#sessionLabel");
 const captureVideoInput = document.querySelector("#captureVideoInput");
 const importVideoInput = document.querySelector("#importVideoInput");
@@ -502,6 +624,13 @@ const rotateShareToken = document.querySelector("#rotateShareToken");
 const shareState = document.querySelector("#shareState");
 const loadShareLogs = document.querySelector("#loadShareLogs");
 const shareLogList = document.querySelector("#shareLogList");
+const reviewSummary = document.querySelector("#reviewSummary");
+const reviewerRole = document.querySelector("#reviewerRole");
+const reviewerName = document.querySelector("#reviewerName");
+const reviewSummaryInput = document.querySelector("#reviewSummaryInput");
+const reviewActionsInput = document.querySelector("#reviewActionsInput");
+const reviewCautionAcknowledged = document.querySelector("#reviewCautionAcknowledged");
+const reviewState = document.querySelector("#reviewState");
 
 const textTargets = {
   appEyebrow: "appEyebrow",
@@ -510,6 +639,7 @@ const textTargets = {
   analysisStatus: "analysisStatus",
   captureTab: "tabs.capture",
   metricsTab: "tabs.metrics",
+  reviewTab: "tabs.review",
   shareTab: "tabs.share",
   phaseFootContact: "phases.footContact",
   phaseRelease: "phases.release",
@@ -544,14 +674,21 @@ const textTargets = {
   heightLabel: "heightCm",
   bodyMassLabel: "bodyMassKg",
   cameraViewLabel: "cameraViewLabel",
+  poseModelLabel: "poseModelLabel",
   cameraOpenSide: "cameraViews.open_side",
   cameraCatcherView: "cameraViews.catcher_view",
   cameraClosedSide: "cameraViews.closed_side",
   frameRateLabel: "frameRateLabel",
   sessionLabelText: "sessionLabel",
+  correctionHeading: "correctionHeading",
+  correctionHelp: "correctionHelp",
+  correctionReasonLabel: "correctionReasonLabel",
+  setFootContact: "setFootContact",
+  setRelease: "setRelease",
   captureVideoLabel: "captureVideo",
   importVideoLabel: "importVideo",
   submitVideo: "submitVideo",
+  runAiBaseline: "runAiBaseline",
   mockFailure: "flagLowConfidence",
   libraryHeading: "libraryHeading",
   librarySubtitle: "librarySubtitle",
@@ -570,6 +707,19 @@ const textTargets = {
   romSubtitle: "romSubtitle",
   shoulderRomLabel: "shoulderRomLabel",
   applyRom: "recalculate",
+  reviewHeading: "reviewHeading",
+  reviewSubtitle: "reviewSubtitle",
+  reviewerRoleLabel: "reviewerRole",
+  reviewerNameLabel: "reviewerName",
+  reviewSummaryLabel: "reviewSummaryLabel",
+  reviewActionsLabel: "reviewActionsLabel",
+  reviewCautionLabel: "reviewCautionLabel",
+  saveReviewDraft: "saveReviewDraft",
+  submitReview: "submitReview",
+  reviewerCoach: "reviewerRoles.coach",
+  reviewerTrainer: "reviewerRoles.trainer",
+  reviewerAthlete: "reviewerRoles.athlete",
+  reviewerExternalSpecialist: "reviewerRoles.external_specialist",
   shareHeading: "shareHeading",
   shareSubtitle: "shareSubtitle",
   includeVideoLabel: "includeVideo",
@@ -595,6 +745,13 @@ languageOptions.forEach((option) => {
   });
 });
 
+poseModelRegistry.forEach((model) => {
+  const option = document.createElement("option");
+  option.value = model.id;
+  option.textContent = `${model.label} · ${model.model_version}`;
+  poseModel.append(option);
+});
+
 function t(path) {
   return path.split(".").reduce((value, part) => value?.[part], translations[state.language]);
 }
@@ -617,11 +774,11 @@ function formatMetricValue(metric) {
 }
 
 function confidenceLabel(value) {
-  return `${Math.round(value * )}%`;
+  return `${Math.round(value * 100)}%`;
 }
 
 function confidencePercent(value) {
-  return Math.round(value * );
+  return Math.round(value * 100);
 }
 
 function optionalNumber(value) {
@@ -651,6 +808,42 @@ function localizedNotice() {
   return t(`notices.${state.lastNotice}`) ?? t("notices.default");
 }
 
+function reviewWarnings() {
+  const warnings = [];
+  if (state.analysisRunStatus === "completed_with_warnings") {
+    warnings.push(t("analysisFreshness.completed_with_warnings"));
+  }
+  const suppressed = state.metrics
+    .filter((metric) => metric.displayStatus === "suppressed_low_confidence")
+    .map((metric) => t(`metricNames.${metric.key}`));
+  const experimental = state.metrics
+    .filter((metric) => metric.maturity === "experimental")
+    .map((metric) => t(`metricNames.${metric.key}`));
+  return {
+    warnings,
+    suppressed,
+    experimental
+  };
+}
+
+function renderCorrectionState() {
+  if (!state.trackingCorrections.length) {
+    correctionState.textContent = t("correctionEmpty");
+    return;
+  }
+  correctionState.innerHTML = state.trackingCorrections
+    .map((correction) => {
+      const row = t("correctionRow")({
+        eventName: correction.event_name,
+        frame: correction.corrected_frame,
+        timeMs: correction.corrected_time_ms,
+        source: correction.corrected_by_name
+      });
+      return `<div><strong>${row}</strong><small>${correction.reason}</small></div>`;
+    })
+    .join("");
+}
+
 function trackingContextLabel() {
   if (state.tracking.failureReason) {
     return t("trackingFailureSummary")({
@@ -669,6 +862,14 @@ function trackingContextLabel() {
       ? ` · ${t("analysisFreshness.completed_with_warnings")}`
       : "";
   return `${trackingSummary} · ${t(`analysisFreshness.${state.analysisFreshness}`)}${warningSummary}`;
+}
+
+function correctionProvenanceLabel() {
+  if (!state.trackingCorrections.length) {
+    return "AI baseline / prototype tracking";
+  }
+  const lastCorrection = state.trackingCorrections.at(-1);
+  return `Manual correction from ${lastCorrection.corrected_by_name} · ${lastCorrection.event_name.replace("_", " ")}`;
 }
 
 function latestUploadSession(videoId) {
@@ -797,6 +998,52 @@ function renderMetrics() {
   metricTable.innerHTML = rows.join("");
 }
 
+function renderReview() {
+  const phaseSummary = state.tracking.phaseEvents.length
+    ? state.tracking.phaseEvents
+        .map((event) => `${event.name.replace("_", " ")} ${confidenceLabel(event.confidence)}`)
+        .join(" · ")
+    : t("notApplicable");
+  const reviewRisk = reviewWarnings();
+  const warningText = [
+    ...reviewRisk.warnings,
+    reviewRisk.experimental.length
+      ? `${t("maturity.experimental")}: ${reviewRisk.experimental.join(", ")}`
+      : "",
+    reviewRisk.suppressed.length
+      ? `${t("reviewSummaryItems.suppressed")}: ${reviewRisk.suppressed.join(", ")}`
+      : ""
+  ].filter(Boolean);
+
+  reviewSummary.innerHTML = `
+    <div class="review-card">
+      <strong>${t("reviewSummaryItems.analysis")}</strong>
+      <span>${state.analysisRunStatus} · ${t(`analysisFreshness.${state.analysisFreshness}`)}</span>
+    </div>
+    <div class="review-card">
+      <strong>${t("reviewSummaryItems.tracking")}</strong>
+      <span>${state.tracking.modelVersion} · ${confidenceLabel(state.tracking.overallConfidence)}</span>
+    </div>
+    <div class="review-card">
+      <strong>${t("reviewSummaryItems.provenance")}</strong>
+      <span>${correctionProvenanceLabel()}</span>
+    </div>
+    <div class="review-card">
+      <strong>${t("reviewSummaryItems.phases")}</strong>
+      <span>${phaseSummary}</span>
+    </div>
+    <div class="review-card">
+      <strong>${t("reviewSummaryItems.rom")}</strong>
+      <span>${state.romVersion}</span>
+    </div>
+    <div class="review-card review-card-wide">
+      <strong>${t("reviewSummaryItems.warnings")}</strong>
+      <span>${warningText.length ? warningText.join(" · ") : t("reviewSummaryItems.caution")}</span>
+    </div>
+  `;
+  setText("reviewState", t(`reviewStatus.${state.analysisReview.status}`));
+}
+
 function renderStaticText() {
   document.documentElement.lang = state.language;
   document.title = t("documentTitle");
@@ -805,6 +1052,7 @@ function renderStaticText() {
   document.querySelector("#syncButton").setAttribute("aria-label", t("syncLabel"));
   document.querySelector("#syncButton").setAttribute("title", t("syncLabel"));
   document.querySelector("#videoStage").setAttribute("aria-label", t("videoPreviewLabel"));
+  videoPlayer.setAttribute("aria-label", t("selectedVideoLabel"));
   document.querySelector("#phaseTimeline").setAttribute("aria-label", t("phaseTimelineLabel"));
   document.querySelector("nav.tabs").setAttribute("aria-label", t("tabs.metrics"));
 
@@ -826,6 +1074,7 @@ function renderStaticText() {
       ? "status-pill status-complete"
       : `status-pill status-${state.tracking.status}`;
   setText("shareState", state.shareActive ? t("shareActive") : t("noShare"));
+  setText("reviewState", t(`reviewStatus.${state.analysisReview.status}`));
   setText("notice", localizedNotice());
 
   languageOptions.forEach((option) => {
@@ -886,6 +1135,16 @@ function syncFromSnapshot(snapshot) {
   state.tracking.failureReason = snapshot.trackingRun.failure_reason;
   state.analysisFreshness = snapshot.analysisFreshness.status;
   state.analysisRunStatus = snapshot.analysisRun.status;
+  state.trackingCorrections = snapshot.trackingCorrections ?? [];
+  state.analysisReview = {
+    id: snapshot.activeAnalysisReview.id,
+    reviewerRole: snapshot.activeAnalysisReview.reviewer_role,
+    reviewerName: snapshot.activeAnalysisReview.reviewer_name,
+    summary: snapshot.activeAnalysisReview.summary,
+    actionItems: snapshot.activeAnalysisReview.action_items,
+    status: snapshot.activeAnalysisReview.status,
+    cautionAcknowledged: snapshot.activeAnalysisReview.caution_acknowledged
+  };
   state.shareActive = Boolean(snapshot.activeShare);
   state.videos = snapshot.videos;
   state.uploadSessions = snapshot.uploadSessions;
@@ -921,7 +1180,13 @@ function syncFromSnapshot(snapshot) {
   bodyMassInput.value = state.athlete.bodyMassKg;
   cameraView.value = state.cameraView;
   frameRate.value = state.frameRate;
+  poseModel.value = state.poseModelId;
   shoulderRom.value = state.shoulderRomMax;
+  reviewerRole.value = state.analysisReview.reviewerRole;
+  reviewerName.value = state.analysisReview.reviewerName;
+  reviewSummaryInput.value = state.analysisReview.summary;
+  reviewActionsInput.value = state.analysisReview.actionItems;
+  reviewCautionAcknowledged.checked = state.analysisReview.cautionAcknowledged;
   revokeShare.disabled = !state.shareActive;
   rotateShareToken.disabled = !state.shareActive;
   loadShareLogs.disabled = !state.shareActive;
@@ -945,6 +1210,8 @@ function renderAll() {
     setText("phaseRelease", `${t("phases.release")} ${confidenceLabel(release.confidence)}`);
   }
   renderMetrics();
+  renderReview();
+  renderCorrectionState();
   renderVideoLibrary();
 }
 
@@ -957,6 +1224,36 @@ function setLanguage(language) {
 function recalculateRom() {
   syncFromSnapshot(api.updateShoulderExternalRotationMax(state.shoulderRomMax));
   state.lastNotice = "recalculated";
+  renderAll();
+}
+
+function saveReviewDraft() {
+  syncFromSnapshot(
+    api.updateAnalysisReviewDraft({
+      reviewer_role: reviewerRole.value,
+      reviewer_name: reviewerName.value.trim() || t("reviewerRoles.coach"),
+      summary: reviewSummaryInput.value.trim(),
+      action_items: reviewActionsInput.value.trim(),
+      caution_acknowledged: reviewCautionAcknowledged.checked
+    })
+  );
+  state.lastNotice = "reviewDraftSaved";
+  renderAll();
+}
+
+function submitReviewPacket() {
+  saveReviewDraft();
+  const snapshot = api.getSnapshot();
+  try {
+    syncFromSnapshot(
+      api.submitAnalysisReview({
+        analysis_review_id: snapshot.activeAnalysisReview.id
+      })
+    );
+    state.lastNotice = "reviewSubmitted";
+  } catch {
+    state.lastNotice = "reviewNeedsCaution";
+  }
   renderAll();
 }
 
@@ -1009,7 +1306,36 @@ function saveVideoFromFile(file, source) {
       notes: source
     })
   );
+  state.selectedVideoFile = file;
+  if (state.selectedVideoUrl) {
+    URL.revokeObjectURL(state.selectedVideoUrl);
+  }
+  state.selectedVideoUrl = URL.createObjectURL(file);
+  videoPlayer.src = state.selectedVideoUrl;
+  videoPlayer.load();
   state.lastNotice = "videoSaved";
+  renderAll();
+}
+
+function applyPhaseCorrection(eventName) {
+  if (!state.selectedVideoFile || !state.selectedVideoId || !state.tracking.status.startsWith("completed")) {
+    state.lastNotice = "phaseCorrectionNeedsVideo";
+    renderAll();
+    return;
+  }
+  const correctedTimeMs = Math.max(0, Math.round((videoPlayer.currentTime || 0) * 1000));
+  const correctedFrame = Math.max(0, Math.round((correctedTimeMs / 1000) * Number(frameRate.value)));
+  syncFromSnapshot(
+    api.applyPhaseCorrection({
+      event_name: eventName,
+      corrected_frame: correctedFrame,
+      corrected_time_ms: correctedTimeMs,
+      reason: correctionReason.value.trim() || "Manual video review",
+      corrected_by_role: reviewerRole.value,
+      corrected_by_name: reviewerName.value.trim() || t("reviewerRoles.coach")
+    })
+  );
+  state.lastNotice = "phaseCorrectionApplied";
   renderAll();
 }
 
@@ -1088,7 +1414,7 @@ function interruptPrototypeUpload(videoId) {
   }
   return api.interruptUploadSession({
     upload_session_id: uploadSession.id,
-    uploaded_bytes: Math.min(uploadSession.expected_bytes ?? , 24)
+    uploaded_bytes: Math.min(uploadSession.expected_bytes ?? 0, 24000)
   });
 }
 
@@ -1104,6 +1430,46 @@ document.querySelector("#submitVideo").addEventListener("click", () => {
   renderAll();
 });
 
+document.querySelector("#runAiBaseline").addEventListener("click", async () => {
+  if (!state.selectedVideoFile || !state.selectedVideoId) {
+    state.lastNotice = "aiBaselineUnavailable";
+    renderAll();
+    return;
+  }
+  state.lastNotice = "aiBaselineStarted";
+  renderAll();
+  try {
+    const uploaded = completePrototypeUpload(state.selectedVideoId);
+    syncFromSnapshot(uploaded);
+    const trackingResult = await runMediaPipePoseBaseline({
+      file: state.selectedVideoFile,
+      tracking_run_id: `local_${Date.now()}`,
+      frame_rate_fps: Number(frameRate.value),
+      config: {
+        ...mediaPipePoseBaselineConfig,
+        model_id: poseModel.value
+      }
+    });
+    syncFromSnapshot(
+      api.submitVideoWithTrackingResult({
+        video_id: state.selectedVideoId,
+        camera_view: cameraView.value,
+        frame_rate_fps: Number(frameRate.value),
+        trackingResult
+      })
+    );
+    state.lastNotice = "aiBaselineComplete";
+  } catch (error) {
+    console.warn(error);
+    state.lastNotice = "aiBaselineUnavailable";
+  }
+  renderAll();
+});
+
+poseModel.addEventListener("change", () => {
+  state.poseModelId = poseModel.value;
+});
+
 document.querySelector("#mockFailure").addEventListener("click", () => {
   syncFromSnapshot(submitVideoThroughPrototypeUpload(state.selectedVideoId, true));
   state.lastNotice = "lowConfidence";
@@ -1116,12 +1482,12 @@ shoulderRom.addEventListener("input", () => {
 });
 
 captureVideoInput.addEventListener("change", () => {
-  saveVideoFromFile(captureVideoInput.files[], "smartphone_camera");
+  saveVideoFromFile(captureVideoInput.files[0], "smartphone_camera");
   captureVideoInput.value = "";
 });
 
 importVideoInput.addEventListener("change", () => {
-  saveVideoFromFile(importVideoInput.files[], "media_library");
+  saveVideoFromFile(importVideoInput.files[0], "media_library");
   importVideoInput.value = "";
 });
 
@@ -1212,6 +1578,10 @@ videoLibrary.addEventListener("click", (event) => {
 });
 
 document.querySelector("#applyRom").addEventListener("click", recalculateRom);
+document.querySelector("#setFootContact").addEventListener("click", () => applyPhaseCorrection("foot_contact"));
+document.querySelector("#setRelease").addEventListener("click", () => applyPhaseCorrection("ball_release"));
+document.querySelector("#saveReviewDraft").addEventListener("click", saveReviewDraft);
+document.querySelector("#submitReview").addEventListener("click", submitReviewPacket);
 
 document.querySelector("#createShare").addEventListener("click", () => {
   syncFromSnapshot(

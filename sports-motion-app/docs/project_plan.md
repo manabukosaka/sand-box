@@ -30,6 +30,17 @@ Implemented prototype capabilities:
   upload sessions can create a new retry attempt.
 - Replaceable prototype tracking adapter contract in
   `sports-motion-app/src/trackingAdapter.mjs`.
+- Browser MediaPipe Pose Landmarker baseline adapter in
+  `sports-motion-app/src/browserPoseAdapter.mjs`; this can run against a selected
+  local video in the PWA and maps pose-landmark confidence into the prototype
+  `TrackingRun` / `AnalysisRun` pipeline.
+- PWA local video playback for the selected capture/import file, with manual
+  foot-contact and ball-release phase correction from the current playback time.
+- Prototype `TrackingCorrection` records and corrected derived `TrackingRun` /
+  `AnalysisRun` creation; source AI tracking artifacts are not overwritten.
+- Local AI runtime/model asset policy in `sports-motion-app/docs/ai_model_assets.md`;
+  the PWA model selector supports Lite, Full, and Heavy local pose model entries
+  without CDN model loading.
 - Prototype tracking failure policy for warning, retryable failure, and unusable
   failure states based on capture/measurement conditions.
 - Browser `localStorage` state for the prototype.
@@ -40,17 +51,28 @@ Implemented prototype capabilities:
 - Video library keyword search plus status, camera-view, and analysis-availability
   filters.
 - ROM recalculation while preserving raw tracking values.
+- Prototype user-review packet for the active analysis, with reviewer role/name,
+  summary, action items, caution acknowledgement, submitted review-request
+  status, and share-comment scope stored separately from raw and
+  ROM-adjusted metrics.
 - Prototype share creation and revocation.
+- Prototype share comments are included only when the share scope explicitly
+  enables comments.
 - Local prototype acceptance review notes in
   `sports-motion-app/docs/prototype_acceptance_review.md`.
 - Draft Milestone 2 tracking feasibility gate in
   `sports-motion-app/docs/tracking_feasibility_gate.md`.
 - Proposed mobile stack ADR in
   `sports-motion-app/docs/adr/0002-mobile-stack-for-field-prototype.md`.
+- 2026 mobile stack refresh keeps React Native + Expo as the recommended
+  installable field prototype path, but clarifies that production mobile should
+  be TypeScript-first rather than plain JavaScript.
 - Draft tracking provider/model shortlist in
   `sports-motion-app/docs/tracking_shortlist.md`.
 - Draft sample-video manifest in
   `sports-motion-app/docs/sample_video_manifest.md`.
+- Draft sample acquisition protocol in
+  `sports-motion-app/docs/sample_acquisition_protocol.md`.
 - Tracking feasibility sample readiness is blocked because the manifest contains
   only placeholder rows and no approved private sample set yet.
 - Draft metric tracking support matrix in
@@ -62,6 +84,8 @@ Implemented prototype capabilities:
   `sports-motion-app/docs/vv/mobile_test_results_template.md`.
 - Sports Motion App development process, autonomous planning queue, and
   retrospective notes are tracked in `sports-motion-app/docs/`.
+- Native field prototype WBS is tracked in
+  `sports-motion-app/docs/planning/wbs_2026-05-13_native_field_prototype.md`.
 - Sub-agent execution defaults to a 3-lane review pattern (Product,
   Architecture, QA) with conditional Security lane for sharing/privacy slices.
 - Native field prototype spike plan in
@@ -69,14 +93,21 @@ Implemented prototype capabilities:
 - Isolated React Native + Expo native scaffold under `sports-motion-app/mobile`
   with capture/import, bilingual navigation, local draft persistence, metrics,
   ROM, sharing prototype surfaces, permission status display, selected-video
-  metadata display, a phase-overlay placeholder, and local-only upload retry
-  simulation.
+  metadata display, `expo-video` local video preview with phase markers, and
+  local-only upload retry simulation.
+- Native review packet fields now cover reviewer role/name, summary, action
+  items, caution acknowledgement, user-review request status, and
+  share-comment include/exclude behavior as local prototype state.
 - Native emulator/simulator smoke is blocked until the local Node runtime is
   upgraded from `18.19.1` to `>=20.19.4`; the latest blocked runtime check is
   recorded in the native spike, mobile test plan, and dated V&V evidence.
+- Mobile TypeScript code-level verification now runs through
+  `sports-motion-app/mobile` with `npm run typecheck`; Expo dev-client help is
+  available as `npm run check:dev-client`.
 - Node test suite covering domain, mock API, upload session gating/retry,
   prototype tracking adapter behavior, tracking failure policy, metric
-  suppression, and share scope behavior.
+  suppression, manual phase correction provenance, analysis review packet
+  behavior, and share scope behavior.
 
 Not yet implemented:
 
@@ -84,8 +115,12 @@ Not yet implemented:
 - Production backend API, authentication, object storage, or real resumable
   upload transport.
 - Real AI markerless tracking pipeline.
+- Production-approved AI tracking provider/model. The browser MediaPipe baseline
+  is an executable feasibility harness, not a formal production provider.
 - Multi-team and multi-athlete management beyond the active prototype records.
 - Full video filtering by athlete, team, and capture date.
+- Production video player overlay editing, frame-accurate scrubbing controls,
+  and multi-event correction review are not yet implemented.
 - Real access control for external sharing.
 - Production backend upload-session state machine and queue-idempotent tracking
   submit flow are still design-only and not implemented.
@@ -132,6 +167,8 @@ Already completed in prototype:
   replacement.
 - PWA summary display for tracking status, model version, confidence policy, and
   phase-event confidence.
+- PWA local selected-video playback and manual correction controls for
+  foot-contact and ball-release phase markers.
 - Smartphone camera/import entry points.
 - Managed video records with draft/archive/delete behavior.
 - Active-session team and athlete attribute editing, including baseball profile
@@ -140,9 +177,12 @@ Already completed in prototype:
   filters.
 - Explicit prototype transitions for processing and failed video states.
 - ROM-adjusted recalculation as a separate layer from raw values.
+- Manual phase correction as a derived tracking and analysis layer, preserving
+  the original model-generated run.
 - Prototype result sharing and revocation.
 - Prototype metric suppression based on tracking quality and confidence policy.
-- Prototype share scope behavior for video, evidence notes, and comments.
+  - Prototype share scope behavior for video, evidence notes, and comments,
+    including comment exclusion by default.
 - Local prototype acceptance review notes.
 
 Remaining work:

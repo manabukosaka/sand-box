@@ -1,13 +1,17 @@
 import {
+  applyTrackingCorrection,
   buildAnalysisRun,
+  createAnalysisReview,
   createAthlete,
   createMotionVideo,
   createPrototypeDataset,
   createTeam,
+  createTrackingCorrection,
   createTrackingRun,
   createUploadSession,
   metricDefinitions,
   evidenceReferences,
+  submitAnalysisReview,
   updateRomEntry
 } from "./domain.mjs";
 import { createPrototypeTrackingAdapter } from "./trackingAdapter.mjs";
@@ -97,7 +101,9 @@ export function createSportsMotionMockApi({
       videos: [initial.video],
       uploadSessions: [],
       trackingRuns: [initial.trackingRun],
+      trackingCorrections: [],
       analysisRuns: [initial.analysisRun],
+      analysisReviews: [initial.analysisReview],
       shareLinks: [],
       shareAccessLogs: [],
       shareTokenCounter: 0,
@@ -110,6 +116,8 @@ export function createSportsMotionMockApi({
 
   let state = storage?.getItem(storageKey) ? JSON.parse(storage.getItem(storageKey)) : createInitialState();
   state.uploadSessions ??= [];
+  state.analysisReviews ??= [];
+  state.trackingCorrections ??= [];
   state.shareAccessLogs ??= [];
   state.shareTokenCounter ??= 0;
   state.activeTrackingRunId ??= getActiveAnalysisRun()?.tracking_run_id;
@@ -144,6 +152,20 @@ export function createSportsMotionMockApi({
     );
   }
 
+  function getActiveAnalysisReview() {
+    const activeAnalysisRun = getActiveAnalysisRun();
+    let review = state.analysisReviews.find((candidate) => candidate.analysis_run_id === activeAnalysisRun.id);
+    if (!review) {
+      review = createAnalysisReview({
+        id: nextId("rev", state.analysisReviews),
+        analysis_run_id: activeAnalysisRun.id,
+        created_at: now()
+      });
+      state.analysisReviews.push(review);
+    }
+    return review;
+  }
+
   function buildSnapshot() {
     const activeAthlete = getActiveAthlete();
     const currentRomProfile = getCurrentRomProfile();
@@ -158,6 +180,7 @@ export function createSportsMotionMockApi({
     const activeShare = state.shareLinks.find(
       (share) => share.analysis_run_id === activeAnalysisRun.id && !share.revoked_at
     );
+    const activeAnalysisReview = getActiveAnalysisReview();
     return clone({
       organization: state.organization,
       team: state.team,
@@ -171,7 +194,14 @@ export function createSportsMotionMockApi({
         analysis_available: analyzedVideoIds.has(video.id)
       })),
       trackingRun: activeTrackingRun,
+      trackingCorrections: state.trackingCorrections.filter(
+        (correction) =>
+          correction.tracking_run_id === activeTrackingRun.id ||
+          activeTrackingRun.correction_ids?.includes(correction.id) ||
+          correction.analysis_run_id === activeAnalysisRun.id
+      ),
       analysisRun: activeAnalysisRun,
+      activeAnalysisReview,
       analysisFreshness: {
         status:
           activeAnalysisRun.tracking_run_id === activeTrackingRun.id
@@ -199,6 +229,13 @@ export function createSportsMotionMockApi({
     });
     state.analysisRuns.push(analysisRun);
     state.activeAnalysisRunId = analysisRun.id;
+    state.analysisReviews.push(
+      createAnalysisReview({
+        id: nextId("rev", state.analysisReviews),
+        analysis_run_id: analysisRun.id,
+        created_at: now()
+      })
+    );
     if (activateTracking) {
       state.activeTrackingRunId = trackingRun.id;
     }
@@ -463,6 +500,47 @@ export function createSportsMotionMockApi({
       return buildSnapshot();
     },
 
+    submitVideoWithTrackingResult({ video_id, camera_view, frame_rate_fps, trackingResult }) {
+      const athlete = getActiveAthlete();
+      const video = state.videos.find((candidate) => candidate.id === video_id);
+      if (!video) {
+        throw new Error(`unknown video: ${video_id}`);
+      }
+      if (video.status !== "uploaded" && video.status !== "analyzed") {
+        throw new Error(`video upload must be completed before tracking: ${video.status}`);
+      }
+      const trackingRunId = nextId("trk", state.trackingRuns);
+      const trackingRun = createTrackingRun({
+        id: trackingRunId,
+        motion_video_id: video.id,
+        ...trackingResult,
+        artifact_uri: trackingResult.artifact_uri ?? `local://tracking/${trackingRunId}.json`
+      });
+      state.trackingRuns.push(trackingRun);
+      state.activeTrackingRunId = trackingRun.id;
+      state.lowConfidence = trackingRun.status === "completed_with_warnings";
+      state.videos = state.videos.map((candidate) =>
+        candidate.id === video.id ? { ...candidate, status: "uploaded", camera_view, frame_rate_fps } : candidate
+      );
+      if (trackingRun.status === "failed_retryable" || trackingRun.status === "failed_unusable") {
+        state.videos = state.videos.map((candidate) =>
+          candidate.id === video.id ? { ...candidate, status: trackingRun.status } : candidate
+        );
+        persist();
+        return buildSnapshot();
+      }
+      createAnalysis({
+        trackingRun,
+        romProfile: getCurrentRomProfile(),
+        analysisVersion: state.analysisRuns.length + 1
+      });
+      state.videos = state.videos.map((candidate) =>
+        candidate.id === video.id ? { ...candidate, status: "analyzed" } : candidate
+      );
+      persist();
+      return buildSnapshot();
+    },
+
     updateVideoStatus({ video_id, status }) {
       const currentVideo = state.videos.find((video) => video.id === video_id);
       if (!currentVideo) {
@@ -508,6 +586,88 @@ export function createSportsMotionMockApi({
         romProfile: updated,
         analysisVersion: state.analysisRuns.length + 1,
         activateTracking: false
+      });
+      persist();
+      return buildSnapshot();
+    },
+
+    updateAnalysisReviewDraft({
+      reviewer_role,
+      reviewer_name,
+      summary,
+      action_items,
+      caution_acknowledged
+    }) {
+      const activeReview = getActiveAnalysisReview();
+      const updated = createAnalysisReview({
+        ...activeReview,
+        reviewer_role,
+        reviewer_name,
+        summary,
+        action_items,
+        caution_acknowledged,
+        status: activeReview.status === "ready_for_user_review" ? "draft" : activeReview.status
+      });
+      state.analysisReviews = state.analysisReviews.map((candidate) =>
+        candidate.id === activeReview.id ? updated : candidate
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    submitAnalysisReview({ analysis_review_id }) {
+      const activeReview = getActiveAnalysisReview();
+      if (activeReview.id !== analysis_review_id) {
+        throw new Error(`unknown active analysis review: ${analysis_review_id}`);
+      }
+      const submitted = submitAnalysisReview(activeReview, { submitted_at: now() });
+      state.analysisReviews = state.analysisReviews.map((candidate) =>
+        candidate.id === activeReview.id ? submitted : candidate
+      );
+      persist();
+      return buildSnapshot();
+    },
+
+    applyPhaseCorrection({
+      event_name,
+      corrected_frame,
+      corrected_time_ms,
+      reason,
+      corrected_by_user_id = "usr_coach",
+      corrected_by_role = "coach",
+      corrected_by_name = "Pitching coach"
+    }) {
+      const sourceTrackingRun = getActiveAnalysisTrackingRun();
+      const sourceAnalysisRun = getActiveAnalysisRun();
+      const sourceEvent = sourceTrackingRun.phase_events.find((event) => event.name === event_name);
+      if (!sourceEvent) {
+        throw new Error(`phase event not found: ${event_name}`);
+      }
+      const correction = createTrackingCorrection({
+        id: nextId("cor", state.trackingCorrections),
+        tracking_run_id: sourceTrackingRun.id,
+        analysis_run_id: sourceAnalysisRun.id,
+        event_name,
+        original_frame: sourceEvent.frame,
+        corrected_frame,
+        corrected_time_ms,
+        reason,
+        corrected_by_user_id,
+        corrected_by_role,
+        corrected_by_name,
+        created_at: now()
+      });
+      const correctedTrackingRun = applyTrackingCorrection(sourceTrackingRun, correction, {
+        id: nextId("trk", state.trackingRuns),
+        created_at: now()
+      });
+      state.trackingCorrections.push(correction);
+      state.trackingRuns.push(correctedTrackingRun);
+      state.activeTrackingRunId = correctedTrackingRun.id;
+      createAnalysis({
+        trackingRun: correctedTrackingRun,
+        romProfile: getCurrentRomProfile(),
+        analysisVersion: state.analysisRuns.length + 1
       });
       persist();
       return buildSnapshot();
@@ -604,7 +764,9 @@ export function createSportsMotionMockApi({
         metricDefinitions: share.include_evidence ? metricDefinitions : [],
         evidenceReferences: share.include_evidence ? evidenceReferences : [],
         overlays: share.include_overlays ? [] : null,
-        comments: share.include_comments ? [] : null,
+        comments: share.include_comments
+          ? state.analysisReviews.filter((review) => review.analysis_run_id === analysisRun.id)
+          : null,
         trackingRun: share.include_video ? trackingRun : null,
         video: share.include_video ? video : null
       });

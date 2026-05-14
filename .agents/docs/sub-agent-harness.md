@@ -34,6 +34,7 @@
 | Sports Mobile Architect | mobile/cloud analysis boundary、API contract、ADR | architecture decision、contract impact、open risks |
 
 Agile Coach は phase flow、handoff、blocker、delivery reporting を親側で調整する。複数 role を委譲する場合も、親が統合判断と最終報告を持つ。
+sub-agent は軽量モデルを既定とするが、review、planning、architecture / ADR、security、data safety などの role task は `model-policy.md` の例外として inherited model または frontier model を選べる。
 
 ## Handoff Packet
 
@@ -43,6 +44,7 @@ sub-agent に渡す prompt は短く、以下の形にそろえる。
 Role:
 Product boundary:
 Goal:
+Model intent:
 Read these files first:
 Allowed scope:
 Write permission:

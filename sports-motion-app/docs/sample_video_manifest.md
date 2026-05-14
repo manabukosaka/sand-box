@@ -9,6 +9,10 @@ This manifest defines the sample-video set needed for the Milestone 2 tracking
 feasibility gate. Do not commit original videos, athlete names, faces, consent
 forms, or identifying metadata to this repository.
 
+Collection protocol:
+
+- `docs/sample_acquisition_protocol.md`
+
 The product remains specialist evaluation support. Sample-video evaluation must
 not be used for clinical conclusions, health forecasts, treatment instructions,
 or assured performance claims.

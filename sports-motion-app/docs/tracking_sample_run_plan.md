@@ -13,6 +13,7 @@ stack ADR by itself.
 
 - Gate definition: `docs/tracking_feasibility_gate.md`
 - Sample set manifest: `docs/sample_video_manifest.md`
+- Sample acquisition protocol: `docs/sample_acquisition_protocol.md`
 - Candidate shortlist: `docs/tracking_shortlist.md`
 - Metric support decisions: `docs/metric_tracking_support_matrix.md`
 

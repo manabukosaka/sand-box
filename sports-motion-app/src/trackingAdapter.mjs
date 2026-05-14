@@ -45,7 +45,8 @@ export const trackingConfidencePolicy = Object.freeze({
 export const trackingFailureReason = Object.freeze({
   LOW_ATHLETE_VISIBILITY: "low_athlete_visibility",
   MISSING_REQUIRED_PHASES: "missing_required_phases",
-  UNSUPPORTED_CAMERA_VIEW: "unsupported_camera_view"
+  UNSUPPORTED_CAMERA_VIEW: "unsupported_camera_view",
+  AI_BASELINE_UNAVAILABLE: "ai_baseline_unavailable"
 });
 
 export const trackingWarningReason = Object.freeze({
@@ -85,7 +86,8 @@ export function buildTrackingQualityReport({
   }
   if (
     failure_reason === trackingFailureReason.LOW_ATHLETE_VISIBILITY ||
-    failure_reason === trackingFailureReason.MISSING_REQUIRED_PHASES
+    failure_reason === trackingFailureReason.MISSING_REQUIRED_PHASES ||
+    failure_reason === trackingFailureReason.AI_BASELINE_UNAVAILABLE
   ) {
     return {
       status: trackingRunStatus.FAILED_RETRYABLE,

@@ -75,10 +75,22 @@ Current prototype implementation:
 - The PWA model selector exposes Lite, Full, and Heavy local model entries so a
   newer model can be added as a new registry entry and evaluated without
   replacing historical evidence.
+- Local readiness now assumes a text inventory for each bundle and task file,
+  including model ID, local path, MediaPipe version, task-file version, source
+  note, checksum, and license note.
+- Replacement of Lite, Full, or Heavy should happen by adding a new registry
+  entry and leaving the prior file in place until V&V evidence is updated and
+  the replacement is accepted.
 - Phase events are still approximate prototype events derived from video
   duration, not validated baseball phase detection.
 - This implementation is only a feasibility harness until approved sample videos,
   licensing/version review, and metric-support review are complete.
+
+Current blocker:
+
+- The local MediaPipe bundle/model inventory is documented, but the files have
+  not been downloaded or re-inventoried in this task, so WBS 7.1 remains a
+  readiness blocker rather than a completed asset audit.
 
 ### OpenCap
 

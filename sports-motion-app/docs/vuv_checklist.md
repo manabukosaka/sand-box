@@ -96,6 +96,9 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
   and comments in chronological order.
 - Analysis review packets keep reviewer notes, caution acknowledgement, and
   review-request status separate from raw and ROM-adjusted metric values.
+- Review packet lifecycle is explicit: draft packets stay editable, submitted
+  packets preserve their `submitted_at` timestamp, and post-submit edits create
+  a new packet or version instead of mutating the reviewed record.
 - Prior analyses can be compared without mixing metric versions silently.
 - Share link can be created for one analysis result.
 - Share scope controls whether video, comments, and evidence notes are visible.
@@ -106,8 +109,12 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
   the minimum shared payload in MVP.
 - Default share scope excludes video, overlays, comments, and evidence details
   unless explicitly included.
+- Shared responses do not expose direct object-storage paths or other internal
+  storage identifiers.
 - Expired or revoked share links fail closed.
 - Share access attempts are logged.
+- Share audit logs capture both allowed and denied access attempts and remain
+  readable only through staff/admin management views.
 - Revoked or expired external access attempts are logged as denied.
 
 ## 8. Security And Privacy Verification
@@ -115,6 +122,7 @@ ROM-adjusted outputs, evidence-backed metrics, history, and external sharing.
 - Users cannot access athletes outside their organization/team scope.
 - External share viewers cannot enumerate other athletes, teams, or analysis runs.
 - External share viewers cannot query share access logs.
+- Share tokens never reveal raw object-storage references or bucket details.
 - Revoking a share does not delete the analysis but blocks further external
   access.
 - User-facing exports or shared views preserve caution labels.

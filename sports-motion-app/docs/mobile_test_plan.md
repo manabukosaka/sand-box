@@ -89,9 +89,20 @@ PWA acceptance evidence can be recorded manually when browser automation is not
 available. Use a narrow mobile viewport and a desktop-width viewport against
 `http://127.0.0.1:4173/app/`, and record only safe sample IDs.
 
-Manual checklist:
+Ready-to-execute evidence placeholder for 2026-05-15:
 
-- start with `cd sports-motion-app && npm run serve`;
+- `docs/vv/mobile_test_results_2026-05-15_pwa_manual_acceptance.md`
+
+Execution details to record in the dated evidence file:
+
+- execution mode: manual browser verification;
+- local URL: `http://127.0.0.1:4173/app/`;
+- start command: `cd sports-motion-app && npm run serve`;
+- safe sample guidance: use only non-identifying sample IDs and local drafts,
+  never athlete names, private media, or public links.
+
+Manual checklist to complete when the run is executed:
+
 - confirm the shell opens, bottom tabs fit, and English/Japanese labels do not
   overlap in both desktop and mobile-width viewports;
 - confirm manifest/standalone shell basics, reload behavior, and service-worker

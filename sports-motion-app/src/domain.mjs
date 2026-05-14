@@ -229,11 +229,24 @@ export function createUploadSession(input) {
   };
 }
 
+const allowedTrackingStatuses = new Set([
+  "queued",
+  "processing",
+  "completed",
+  "completed_with_warnings",
+  "failed_retryable",
+  "failed_unusable"
+]);
+
 export function createTrackingRun(input) {
+  const status = input.status ?? "completed";
+  if (!allowedTrackingStatuses.has(status)) {
+    throw new Error(`unsupported tracking status: ${status}`);
+  }
   return {
     id: input.id,
     motion_video_id: input.motion_video_id,
-    status: input.status ?? "completed",
+    status,
     model_name: input.model_name ?? "markerless_pitching_tracker",
     model_version: input.model_version ?? "prototype.0",
     started_at: input.started_at,
@@ -431,12 +444,37 @@ export function createSharePayload({
   if (!analysisRun?.id) {
     throw new Error("analysisRun.id is required");
   }
+  if (!Array.isArray(analysisRun.metrics)) {
+    throw new Error("analysisRun.metrics must be an array");
+  }
+
+  const includeVideo = Boolean(include_video);
+  const includeOverlays = Boolean(include_overlays);
+  const includeEvidence = Boolean(include_evidence);
+  const includeComments = Boolean(include_comments);
+  const videoPayload = includeVideo ? video : null;
+
+  if (includeVideo && (!videoPayload || !videoPayload.id)) {
+    throw new Error("video is required when include_video is true");
+  }
+  if (includeOverlays && overlays != null && !Array.isArray(overlays)) {
+    throw new Error("overlays must be an array when include_overlays is true");
+  }
+  if (includeEvidence && evidenceReferences != null && !Array.isArray(evidenceReferences)) {
+    throw new Error("evidenceReferences must be an array when include_evidence is true");
+  }
+  if (includeComments && comments != null && !Array.isArray(comments)) {
+    throw new Error("comments must be an array when include_comments is true");
+  }
 
   const rawMetrics = analysisRun.metrics.map((metric) => ({
     metric_definition_id: metric.metric_definition_id,
     raw_value: metric.raw_value,
     unit: metric.unit,
-    confidence: metric.confidence
+    confidence: metric.confidence ?? null,
+    maturity: metric.maturity ?? null,
+    display_status: metric.display_status ?? null,
+    suppression_reasons: metric.suppression_reasons ?? []
   }));
   const romMetrics = analysisRun.metrics
     .filter((metric) => metric.adjusted_value !== null)
@@ -450,14 +488,14 @@ export function createSharePayload({
 
   return {
     analysis_run_id: analysisRun.id,
-    include_video: Boolean(include_video),
-    include_overlays: Boolean(include_overlays),
-    include_evidence: Boolean(include_evidence),
-    include_comments: Boolean(include_comments),
-    video: include_video ? video : null,
-    overlays: include_overlays ? overlays : null,
-    evidenceReferences: include_evidence ? evidenceReferences : null,
-    comments: include_comments ? comments : null,
+    include_video: includeVideo,
+    include_overlays: includeOverlays,
+    include_evidence: includeEvidence,
+    include_comments: includeComments,
+    video: videoPayload,
+    overlays: includeOverlays ? (overlays ?? []) : null,
+    evidenceReferences: includeEvidence ? (evidenceReferences ?? []) : null,
+    comments: includeComments ? (comments ?? []) : null,
     raw_metrics: rawMetrics,
     rom_metrics: romMetrics
   };

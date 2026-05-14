@@ -27,6 +27,19 @@ Do not attach athlete-identifying media or public links to private media.
 | Test stage | PWA smoke / emulator smoke / simulator smoke / physical verification |
 | Result | Pass / Conditional pass / Fail / Blocked |
 
+## PWA Acceptance Placeholder
+
+Use this section for dated manual PWA acceptance evidence that has been planned
+but not yet executed.
+
+| Field | Value |
+| --- | --- |
+| Status | Not Run / Ready To Execute |
+| Local URL | `http://127.0.0.1:4173/app/` |
+| Start command | `cd sports-motion-app && npm run serve` |
+| Safe sample guidance | Use only non-identifying sample IDs, local drafts, and opaque private references; do not use athlete names, private media, or public links. |
+| Evidence file | `docs/vv/mobile_test_results_2026-05-15_pwa_manual_acceptance.md` |
+
 ## Scope Checklist
 
 | Check | Result | Notes |

@@ -15,6 +15,9 @@ analysis, evidence definitions, and specialist comments remain separate.
 - Mutable configuration resources expose `effective_from`.
 - Historical analysis outputs are append-only; updates create a new versioned
   result rather than overwriting prior outputs.
+- Object-storage references are opaque internal identifiers; they must be
+  treated as non-public resource pointers, not browser URLs or stable bucket
+  paths.
 - Medical diagnosis, injury prediction, and treatment language must not appear in
   API-generated user-facing summaries.
 
@@ -349,6 +352,10 @@ separate from raw model artifacts and from ROM-adjusted analysis metrics.
 }
 ```
 
+`artifact_uri` is an opaque object-storage reference for the raw tracking
+artifact. Clients must treat it as internal metadata and must not assume that
+it is directly fetchable, public, or stable across storage backends.
+
 Allowed `AnalysisRun.status` values:
 
 - `completed`
@@ -403,6 +410,11 @@ not overwrite raw tracking output, ROM-adjusted values, metric definitions, or
 analysis warnings. Submitting a review packet requires
 `caution_acknowledged=true` so low-confidence, experimental, and single-camera
 limitations remain visible before user review.
+`draft` review packets are editable. `ready_for_user_review` means the packet is
+complete enough to present. `reviewed` means the packet has been submitted and
+its `submitted_at` timestamp is authoritative. After submission, changes must be
+captured in a new review packet or a new versioned review record instead of
+mutating the submitted packet in place.
 
 ### ShareLink
 
@@ -562,6 +574,8 @@ Metric definitions are read-only for normal team users in the MVP.
 - `GET /shared/{share_token}`
 
 Shared views must return only the scoped analysis result and allowed assets.
+In MVP, `scope` is `analysis_result_only`; the include flags further narrow the
+payload but do not expand it beyond that scope.
 When `ShareLink.include_video` is false, shared responses must omit original
 video and tracking artifact payloads. When `ShareLink.include_evidence` is
 false, shared responses must omit metric-definition details and evidence
@@ -581,8 +595,10 @@ Share endpoints for audit evidence:
 
 - `GET /share-links/{share_link_id}/access-logs`
 
-Access logs are append-only. External viewers cannot query logs directly.
-Log result values are `allowed` or `denied`.
+Access logs are append-only audit records. They include allowed and denied share
+access attempts, and staff/admin management views may read them through the
+share-link management API. External viewers cannot query logs directly. Log
+result values are `allowed` or `denied`.
 
 ## 5. Required Error Cases
 

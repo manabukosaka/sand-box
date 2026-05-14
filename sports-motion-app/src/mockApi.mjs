@@ -167,7 +167,10 @@ export function createSportsMotionMockApi({
 
   function getActiveAnalysisReview() {
     const activeAnalysisRun = getActiveAnalysisRun();
-    let review = state.analysisReviews.find((candidate) => candidate.analysis_run_id === activeAnalysisRun.id);
+    const reviews = state.analysisReviews.filter((candidate) => candidate.analysis_run_id === activeAnalysisRun.id);
+    let review =
+      [...reviews].reverse().find((candidate) => candidate.status === "draft") ??
+      reviews.at(-1);
     if (!review) {
       review = createAnalysisReview({
         id: nextId("rev", state.analysisReviews),
@@ -501,6 +504,13 @@ export function createSportsMotionMockApi({
         persist();
         return buildSnapshot();
       }
+      if (trackingRun.status !== "completed" && trackingRun.status !== "completed_with_warnings") {
+        state.videos = state.videos.map((candidate) =>
+          candidate.id === video.id ? { ...candidate, status: "processing" } : candidate
+        );
+        persist();
+        return buildSnapshot();
+      }
       createAnalysis({
         trackingRun,
         romProfile: getCurrentRomProfile(),
@@ -538,6 +548,13 @@ export function createSportsMotionMockApi({
       if (trackingRun.status === "failed_retryable" || trackingRun.status === "failed_unusable") {
         state.videos = state.videos.map((candidate) =>
           candidate.id === video.id ? { ...candidate, status: trackingRun.status } : candidate
+        );
+        persist();
+        return buildSnapshot();
+      }
+      if (trackingRun.status !== "completed" && trackingRun.status !== "completed_with_warnings") {
+        state.videos = state.videos.map((candidate) =>
+          candidate.id === video.id ? { ...candidate, status: "processing" } : candidate
         );
         persist();
         return buildSnapshot();
@@ -615,18 +632,30 @@ export function createSportsMotionMockApi({
       caution_acknowledged
     }) {
       const activeReview = getActiveAnalysisReview();
+      const isSubmitted = activeReview.status === "ready_for_user_review" || activeReview.status === "reviewed";
       const updated = createAnalysisReview({
-        ...activeReview,
+        ...(isSubmitted
+          ? {
+              id: nextId("rev", state.analysisReviews),
+              analysis_run_id: activeReview.analysis_run_id,
+              created_at: now()
+            }
+          : activeReview),
         reviewer_role,
         reviewer_name,
         summary,
         action_items,
         caution_acknowledged,
-        status: activeReview.status === "ready_for_user_review" ? "draft" : activeReview.status
+        status: "draft",
+        submitted_at: null
       });
-      state.analysisReviews = state.analysisReviews.map((candidate) =>
-        candidate.id === activeReview.id ? updated : candidate
-      );
+      if (isSubmitted) {
+        state.analysisReviews.push(updated);
+      } else {
+        state.analysisReviews = state.analysisReviews.map((candidate) =>
+          candidate.id === activeReview.id ? updated : candidate
+        );
+      }
       persist();
       return buildSnapshot();
     },
@@ -781,7 +810,12 @@ export function createSportsMotionMockApi({
         evidenceReferences: share.include_evidence ? evidenceReferences : [],
         overlays: share.include_overlays ? [] : null,
         comments: share.include_comments
-          ? state.analysisReviews.filter((review) => review.analysis_run_id === analysisRun.id)
+          ? state.analysisReviews.filter(
+              (review) =>
+                review.analysis_run_id === analysisRun.id &&
+                review.caution_acknowledged &&
+                (review.status === "ready_for_user_review" || review.status === "reviewed")
+            )
           : null,
         trackingRun: share.include_video ? trackingRun : null,
         video: share.include_video ? video : null

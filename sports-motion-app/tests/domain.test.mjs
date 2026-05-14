@@ -232,21 +232,10 @@ test("analysis review submission requires caution acknowledgement", () => {
   assert.equal(submitted.submitted_at, "2026-05-05T00:11:00Z");
 });
 
-test("share payload excludes video, overlays, evidence, and comments by default while keeping raw and ROM metrics separate", () => {
+test("share payload keeps safe defaults and raw metric contract metadata", () => {
   const data = createPrototypeDataset();
   const share = createSharePayload({
     analysisRun: data.analysisRun
-  });
-  const expanded = createSharePayload({
-    analysisRun: data.analysisRun,
-    include_video: true,
-    include_overlays: true,
-    include_evidence: true,
-    include_comments: true,
-    video: data.video,
-    overlays: [{ type: "phase_timeline", visible: true }],
-    evidenceReferences: data.evidenceReferences,
-    comments: [{ id: "rev_extra", summary: "Share this note." }]
   });
 
   assert.equal(share.include_video, false);
@@ -260,8 +249,29 @@ test("share payload excludes video, overlays, evidence, and comments by default 
   assert.equal(share.raw_metrics.length, data.analysisRun.metrics.length);
   assert.equal(share.rom_metrics.length, 1);
   assert.equal(share.raw_metrics[0].raw_value, 108);
+  assert.equal(share.raw_metrics[0].metric_definition_id, "metric_shoulder_max_external_rotation");
+  assert.equal(share.raw_metrics[0].unit, "deg");
+  assert.equal(share.raw_metrics[0].confidence, 0.84);
+  assert.equal(share.raw_metrics[0].maturity, "provisional");
+  assert.equal(share.raw_metrics[0].display_status, "available");
+  assert.deepEqual(share.raw_metrics[0].suppression_reasons, []);
   assert.equal(share.rom_metrics[0].adjusted_value, 0.939);
   assert.notDeepEqual(share.raw_metrics, share.rom_metrics);
+});
+
+test("share payload includes requested payloads and preserves empty safe structures", () => {
+  const data = createPrototypeDataset();
+  const expanded = createSharePayload({
+    analysisRun: data.analysisRun,
+    include_video: true,
+    include_overlays: true,
+    include_evidence: true,
+    include_comments: true,
+    video: data.video,
+    overlays: [{ type: "phase_timeline", visible: true }],
+    evidenceReferences: data.evidenceReferences,
+    comments: [{ id: "rev_extra", summary: "Share this note." }]
+  });
 
   assert.equal(expanded.include_video, true);
   assert.equal(expanded.include_overlays, true);
@@ -271,6 +281,13 @@ test("share payload excludes video, overlays, evidence, and comments by default 
   assert.deepEqual(expanded.overlays, [{ type: "phase_timeline", visible: true }]);
   assert.deepEqual(expanded.evidenceReferences, data.evidenceReferences);
   assert.deepEqual(expanded.comments, [{ id: "rev_extra", summary: "Share this note." }]);
+});
+
+test("share payload rejects invalid analysis runs", () => {
+  const data = createPrototypeDataset();
+
+  assert.throws(() => createSharePayload({ analysisRun: null }), /analysisRun\.id/);
+  assert.throws(() => createSharePayload({ analysisRun: { id: data.analysisRun.id, metrics: null } }), /analysisRun\.metrics/);
 });
 
 test("tracking corrections preserve source tracking and create corrected phase provenance", () => {

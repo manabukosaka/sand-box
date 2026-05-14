@@ -22,6 +22,9 @@ type VideoSource = "camera" | "library";
 type CorrectionEvent = "foot_contact" | "ball_release";
 type ReviewerRole = "coach" | "trainer" | "athlete" | "external_specialist";
 type ReviewStatus = "draft" | "ready_for_user_review" | "reviewed";
+type MetricMaturity = "prototype" | "experimental" | "validated";
+type MetricDisplayStatus = "visible" | "caution" | "suppressed";
+type MetricLayer = "raw" | "rom_adjusted";
 
 type StoredVideoAsset = {
   source: VideoSource;
@@ -45,7 +48,6 @@ type PhaseCorrection = {
 type ShareVideoPayload = {
   source: VideoSource;
   fileName: string;
-  uri: string;
   width: number | null;
   height: number | null;
   durationLabel: string;
@@ -63,8 +65,42 @@ type ShareOverlaysPayload = {
 };
 
 type ShareEvidencePayload = {
-  rawTracking: Array<{ name: string; value: string }>;
-  romAdjusted: Array<{ name: string; value: string }>;
+  rawTracking: MetricSnapshot[];
+  romAdjusted: MetricSnapshot[];
+};
+
+type SeedMetric = {
+  metricDefinitionId: string;
+  name: string;
+  raw: string;
+  adjusted: string;
+  maturity: MetricMaturity;
+  displayStatus: MetricDisplayStatus;
+  safetyNote: string;
+};
+
+type MetricSnapshot = {
+  metricDefinitionId: string;
+  name: string;
+  value: string;
+  layer: MetricLayer;
+  maturity: MetricMaturity;
+  displayStatus: MetricDisplayStatus;
+  safetyNote: string;
+};
+
+type SeedData = {
+  team: string;
+  athlete: string;
+  cameraView: string;
+  session: string;
+  trackingStatus: string;
+  analysisRunId: string;
+  modelVersion: string;
+  confidencePolicy: string;
+  confidence: number;
+  phaseEvents: Array<{ name: string; confidence: number }>;
+  metrics: SeedMetric[];
 };
 
 const copy = {
@@ -264,7 +300,7 @@ const copy = {
 
 const draftStorageKey = "sports-motion.mobile.active-draft.v1";
 
-const seed = {
+const seed: SeedData = {
   team: "College Pitching Group",
   athlete: "Pitcher A",
   cameraView: "open_side",
@@ -279,9 +315,33 @@ const seed = {
     { name: "Release", confidence: 56 }
   ],
   metrics: [
-    { name: "Shoulder max external rotation", raw: "108°", adjusted: "0.939 ratio" },
-    { name: "Trunk rotation velocity", raw: "620 deg/s", adjusted: "N/A" },
-    { name: "Elbow torque proxy", raw: "0.73 index", adjusted: "N/A" }
+    {
+      metricDefinitionId: "md_shoulder_max_external_rotation_v1",
+      name: "Shoulder max external rotation",
+      raw: "108°",
+      adjusted: "0.939 ratio",
+      maturity: "validated",
+      displayStatus: "visible",
+      safetyNote: "Raw tracking is preserved; ROM-adjusted view is derived."
+    },
+    {
+      metricDefinitionId: "md_trunk_rotation_velocity_v1",
+      name: "Trunk rotation velocity",
+      raw: "620 deg/s",
+      adjusted: "N/A",
+      maturity: "experimental",
+      displayStatus: "caution",
+      safetyNote: "Review with coaching context before sharing downstream."
+    },
+    {
+      metricDefinitionId: "md_elbow_torque_proxy_v1",
+      name: "Elbow torque proxy",
+      raw: "0.73 index",
+      adjusted: "N/A",
+      maturity: "prototype",
+      displayStatus: "suppressed",
+      safetyNote: "Suppressed in external exports unless specialist review is acknowledged."
+    }
   ]
 };
 
@@ -316,11 +376,11 @@ export default function App() {
     []
   );
   const rawMetrics = useMemo(
-    () => seed.metrics.map((metric) => ({ name: metric.name, value: metric.raw })),
+    () => seed.metrics.map((metric) => snapshotMetric(metric, metric.raw, "raw")),
     []
   );
   const romMetrics = useMemo(
-    () => seed.metrics.map((metric) => ({ name: metric.name, value: metric.adjusted })),
+    () => seed.metrics.map((metric) => snapshotMetric(metric, metric.adjusted, "rom_adjusted")),
     []
   );
 
@@ -807,6 +867,18 @@ function PhaseCorrectionList({
   );
 }
 
+function snapshotMetric(metric: SeedMetric, value: string, layer: MetricLayer): MetricSnapshot {
+  return {
+    metricDefinitionId: metric.metricDefinitionId,
+    name: metric.name,
+    value,
+    layer,
+    maturity: metric.maturity,
+    displayStatus: metric.displayStatus,
+    safetyNote: metric.safetyNote
+  };
+}
+
 function uploadStatusLabel(text: (typeof copy)[Language], status: UploadStatus) {
   const labels = {
     not_ready: text.notReady,
@@ -1128,16 +1200,28 @@ function MetricSection({
 }: {
   title: string;
   valueLabel: string;
-  metrics: Array<{ name: string; value: string }>;
+  metrics: MetricSnapshot[];
 }) {
   return (
     <View style={styles.metricSection}>
       <Text style={styles.headingSmall}>{title}</Text>
       {metrics.map((metric) => (
-        <View key={`${title}-${metric.name}`} style={styles.metricRow}>
+        <View key={`${title}-${metric.metricDefinitionId}`} style={styles.metricRow}>
           <Text style={styles.metricName}>{metric.name}</Text>
           <Text style={styles.metricValue}>
             {valueLabel}: {metric.value}
+          </Text>
+          <Text style={styles.metricMeta}>metric_definition_id: {metric.metricDefinitionId}</Text>
+          <Text style={styles.metricMeta}>maturity: {metric.maturity}</Text>
+          <Text style={styles.metricMeta}>display_status: {metric.displayStatus}</Text>
+          <Text
+            style={[
+              styles.metricSafety,
+              metric.displayStatus === "caution" && styles.metricSafetyCaution,
+              metric.displayStatus === "suppressed" && styles.metricSafetySuppressed
+            ]}
+          >
+            safety_note: {metric.safetyNote}
           </Text>
         </View>
       ))}
@@ -1185,7 +1269,6 @@ function SharePayloadPreview({
           <>
             <Text style={styles.payloadValue}>source: {payload.video.source}</Text>
             <Text style={styles.payloadValue}>fileName: {payload.video.fileName}</Text>
-            <Text style={styles.payloadValue}>uri: {payload.video.uri}</Text>
             <Text style={styles.payloadValue}>
               resolution: {payload.video.width && payload.video.height ? `${payload.video.width} x ${payload.video.height}` : "N/A"}
             </Text>
@@ -1212,15 +1295,17 @@ function SharePayloadPreview({
           <>
             <Text style={styles.payloadValue}>rawTracking</Text>
             {payload.evidence.rawTracking.map((metric) => (
-              <Text key={`evidence-raw-${metric.name}`} style={styles.payloadValue}>
-                {metric.name}: {metric.value}
-              </Text>
+              <MetricPayloadItem
+                key={`evidence-raw-${metric.metricDefinitionId}`}
+                metric={metric}
+              />
             ))}
             <Text style={styles.payloadValue}>romAdjusted</Text>
             {payload.evidence.romAdjusted.map((metric) => (
-              <Text key={`evidence-rom-${metric.name}`} style={styles.payloadValue}>
-                {metric.name}: {metric.value}
-              </Text>
+              <MetricPayloadItem
+                key={`evidence-rom-${metric.metricDefinitionId}`}
+                metric={metric}
+              />
             ))}
           </>
         ) : (
@@ -1228,15 +1313,11 @@ function SharePayloadPreview({
         )}
         <Text style={styles.payloadKey}>metrics.raw</Text>
         {payload.metrics.raw.map((metric) => (
-          <Text key={`raw-${metric.name}`} style={styles.payloadValue}>
-            {metric.name}: {metric.value}
-          </Text>
+          <MetricPayloadItem key={`raw-${metric.metricDefinitionId}`} metric={metric} />
         ))}
         <Text style={styles.payloadKey}>metrics.romAdjusted</Text>
         {payload.metrics.romAdjusted.map((metric) => (
-          <Text key={`rom-${metric.name}`} style={styles.payloadValue}>
-            {metric.name}: {metric.value}
-          </Text>
+          <MetricPayloadItem key={`rom-${metric.metricDefinitionId}`} metric={metric} />
         ))}
         <Text style={styles.payloadKey}>comments</Text>
         {payload.comments ? (
@@ -1248,6 +1329,20 @@ function SharePayloadPreview({
           <Text style={styles.payloadValue}>null</Text>
         )}
       </View>
+    </View>
+  );
+}
+
+function MetricPayloadItem({ metric }: { metric: MetricSnapshot }) {
+  return (
+    <View style={styles.metricPayloadItem}>
+      <Text style={styles.payloadValue}>{metric.name}</Text>
+      <Text style={styles.payloadValue}>value: {metric.value}</Text>
+      <Text style={styles.payloadValue}>metric_definition_id: {metric.metricDefinitionId}</Text>
+      <Text style={styles.payloadValue}>layer: {metric.layer}</Text>
+      <Text style={styles.payloadValue}>maturity: {metric.maturity}</Text>
+      <Text style={styles.payloadValue}>display_status: {metric.displayStatus}</Text>
+      <Text style={styles.payloadValue}>safety_note: {metric.safetyNote}</Text>
     </View>
   );
 }
@@ -1342,8 +1437,8 @@ type SharePayload = {
   reviewerName: string;
   reviewSubmittedAt: string | null;
   metrics: {
-    raw: Array<{ name: string; value: string }>;
-    romAdjusted: Array<{ name: string; value: string }>;
+    raw: MetricSnapshot[];
+    romAdjusted: MetricSnapshot[];
   };
   comments: {
     summary: string;
@@ -1387,7 +1482,6 @@ function buildSharePayload({
         ? {
             source: selectedVideo.source,
             fileName: selectedVideo.fileName,
-            uri: selectedVideo.uri,
             width: selectedVideo.width,
             height: selectedVideo.height,
             durationLabel: selectedVideo.durationLabel,
@@ -1407,8 +1501,10 @@ function buildSharePayload({
       : null,
     evidence: shareEvidenceEnabled
       ? {
-          rawTracking: seed.metrics.map((metric) => ({ name: metric.name, value: metric.raw })),
-          romAdjusted: seed.metrics.map((metric) => ({ name: metric.name, value: metric.adjusted }))
+          rawTracking: seed.metrics.map((metric) => snapshotMetric(metric, metric.raw, "raw")),
+          romAdjusted: seed.metrics.map((metric) =>
+            snapshotMetric(metric, metric.adjusted, "rom_adjusted")
+          )
         }
       : null,
     reviewStatus,
@@ -1416,8 +1512,10 @@ function buildSharePayload({
     reviewerName,
     reviewSubmittedAt,
     metrics: {
-      raw: seed.metrics.map((metric) => ({ name: metric.name, value: metric.raw })),
-      romAdjusted: seed.metrics.map((metric) => ({ name: metric.name, value: metric.adjusted }))
+      raw: seed.metrics.map((metric) => snapshotMetric(metric, metric.raw, "raw")),
+      romAdjusted: seed.metrics.map((metric) =>
+        snapshotMetric(metric, metric.adjusted, "rom_adjusted")
+      )
     },
     comments:
       includeReviewComments && reviewStatus === "ready_for_user_review"
@@ -1957,6 +2055,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "800"
   },
+  metricPayloadItem: {
+    gap: 2,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
+    borderColor: colors.line,
+    borderWidth: 1,
+    borderRadius: 8,
+    backgroundColor: colors.white
+  },
   metricRow: {
     gap: 4,
     paddingVertical: 10,
@@ -1970,6 +2077,22 @@ const styles = StyleSheet.create({
   metricValue: {
     color: colors.muted,
     fontSize: 13
+  },
+  metricMeta: {
+    color: colors.muted,
+    fontSize: 12,
+    fontWeight: "700"
+  },
+  metricSafety: {
+    color: colors.accentStrong,
+    fontSize: 12,
+    fontWeight: "800"
+  },
+  metricSafetyCaution: {
+    color: colors.warning
+  },
+  metricSafetySuppressed: {
+    color: colors.coral
   },
   notice: {
     color: colors.muted,

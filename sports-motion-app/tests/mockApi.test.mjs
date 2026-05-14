@@ -171,6 +171,47 @@ test("mock API can ingest browser AI baseline tracking results", () => {
   assert.equal(snapshot.analysisRun.tracking_run_id, snapshot.trackingRun.id);
 });
 
+test("in-progress tracking run does not create a new analysis run", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const saved = api.saveCapturedVideo({
+    capture_source: "media_library",
+    capture_type: "imported_from_library",
+    file_name: "queued.mp4",
+    file_size_bytes: 1000,
+    camera_view: "open_side",
+    frame_rate_fps: 240
+  });
+  const videoId = saved.videos.at(-1).id;
+  const session = api.createUploadSession({ video_id: videoId, expected_bytes: 1000 });
+  api.completeUploadSession({
+    upload_session_id: session.activeUploadSession.id,
+    uploaded_bytes: 1000
+  });
+
+  const queued = api.submitVideoWithTrackingResult({
+    video_id: videoId,
+    camera_view: "open_side",
+    frame_rate_fps: 240,
+    trackingResult: {
+      status: "queued",
+      model_name: "mediapipe_pose_landmarker",
+      model_version: "local.test",
+      started_at: "2026-05-05T00:00:00Z",
+      completed_at: null,
+      phase_events: [],
+      signal_confidence: {},
+      overall_confidence: 0,
+      warning_reasons: [],
+      suppressed_metric_groups: [],
+      failure_reason: null
+    }
+  });
+
+  assert.equal(queued.trackingRun.status, "queued");
+  assert.equal(queued.analysisRun.id, saved.analysisRun.id);
+  assert.equal(queued.videos.find((video) => video.id === videoId).status, "processing");
+});
+
 test("failed tracking run does not create a new analysis run", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
   const saved = api.saveCapturedVideo({
@@ -517,12 +558,15 @@ test("shared analysis view omits video and evidence when not included", () => {
 
 test("shared analysis includes overlays and comments only when explicitly scoped", () => {
   const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
-  api.updateAnalysisReviewDraft({
+  const drafted = api.updateAnalysisReviewDraft({
     reviewer_role: "coach",
     reviewer_name: "Coach Rivera",
     summary: "Share only after the caution labels are acknowledged.",
     action_items: "Review phase timing with the athlete.",
     caution_acknowledged: true
+  });
+  api.submitAnalysisReview({
+    analysis_review_id: drafted.activeAnalysisReview.id
   });
   const shared = api.createShare({
     includeOverlays: true,
@@ -539,6 +583,23 @@ test("shared analysis includes overlays and comments only when explicitly scoped
   assert.equal(sharedView.video, null);
   assert.deepEqual(sharedView.metricDefinitions, []);
   assert.deepEqual(sharedView.evidenceReferences, []);
+});
+
+test("shared analysis hides draft review comments even when comments scope is enabled", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  api.updateAnalysisReviewDraft({
+    reviewer_role: "coach",
+    reviewer_name: "Coach Rivera",
+    summary: "Draft comment should not leave the review packet.",
+    action_items: "Wait for user review request.",
+    caution_acknowledged: true
+  });
+  const shared = api.createShare({
+    includeComments: true
+  });
+  const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
+
+  assert.deepEqual(sharedView.comments, []);
 });
 
 test("share defaults to minimum disclosure and logs successful access", () => {
@@ -685,6 +746,39 @@ test("analysis review draft persists and submission preserves caution evidence",
   assert.equal(submitted.activeAnalysisReview.status, "ready_for_user_review");
   assert.equal(submitted.activeAnalysisReview.submitted_at, "2026-05-05T00:01:00Z");
   assert.equal(submitted.analysisRun.metrics.every((metric) => metric.display_status === "suppressed_low_confidence"), true);
+});
+
+test("editing a submitted analysis review creates a new draft and preserves submitted review", () => {
+  const api = createSportsMotionMockApi({ now: () => "2026-05-05T00:00:00Z" });
+  const drafted = api.updateAnalysisReviewDraft({
+    reviewer_role: "coach",
+    reviewer_name: "Coach Rivera",
+    summary: "Submitted summary.",
+    action_items: "Submitted action.",
+    caution_acknowledged: true
+  });
+  const submitted = api.submitAnalysisReview({
+    analysis_review_id: drafted.activeAnalysisReview.id
+  });
+
+  const edited = api.updateAnalysisReviewDraft({
+    reviewer_role: "coach",
+    reviewer_name: "Coach Rivera",
+    summary: "New draft summary.",
+    action_items: "New draft action.",
+    caution_acknowledged: false
+  });
+
+  assert.notEqual(edited.activeAnalysisReview.id, submitted.activeAnalysisReview.id);
+  assert.equal(edited.activeAnalysisReview.status, "draft");
+  assert.equal(edited.activeAnalysisReview.submitted_at, null);
+  assert.equal(edited.activeAnalysisReview.summary, "New draft summary.");
+
+  const shared = api.createShare({ includeComments: true });
+  const sharedView = api.getSharedAnalysis({ share_token: shared.activeShare.share_token });
+  assert.equal(sharedView.comments.length, 1);
+  assert.equal(sharedView.comments[0].id, submitted.activeAnalysisReview.id);
+  assert.equal(sharedView.comments[0].summary, "Submitted summary.");
 });
 
 test("analysis review submission blocks until cautions are acknowledged", () => {

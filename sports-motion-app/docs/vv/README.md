@@ -15,6 +15,10 @@ Current templates:
 
 Current evidence notes:
 
+- `local_model_asset_readiness_2026-05-15.md`: current WBS 7.1 local
+  MediaPipe bundle/model readiness note, including inventory expectations,
+  replacement rules, checksum/version fields, and the blocker that no assets
+  were downloaded in this task.
 - `tracking_feasibility_results_2026-05-15_sample_readiness.md`: current
   actionable sample-readiness blocker note for WBS 7.0 / 7.2, including the
   required case rows, usage-rights constraints, capture metadata, and local

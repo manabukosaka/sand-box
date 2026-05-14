@@ -3,7 +3,7 @@
 Status: In progress
 Owner: Sports Motion mobile / QA
 Created: 2026-05-06
-Last updated: 2026-05-09
+Last updated: 2026-05-13
 
 This spike determines whether React Native with Expo development builds can
 support the first installable Sports Motion App field prototype.
@@ -34,7 +34,11 @@ core field workflow. Do not replace the current PWA prototype during this spike.
 ## Current Execution Notes
 
 - Expo SDK 54 scaffold created under `sports-motion-app/mobile`.
-- Installed native spike packages: `expo-dev-client` and `expo-image-picker`.
+- Installed native spike packages: `expo-dev-client`, `expo-image-picker`,
+  `expo-video`, and `@react-native-async-storage/async-storage`.
+- Native shell entry moved from plain JavaScript `App.js` to TypeScript-first
+  `App.tsx`, with `tsconfig.json` added for strict contract typing once the
+  local Node/TypeScript runtime gate is unblocked.
 - The generated scaffold was replaced with a minimal Sports Motion native shell:
   capture/import, metrics, ROM, sharing, Japanese/English switching, seed
   team/athlete/session fields, and prototype tracking confidence display.
@@ -42,15 +46,28 @@ core field workflow. Do not replace the current PWA prototype during this spike.
   The native shell now restores team, athlete, session, and selected local video
   metadata after app restart, with a reset path for test data.
 - Added camera/media-library permission status display, selected-video metadata
-  display, and a simple phase-overlay placeholder so emulator and physical-device
-  smoke runs have a concrete capture/import review surface.
+  display, and a native local video preview with simple phase markers so emulator
+  and physical-device smoke runs have a concrete capture/import review surface.
 - Added local-only upload retry simulation. The native shell can move selected
   video metadata through ready, uploading, interrupted, retry, and submitted
   states without sending private media to storage.
+- Added Review navigation and local manual phase-correction evidence in the
+  native shell so the field prototype mirrors the PWA's review/correction
+  concept without overwriting tracking output.
+- Added native review packet fields for reviewer role/name, summary, action
+  items, caution acknowledgement, submitted user-review request status, and
+  share-comment include/exclude behavior. These remain local prototype evidence
+  and do not mutate raw tracking or ROM-adjusted metrics.
+- The latest native review/share work now has code-level verification coverage,
+  but emulator/simulator and physical-device smoke are still blocked by the
+  local runtime and host availability.
+- Updated the native shell visual direction for phone operation: bottom tab bar,
+  larger touch targets, denser capture-first workflow, and richer but restrained
+  sports-analysis styling.
 - Expo package installation completed, but local emulator/simulator smoke remains
   blocked until the local Node runtime is upgraded from `18.19.1` to
   `>=20.19.4`, matching React Native / Metro engine requirements observed during
-  install and rechecked on 2026-05-09.
+  install and rechecked on 2026-05-09 and 2026-05-13.
 - No original athlete videos, identifying screenshots, Android native build
   output, or iOS native build output are committed.
 
@@ -75,9 +92,18 @@ Current local runtime status:
 - Required by `sports-motion-app/mobile/package.json`: Node `>=20.19.4`.
 - Observed local runtime on 2026-05-07: Node `18.19.1`, npm `9.2.0`.
 - Rechecked local runtime on 2026-05-09: Node `18.19.1`, npm `9.2.0`.
-- Expo dev-client help check can run on the current local runtime, but Android
-  emulator and iOS simulator smoke remain blocked locally until Node satisfies
-  the package engine and the relevant emulator/simulator host is available.
+- Rechecked local runtime on 2026-05-13: Node `18.19.1`; native launch and
+  emulator/simulator launch remain blocked locally until Node satisfies the
+  package engine.
+- TypeScript tooling was added to the mobile workspace on 2026-05-13.
+  `npm run typecheck` and `npm run check:dev-client` can run on the current
+  local runtime, while full native launch remains blocked by the Node engine and
+  missing emulator/simulator tooling.
+- Expo dev-client help check can run on the current local runtime, and the
+  current code-level checks cover the review packet and share-comment scope
+  controls. Android emulator and iOS simulator smoke remain blocked locally
+  until Node satisfies the package engine and the relevant emulator/simulator
+  host is available.
 
 Do not accept ADR 0002 or treat emulator/simulator smoke as complete until this
 gate is ready.
@@ -85,8 +111,8 @@ gate is ready.
 Ready criteria:
 
 - `node --version` returns a Node version satisfying `>=20.19.4`.
-- `cd sports-motion-app/mobile && npm run start:dev-client -- --help` or an
-  equivalent non-launch Expo CLI help check exits successfully.
+- `cd sports-motion-app/mobile && npm run typecheck` exits successfully.
+- `cd sports-motion-app/mobile && npm run check:dev-client` exits successfully.
 - emulator/simulator launch commands are run only after the Node engine is
   satisfied.
 - Android emulator smoke records a dated result under `docs/vv/`.
@@ -131,7 +157,7 @@ Candidate packages for the spike:
 - `expo-dev-client` for a customizable development build;
 - `expo-image-picker` for camera and media-library video selection;
 - `@react-native-async-storage/async-storage` for local draft persistence;
-- a video preview/overlay package selected during the spike.
+- `expo-video` for local media preview under an overlay review surface.
 
 Do not commit generated native build artifacts, private videos, or device
 screenshots that include identifying information.
@@ -192,14 +218,17 @@ Done when:
 - Render simple phase markers and skeleton/pose placeholder overlay.
 - Confirm common phone sizes do not overlap overlay, controls, labels, or caution
   text.
+- Confirm review packet persistence, caution acknowledgement, and comment-scope
+  defaults in the native shell.
 
 Done when:
 
 - emulator/simulator preview smoke passes;
 - physical Android overlay review is usable;
 - physical iPhone overlay review is usable.
-  The current shell provides only a non-video overlay placeholder; real local
-  video playback remains a later slice after Node/runtime smoke passes.
+  The current shell uses `expo-video` to render selected local media under phase
+  markers. Runtime usability still needs emulator/simulator and physical-device
+  smoke after the Node/runtime gate is unblocked.
 
 ### Slice 5: Upload Retry Simulation
 
@@ -207,6 +236,8 @@ Done when:
   storage.
 - Preserve video metadata and local draft after interruption.
 - Retry submission into the mock API flow.
+- Keep review packet fields and share-comment defaults separate from raw tracking
+  and ROM-adjusted outputs.
 
 Done when:
 
@@ -273,3 +304,5 @@ Add dated evidence files under `docs/vv/` after real runs:
   <https://docs.expo.dev/build/introduction/>
 - Expo ImagePicker:
   <https://docs.expo.dev/versions/latest/sdk/imagepicker/>
+- Expo Video:
+  <https://docs.expo.dev/versions/latest/sdk/video/>

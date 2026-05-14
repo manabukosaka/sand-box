@@ -52,6 +52,7 @@ docs=(
   sports-motion-app/docs/tracking_feasibility_gate.md
   sports-motion-app/docs/tracking_sample_run_plan.md
   sports-motion-app/docs/tracking_shortlist.md
+  sports-motion-app/docs/sample_acquisition_protocol.md
   sports-motion-app/docs/sample_video_manifest.md
   sports-motion-app/docs/metric_tracking_support_matrix.md
   sports-motion-app/docs/mobile_test_plan.md
@@ -97,9 +98,14 @@ require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/sample_vid
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/metric_tracking_support_matrix.md"
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/tracking_sample_run_plan.md"
 require_ref sports-motion-app/docs/tracking_feasibility_gate.md "docs/vv/tracking_feasibility_results_template.md"
+require_ref sports-motion-app/docs/sample_video_manifest.md "docs/sample_acquisition_protocol.md"
+require_ref sports-motion-app/docs/sample_acquisition_protocol.md "Privacy And Consent Rules"
+require_ref sports-motion-app/docs/sample_acquisition_protocol.md "Intake Checklist"
+require_ref sports-motion-app/docs/sample_acquisition_protocol.md "User review is required"
 require_ref sports-motion-app/docs/tracking_sample_run_plan.md "results_template"
 require_ref sports-motion-app/docs/tracking_sample_run_plan.md "Review Gate Request"
 require_ref sports-motion-app/docs/tracking_sample_run_plan.md "Current readiness"
+require_ref sports-motion-app/docs/tracking_sample_run_plan.md "docs/sample_acquisition_protocol.md"
 require_ref sports-motion-app/docs/sample_video_manifest.md "Current readiness decision"
 require_ref sports-motion-app/docs/mobile_test_plan.md "docs/vv/mobile_test_results_template.md"
 require_ref sports-motion-app/docs/mobile_test_plan.md "PWA Smoke Scope"
@@ -159,6 +165,13 @@ require_ref sports-motion-app/docs/adr/0004-scoped-share-access-and-audit.md "St
 
 if [[ -f sports-motion-app/package.json ]]; then
   (cd sports-motion-app && npm test)
+fi
+
+if [[ -f sports-motion-app/mobile/package.json && -d sports-motion-app/mobile/node_modules ]]; then
+  (cd sports-motion-app/mobile && npm run typecheck)
+  (cd sports-motion-app/mobile && npm run check:dev-client)
+else
+  echo "sports-motion-app mobile checks skipped: package.json or node_modules missing" >&2
 fi
 
 while IFS= read -r doc; do

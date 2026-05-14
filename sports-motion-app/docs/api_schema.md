@@ -240,7 +240,11 @@ Upload-session ownership rules:
     "required_signal_confidence_below_threshold:shoulder_angle"
   ],
   "suppressed_metric_groups": ["phase_dependent_metrics", "shoulder_rotation_metrics"],
-  "failure_reason": null
+  "failure_reason": null,
+  "adapter_version": "mediapipe-web-baseline.0",
+  "source_tracking_run_id": null,
+  "correction_status": "ai_generated",
+  "correction_ids": []
 }
 ```
 
@@ -261,6 +265,51 @@ medical diagnosis, injury risk, or athlete readiness.
 `warning_reasons` and `suppressed_metric_groups` are policy-versioned tracking
 quality outputs. Analysis workers use them to mark affected metrics as
 suppressed without deleting raw tracking artifacts.
+
+Prototype browser baseline runs may set one of the registered local model
+versions:
+
+- `model_name = "mediapipe_pose_landmarker_web"`;
+- `model_version = "pose_landmarker_lite.float16.v1"`,
+  `"pose_landmarker_full.float16.v1"`, or
+  `"pose_landmarker_heavy.float16.v1"`;
+- `artifact_uri = "local://tracking/{run_id}/mediapipe-pose-baseline.json"`;
+- `adapter_version = "mediapipe-web-baseline.0"`.
+
+This baseline uses local MediaPipe Pose Landmarker runtime and model assets for
+feasibility checks. It is not a production-approved tracking provider and must
+not promote metrics without sample-set review.
+
+Manual phase correction creates a derived `TrackingRun` rather than overwriting
+the source run. Corrected runs set `source_tracking_run_id`, `correction_status =
+"manual_corrected"`, and one or more `correction_ids`.
+
+### TrackingCorrection
+
+```json
+{
+  "id": "cor_123",
+  "tracking_run_id": "trk_123",
+  "analysis_run_id": "ana_123",
+  "event_name": "ball_release",
+  "original_frame": 184,
+  "corrected_frame": 190,
+  "corrected_time_ms": 792,
+  "reason": "Manual video review matched release frame.",
+  "corrected_by_user_id": "usr_123",
+  "corrected_by_role": "coach",
+  "corrected_by_name": "Pitching coach",
+  "created_at": "2026-05-13T00:00:00Z"
+}
+```
+
+Allowed `event_name` values:
+
+- `foot_contact`
+- `ball_release`
+
+Tracking corrections are reviewer provenance for phase markers. They must stay
+separate from raw model artifacts and from ROM-adjusted analysis metrics.
 
 ### AnalysisRun
 
@@ -318,6 +367,42 @@ Suppressed metrics keep `raw_value` for provenance, but clients must not present
 the value as a usable evaluation result. `adjusted_value` should be `null` for
 suppressed metrics, and `suppression_reasons` must remain capture/measurement
 focused.
+
+### AnalysisReview
+
+```json
+{
+  "id": "rev_123",
+  "analysis_run_id": "ana_123",
+  "reviewer_role": "coach",
+  "reviewer_name": "Pitching coach",
+  "summary": "Review phase timing and ROM context before sharing.",
+  "action_items": "Confirm capture quality with the athlete.",
+  "status": "ready_for_user_review",
+  "caution_acknowledged": true,
+  "created_at": "2026-05-05T00:05:00Z",
+  "submitted_at": "2026-05-05T00:08:00Z"
+}
+```
+
+Allowed `AnalysisReview.status` values:
+
+- `draft`
+- `ready_for_user_review`
+- `reviewed`
+
+Allowed `reviewer_role` values:
+
+- `coach`
+- `trainer`
+- `athlete`
+- `external_specialist`
+
+Analysis reviews are human review packets for a single analysis result. They do
+not overwrite raw tracking output, ROM-adjusted values, metric definitions, or
+analysis warnings. Submitting a review packet requires
+`caution_acknowledged=true` so low-confidence, experimental, and single-camera
+limitations remain visible before user review.
 
 ### ShareLink
 
@@ -441,13 +526,24 @@ Example upload completion request:
 ### Tracking And Analysis
 
 - `GET /tracking-runs/{tracking_run_id}`
+- `POST /tracking-runs/{tracking_run_id}/phase-corrections`
 - `POST /tracking-runs/{tracking_run_id}/analysis-runs`
 - `GET /analysis-runs/{analysis_run_id}`
 - `POST /analysis-runs/{analysis_run_id}/recalculate`
 - `GET /athletes/{athlete_id}/analysis-runs`
+- `PATCH /analysis-runs/{analysis_run_id}/review`
+- `POST /analysis-runs/{analysis_run_id}/review/submit`
 
 Recalculation creates a new `AnalysisRun` that points to the same `TrackingRun`
 unless the user explicitly requests a new tracking run.
+
+Phase correction creates a `TrackingCorrection`, a derived corrected
+`TrackingRun`, and a new `AnalysisRun` for that corrected tracking run. The
+source tracking artifact remains available for audit and comparison.
+
+The prototype review endpoints create or update an `AnalysisReview` for the
+analysis result. Production authorization and external specialist workflow
+details remain future access-control work.
 
 ### Metric Definitions And Evidence
 

@@ -39,6 +39,13 @@ Current dated blocker evidence:
 
 - `docs/vv/mobile_test_results_2026-05-07_native_scaffold.md`
 - `docs/vv/mobile_test_results_2026-05-09_runtime_gate.md`
+- `docs/vv/mobile_test_results_2026-05-13_native_ts_ui_blocked.md`
+- `docs/vv/mobile_test_results_2026-05-13_runtime_and_smoke_blockers.md`
+- `docs/vv/mobile_test_results_2026-05-14_native_review_packet_blocked.md`
+
+The 2026-05-14 native review packet note covers the new review-packet fields
+and the default-excluded share-comment scope, but emulator/simulator smoke
+remains blocked until the runtime or device path is available.
 
 ## Test Timing
 
@@ -92,6 +99,13 @@ Prerequisite:
 - local upload retry simulation preserves video metadata after interruption;
 - tracking submission remains separate from local upload retry simulation;
 - video preview and simple overlay fit common phone dimensions;
+- review packet fields persist locally and require caution acknowledgement before
+  user-review request status is set;
+- share comments remain excluded unless the include-comments control is enabled;
+- default native share preview excludes video, overlays/phase visualization, and
+  evidence details unless a future explicit scope control is added;
+- review packet and share-comment scope behavior remain visible in code-level
+  verification even when runtime smoke is blocked;
 - tracking status, model version, confidence policy, and phase confidence render;
 - no user-facing text presents clinical conclusions, health forecasts, treatment
   instructions, or assured performance outcomes.
@@ -117,6 +131,10 @@ Run this before accepting the mobile stack ADR:
 - confirm backend upload-session completion, not local draft state alone, is the
   gate for formal tracking submission;
 - render a video preview with phase markers and overlay;
+- submit a local review packet only after caution acknowledgement;
+- verify review comments are excluded from sharing unless explicitly included;
+- verify video, overlays/phase visualization, and evidence details are excluded
+  from the default native share preview;
 - verify low-confidence or failed-state text remains capture/measurement focused;
 - verify common phone sizes do not overlap controls, metrics, video overlay, or
   caution text.

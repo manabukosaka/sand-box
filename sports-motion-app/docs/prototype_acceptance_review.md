@@ -18,11 +18,18 @@ guaranteed performance improvement.
   analysis-availability filter.
 - Prototype upload-session controls for start, interrupt, complete, retry, and
   upload-completion gating before tracking or processing.
+- Local selected-video playback in the PWA after capture/import.
 - Mock AI tracking completion with skeleton/phase/confidence metadata.
+- Manual foot-contact and ball-release phase correction from current playback
+  time, stored as correction evidence and derived tracking/analysis output.
 - Evidence metric display with raw values, ROM-adjusted values, confidence, and
   maturity labels.
 - ROM recalculation that preserves raw tracking values.
+- User-review packet draft and submit flow for the active analysis, including
+  reviewer metadata, summary, action items, and caution acknowledgement.
 - Prototype external share creation and revocation.
+- Prototype comment sharing scope, where review comments are omitted unless
+  comments are explicitly included.
 
 ## Accepted For Milestone 1 Prototype
 
@@ -39,9 +46,16 @@ guaranteed performance improvement.
   deleted prototype states without deleting analysis history.
 - A coach can filter the active video library by keyword, status, camera view,
   and whether analysis is available.
+- A coach can play the selected local capture/import video and create a manual
+  phase correction for foot contact or ball release without overwriting the
+  original tracking run.
 - A coach can update shoulder ROM and create a new ROM-adjusted analysis layer
   while preserving raw tracking values.
+- A coach can save a review draft, acknowledge caution labels, and request user
+  review without changing raw tracking values or ROM-adjusted metrics.
 - A coach can create and revoke a scoped prototype share for the active analysis.
+- Shared prototype comments remain hidden by default and are returned only when
+  `include_comments` is enabled.
 
 ## Known Prototype Limits
 
@@ -49,13 +63,20 @@ guaranteed performance improvement.
 - Multi-team and multi-athlete creation/switching are deferred until the
   production data boundary is chosen.
 - AI markerless tracking is mocked. Real tracking provider/model selection is a
-  Milestone 2 gate.
+  Milestone 2 gate; the browser MediaPipe baseline is feasibility evidence only.
+- Manual phase correction is prototype evidence capture. Production-grade
+  frame-accurate scrubbing, overlay editing, reviewer approval workflow, and
+  backend audit controls remain future work.
 - Prototype upload-session state is implemented locally only. Object storage,
   resumable network transfer, authentication, authorization, and real share-link
   access control are not implemented.
 - Processing and failed states are explicit prototype states; no asynchronous
   worker currently drives them.
 - Evidence definitions are hard-coded prototype data, not yet a managed registry.
+- User-review submission is a prototype request state, not a completed external
+  specialist review workflow.
+- User review for sharing/privacy behavior is requested and pending before this
+  slice is treated as production access-control behavior.
 
 ## Verification
 

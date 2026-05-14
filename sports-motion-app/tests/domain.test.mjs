@@ -2,13 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  applyTrackingCorrection,
+  createAnalysisReview,
   buildAnalysisRun,
   calculateRomRatio,
   createAthlete,
   createPrototypeDataset,
   createStandardRomProfile,
   createTeam,
+  createTrackingCorrection,
   createUploadSession,
+  submitAnalysisReview,
   updateRomEntry
 } from "../src/domain.mjs";
 
@@ -183,4 +187,102 @@ test("creates upload sessions separate from motion video tracking readiness", ()
   assert.equal(session.upload_method, "prototype_local");
   assert.equal(session.expected_bytes, 123456);
   assert.equal(session.uploaded_bytes, 0);
+});
+
+test("analysis review drafts stay separate from analysis metrics", () => {
+  const data = createPrototypeDataset();
+  const review = createAnalysisReview({
+    id: "rev_test",
+    analysis_run_id: data.analysisRun.id,
+    reviewer_role: "trainer",
+    reviewer_name: "  Trainer A  ",
+    summary: "Review phase timing and shoulder ROM context.",
+    action_items: "Ask athlete to confirm capture conditions.",
+    caution_acknowledged: true,
+    created_at: "2026-05-05T00:10:00Z"
+  });
+
+  assert.equal(review.analysis_run_id, data.analysisRun.id);
+  assert.equal(review.reviewer_role, "trainer");
+  assert.equal(review.reviewer_name, "Trainer A");
+  assert.equal(review.status, "draft");
+  assert.equal(data.analysisRun.metrics.length, 3);
+  assert.equal(Object.hasOwn(data.analysisRun, "summary"), false);
+});
+
+test("analysis review submission requires caution acknowledgement", () => {
+  const review = createAnalysisReview({
+    id: "rev_blocked",
+    analysis_run_id: "ana_test",
+    caution_acknowledged: false
+  });
+
+  assert.throws(
+    () => submitAnalysisReview(review, { submitted_at: "2026-05-05T00:11:00Z" }),
+    /caution_acknowledged/
+  );
+
+  const submitted = submitAnalysisReview(
+    { ...review, caution_acknowledged: true },
+    { submitted_at: "2026-05-05T00:11:00Z" }
+  );
+
+  assert.equal(submitted.status, "ready_for_user_review");
+  assert.equal(submitted.submitted_at, "2026-05-05T00:11:00Z");
+});
+
+test("tracking corrections preserve source tracking and create corrected phase provenance", () => {
+  const data = createPrototypeDataset();
+  const correction = createTrackingCorrection({
+    id: "cor_test",
+    tracking_run_id: data.trackingRun.id,
+    analysis_run_id: data.analysisRun.id,
+    event_name: "foot_contact",
+    original_frame: 112,
+    corrected_frame: 118,
+    corrected_time_ms: 492,
+    reason: "Video review aligned foot strike.",
+    corrected_by_name: "Coach Rivera",
+    created_at: "2026-05-13T00:00:00Z"
+  });
+  const corrected = applyTrackingCorrection(data.trackingRun, correction, {
+    id: "trk_corrected",
+    created_at: "2026-05-13T00:01:00Z"
+  });
+
+  assert.equal(data.trackingRun.phase_events.find((event) => event.name === "foot_contact").frame, 112);
+  assert.equal(corrected.source_tracking_run_id, data.trackingRun.id);
+  assert.equal(corrected.correction_status, "manual_corrected");
+  assert.deepEqual(corrected.correction_ids, ["cor_test"]);
+  assert.equal(corrected.phase_events.find((event) => event.name === "foot_contact").frame, 118);
+  assert.equal(corrected.phase_events.find((event) => event.name === "foot_contact").time_ms, 492);
+  assert.ok(corrected.warning_reasons.includes("manual_phase_correction"));
+});
+
+test("tracking corrections validate supported events and non-negative frame values", () => {
+  assert.throws(
+    () =>
+      createTrackingCorrection({
+        id: "cor_bad",
+        tracking_run_id: "trk_test",
+        event_name: "stride_peak",
+        original_frame: 10,
+        corrected_frame: 12,
+        corrected_time_ms: 50
+      }),
+    /unsupported correction event_name/
+  );
+
+  assert.throws(
+    () =>
+      createTrackingCorrection({
+        id: "cor_bad_frame",
+        tracking_run_id: "trk_test",
+        event_name: "ball_release",
+        original_frame: 10,
+        corrected_frame: -1,
+        corrected_time_ms: 50
+      }),
+    /corrected_frame/
+  );
 });

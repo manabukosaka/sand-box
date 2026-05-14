@@ -17,6 +17,7 @@
 
 - Parent owns:
 - Sub-agents:
+- Model policy:
 - Do not delegate:
 - Integration checkpoint:
 - Verification owner:

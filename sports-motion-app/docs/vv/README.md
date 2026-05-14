@@ -19,6 +19,9 @@ Current evidence notes:
   evidence and Node runtime blocker note.
 - `mobile_test_results_2026-05-09_runtime_gate.md`: current Node runtime gate
   recheck confirming emulator/simulator smoke remains blocked.
+- `mobile_test_results_2026-05-14_native_review_packet_blocked.md`: native
+  review packet, default-excluded share scope, and share-comment scope
+  code-level check; runtime smoke remains blocked.
 - `tracking_feasibility_results_2026-05-09_sample_readiness.md`: current sample
   coverage readiness check confirming candidate tracking runs remain blocked.
 

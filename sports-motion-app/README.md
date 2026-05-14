@@ -37,6 +37,8 @@ the baseball pitching MVP.
   feasibility review.
 - `docs/sample_video_manifest.md`: sample pitching-video manifest template for
   the tracking feasibility gate.
+- `docs/sample_acquisition_protocol.md`: privacy-safe collection protocol for
+  tracking feasibility samples.
 - `docs/metric_tracking_support_matrix.md`: metric-to-tracking-signal support
   matrix for promotion and suppression decisions.
 - `docs/tracking_sample_run_plan.md`: executable tracking feasibility sample-run
@@ -113,6 +115,7 @@ Sports Motion App は、インストール型モバイルアプリとして開�
 - `docs/adr/0002-mobile-stack-for-field-prototype.md`: 初回インストール型field prototype向けのmobile stack提案。
 - `docs/tracking_shortlist.md`: feasibility review向けのtracking provider/model shortlist草案。
 - `docs/sample_video_manifest.md`: tracking feasibility gate向けのsample pitching-video manifest template。
+- `docs/sample_acquisition_protocol.md`: tracking feasibility sample を安全に収集するための privacy-safe protocol。
 - `docs/metric_tracking_support_matrix.md`: metric promotionとsuppression判断のためのmetric-to-tracking-signal support matrix。
 - `docs/mobile_test_plan.md`: PWA smoke、Android emulator、iOS simulator、実機verificationのタイミングと範囲。
 - `docs/native_field_prototype_spike.md`: React Native + Expo field prototype spikeの実行計画。

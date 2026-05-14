@@ -6,6 +6,27 @@ export const metricMaturity = Object.freeze({
   EXPERIMENTAL: "experimental"
 });
 
+export const analysisReviewStatus = Object.freeze({
+  DRAFT: "draft",
+  READY_FOR_USER_REVIEW: "ready_for_user_review",
+  REVIEWED: "reviewed"
+});
+
+export const reviewerRoles = Object.freeze({
+  COACH: "coach",
+  TRAINER: "trainer",
+  ATHLETE: "athlete",
+  EXTERNAL_SPECIALIST: "external_specialist"
+});
+
+export const trackingCorrectionEvents = Object.freeze({
+  FOOT_CONTACT: "foot_contact",
+  BALL_RELEASE: "ball_release"
+});
+
+const allowedReviewerRoles = new Set(Object.values(reviewerRoles));
+const allowedTrackingCorrectionEvents = new Set(Object.values(trackingCorrectionEvents));
+
 export function createTeam(input) {
   const name = input.name?.trim();
   if (!name) {
@@ -227,8 +248,78 @@ export function createTrackingRun(input) {
     confidence_policy_version: input.confidence_policy_version ?? "prototype-policy.0",
     warning_reasons: input.warning_reasons ?? [],
     suppressed_metric_groups: input.suppressed_metric_groups ?? [],
-    failure_reason: input.failure_reason ?? null
+    failure_reason: input.failure_reason ?? null,
+    adapter_version: input.adapter_version ?? null,
+    source_tracking_run_id: input.source_tracking_run_id ?? null,
+    correction_status: input.correction_status ?? "ai_generated",
+    correction_ids: input.correction_ids ?? []
   };
+}
+
+export function createTrackingCorrection(input) {
+  if (!input.tracking_run_id) {
+    throw new Error("tracking_run_id is required");
+  }
+  if (!allowedTrackingCorrectionEvents.has(input.event_name)) {
+    throw new Error(`unsupported correction event_name: ${input.event_name}`);
+  }
+  if (!Number.isInteger(input.original_frame) || input.original_frame < 0) {
+    throw new Error("original_frame must be a non-negative integer");
+  }
+  if (!Number.isInteger(input.corrected_frame) || input.corrected_frame < 0) {
+    throw new Error("corrected_frame must be a non-negative integer");
+  }
+  if (!Number.isFinite(input.corrected_time_ms) || input.corrected_time_ms < 0) {
+    throw new Error("corrected_time_ms must be a non-negative number");
+  }
+  const reason = input.reason?.trim();
+  return {
+    id: input.id,
+    tracking_run_id: input.tracking_run_id,
+    analysis_run_id: input.analysis_run_id ?? null,
+    event_name: input.event_name,
+    original_frame: input.original_frame,
+    corrected_frame: input.corrected_frame,
+    corrected_time_ms: Math.round(input.corrected_time_ms),
+    reason: reason || "Manual video review",
+    corrected_by_user_id: input.corrected_by_user_id ?? "usr_coach",
+    corrected_by_role: input.corrected_by_role ?? reviewerRoles.COACH,
+    corrected_by_name: input.corrected_by_name?.trim() || "Pitching coach",
+    created_at: input.created_at ?? new Date().toISOString()
+  };
+}
+
+export function applyTrackingCorrection(trackingRun, correction, { id, created_at } = {}) {
+  if (correction.tracking_run_id !== trackingRun.id) {
+    throw new Error("correction must target the source tracking run");
+  }
+  const sourceEvent = trackingRun.phase_events.find((event) => event.name === correction.event_name);
+  if (!sourceEvent) {
+    throw new Error(`phase event not found: ${correction.event_name}`);
+  }
+  return createTrackingRun({
+    ...trackingRun,
+    id,
+    started_at: trackingRun.started_at,
+    completed_at: created_at ?? new Date().toISOString(),
+    artifact_uri: `local://tracking/${id}/manual-phase-correction.json`,
+    phase_events: trackingRun.phase_events.map((event) =>
+      event.name === correction.event_name
+        ? {
+            ...event,
+            frame: correction.corrected_frame,
+            time_ms: correction.corrected_time_ms,
+            correction_id: correction.id,
+            corrected_from_frame: sourceEvent.frame
+          }
+        : event
+    ),
+    source_tracking_run_id: trackingRun.source_tracking_run_id ?? trackingRun.id,
+    correction_status: "manual_corrected",
+    correction_ids: [...(trackingRun.correction_ids ?? []), correction.id],
+    warning_reasons: [...new Set([...(trackingRun.warning_reasons ?? []), "manual_phase_correction"])],
+    failure_reason: null
+  });
 }
 
 export function calculateRomRatio(rawValue, romEntry) {
@@ -304,6 +395,39 @@ export function buildAnalysisRun({ id, trackingRun, athlete, romProfile, rawMetr
   };
 }
 
+export function createAnalysisReview(input) {
+  if (!input.analysis_run_id) {
+    throw new Error("analysis_run_id is required");
+  }
+  const reviewerRole = input.reviewer_role ?? reviewerRoles.COACH;
+  if (!allowedReviewerRoles.has(reviewerRole)) {
+    throw new Error(`unsupported reviewer_role: ${reviewerRole}`);
+  }
+  return {
+    id: input.id,
+    analysis_run_id: input.analysis_run_id,
+    reviewer_role: reviewerRole,
+    reviewer_name: input.reviewer_name?.trim() || "Pitching coach",
+    summary: input.summary ?? "",
+    action_items: input.action_items ?? "",
+    status: input.status ?? analysisReviewStatus.DRAFT,
+    caution_acknowledged: Boolean(input.caution_acknowledged),
+    created_at: input.created_at ?? new Date().toISOString(),
+    submitted_at: input.submitted_at ?? null
+  };
+}
+
+export function submitAnalysisReview(review, { submitted_at } = {}) {
+  if (!review.caution_acknowledged) {
+    throw new Error("caution_acknowledged is required before user review submission");
+  }
+  return {
+    ...review,
+    status: analysisReviewStatus.READY_FOR_USER_REVIEW,
+    submitted_at: submitted_at ?? new Date().toISOString()
+  };
+}
+
 export function createPrototypeDataset() {
   const athlete = createAthlete({
     id: "ath_001",
@@ -360,6 +484,16 @@ export function createPrototypeDataset() {
       }
     ]
   });
+  const analysisReview = createAnalysisReview({
+    id: "rev_001",
+    analysis_run_id: analysisRun.id,
+    reviewer_role: reviewerRoles.COACH,
+    reviewer_name: "Pitching coach",
+    summary: "",
+    action_items: "",
+    caution_acknowledged: false,
+    created_at: "2026-05-05T00:04:00Z"
+  });
 
   return {
     organization: {
@@ -384,6 +518,7 @@ export function createPrototypeDataset() {
     video,
     trackingRun,
     analysisRun,
+    analysisReview,
     metricDefinitions,
     evidenceReferences
   };

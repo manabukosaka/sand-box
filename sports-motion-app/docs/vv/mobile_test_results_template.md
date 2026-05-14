@@ -20,9 +20,10 @@ Do not attach athlete-identifying media or public links to private media.
 | Tester | TBD |
 | Build ID | TBD |
 | App version | TBD |
-| Platform | Android emulator / iOS simulator / Physical Android / Physical iPhone |
+| Platform | PWA browser / Android emulator / iOS simulator / Physical Android / Physical iPhone |
 | Device or emulator | TBD |
 | OS version | TBD |
+| Execution mode | Manual / browser automation / N/A |
 | Test stage | PWA smoke / emulator smoke / simulator smoke / physical verification |
 | Result | Pass / Conditional pass / Fail / Blocked |
 
@@ -34,6 +35,7 @@ Do not attach athlete-identifying media or public links to private media.
 | Capture tab opens | TBD |  |
 | Metrics tab opens | TBD |  |
 | ROM tab opens | TBD |  |
+| Review tab opens | TBD |  |
 | Share tab opens | TBD |  |
 | Japanese labels fit | TBD |  |
 | English labels fit | TBD |  |
@@ -49,12 +51,27 @@ Do not attach athlete-identifying media or public links to private media.
 | Unusable tracking failure renders | TBD |  |
 | Failed tracking does not create analysis | TBD |  |
 | Shared result omits excluded video/evidence | TBD |  |
+| Shared result omits excluded overlays/comments | TBD |  |
 | Model version renders | TBD |  |
 | Confidence policy renders | TBD |  |
 | Phase confidence renders | TBD |  |
 | Suppressed metric reason renders | TBD |  |
 | Video preview layout fits | TBD |  |
 | No clinical/health/performance claim text | TBD |  |
+
+## PWA Install And Offline Checks
+
+Complete this section for PWA browser runs. Mark non-browser-native checks as
+`N/A` when the local browser does not expose the relevant install or offline
+inspection surface.
+
+| Check | Result | Notes |
+| --- | --- | --- |
+| Web manifest loads | TBD |  |
+| Standalone display mode is declared | TBD |  |
+| Service worker registers | TBD |  |
+| Shell reload works after service worker registration | TBD |  |
+| Offline shell opens without private media | TBD |  |
 
 ## Physical Device Checks
 

@@ -10,6 +10,7 @@ import {
   createPrototypeDataset,
   createStandardRomProfile,
   createTeam,
+  createSharePayload,
   createTrackingCorrection,
   createUploadSession,
   submitAnalysisReview,
@@ -229,6 +230,47 @@ test("analysis review submission requires caution acknowledgement", () => {
 
   assert.equal(submitted.status, "ready_for_user_review");
   assert.equal(submitted.submitted_at, "2026-05-05T00:11:00Z");
+});
+
+test("share payload excludes video, overlays, evidence, and comments by default while keeping raw and ROM metrics separate", () => {
+  const data = createPrototypeDataset();
+  const share = createSharePayload({
+    analysisRun: data.analysisRun
+  });
+  const expanded = createSharePayload({
+    analysisRun: data.analysisRun,
+    include_video: true,
+    include_overlays: true,
+    include_evidence: true,
+    include_comments: true,
+    video: data.video,
+    overlays: [{ type: "phase_timeline", visible: true }],
+    evidenceReferences: data.evidenceReferences,
+    comments: [{ id: "rev_extra", summary: "Share this note." }]
+  });
+
+  assert.equal(share.include_video, false);
+  assert.equal(share.include_overlays, false);
+  assert.equal(share.include_evidence, false);
+  assert.equal(share.include_comments, false);
+  assert.equal(share.video, null);
+  assert.equal(share.overlays, null);
+  assert.equal(share.evidenceReferences, null);
+  assert.equal(share.comments, null);
+  assert.equal(share.raw_metrics.length, data.analysisRun.metrics.length);
+  assert.equal(share.rom_metrics.length, 1);
+  assert.equal(share.raw_metrics[0].raw_value, 108);
+  assert.equal(share.rom_metrics[0].adjusted_value, 0.939);
+  assert.notDeepEqual(share.raw_metrics, share.rom_metrics);
+
+  assert.equal(expanded.include_video, true);
+  assert.equal(expanded.include_overlays, true);
+  assert.equal(expanded.include_evidence, true);
+  assert.equal(expanded.include_comments, true);
+  assert.equal(expanded.video.id, data.video.id);
+  assert.deepEqual(expanded.overlays, [{ type: "phase_timeline", visible: true }]);
+  assert.deepEqual(expanded.evidenceReferences, data.evidenceReferences);
+  assert.deepEqual(expanded.comments, [{ id: "rev_extra", summary: "Share this note." }]);
 });
 
 test("tracking corrections preserve source tracking and create corrected phase provenance", () => {

@@ -18,7 +18,9 @@ Recent completed slices:
 - Native runtime blocker evidence: merged via PR #29.
 
 Current sprint focus: Tracking feasibility sample readiness. The run remains
-blocked until private sample coverage and usage-right evidence satisfy the gate.
+blocked until approved sample rows, usage-right evidence, and the local model
+matrix satisfy the gate. The latest blocker note is
+`docs/vv/tracking_feasibility_results_2026-05-15_sample_readiness.md`.
 
 ## Maintenance Rules
 

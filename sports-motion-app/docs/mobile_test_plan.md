@@ -83,6 +83,35 @@ skeleton reference for native or backend slices:
 Record PWA smoke results with `docs/vv/mobile_test_results_template.md`, using
 `Platform = PWA browser` and `Test stage = PWA smoke`.
 
+## PWA Mobile UX Acceptance Evidence
+
+PWA acceptance evidence can be recorded manually when browser automation is not
+available. Use a narrow mobile viewport and a desktop-width viewport against
+`http://127.0.0.1:4173/app/`, and record only safe sample IDs.
+
+Manual checklist:
+
+- start with `cd sports-motion-app && npm run serve`;
+- confirm the shell opens, bottom tabs fit, and English/Japanese labels do not
+  overlap in both desktop and mobile-width viewports;
+- confirm manifest/standalone shell basics, reload behavior, and service-worker
+  offline shell availability where the browser supports it;
+- edit team, athlete, and session metadata, then refresh and confirm local
+  persistence;
+- import a non-identifying sample video and confirm preview, metadata, draft
+  library row, search, status, camera-view, and analysis-availability filters;
+- start upload, attempt a duplicate start, interrupt, retry, complete, and
+  confirm queue/submit is blocked before completion and available after
+  completion;
+- run low-confidence and unusable/failure paths, confirming capture/measurement
+  language and no replacement analysis for failed tracking;
+- confirm metrics, ROM recalculation, and phase correction preserve raw tracking
+  and derived layers separately;
+- save a review draft, confirm caution acknowledgement is required, then submit
+  user-review request status;
+- create a share with defaults and confirm video, evidence, overlays, and
+  comments stay excluded unless each explicit scope control is enabled.
+
 ## Emulator And Simulator Smoke Scope
 
 Run this after a minimal native development build exists:

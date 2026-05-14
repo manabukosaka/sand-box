@@ -417,6 +417,52 @@ export function createAnalysisReview(input) {
   };
 }
 
+export function createSharePayload({
+  analysisRun,
+  include_video = false,
+  include_overlays = false,
+  include_evidence = false,
+  include_comments = false,
+  video = null,
+  overlays = [],
+  evidenceReferences = [],
+  comments = []
+}) {
+  if (!analysisRun?.id) {
+    throw new Error("analysisRun.id is required");
+  }
+
+  const rawMetrics = analysisRun.metrics.map((metric) => ({
+    metric_definition_id: metric.metric_definition_id,
+    raw_value: metric.raw_value,
+    unit: metric.unit,
+    confidence: metric.confidence
+  }));
+  const romMetrics = analysisRun.metrics
+    .filter((metric) => metric.adjusted_value !== null)
+    .map((metric) => ({
+      metric_definition_id: metric.metric_definition_id,
+      raw_value: metric.raw_value,
+      adjusted_value: metric.adjusted_value,
+      adjusted_unit: metric.adjusted_unit,
+      confidence: metric.confidence
+    }));
+
+  return {
+    analysis_run_id: analysisRun.id,
+    include_video: Boolean(include_video),
+    include_overlays: Boolean(include_overlays),
+    include_evidence: Boolean(include_evidence),
+    include_comments: Boolean(include_comments),
+    video: include_video ? video : null,
+    overlays: include_overlays ? overlays : null,
+    evidenceReferences: include_evidence ? evidenceReferences : null,
+    comments: include_comments ? comments : null,
+    raw_metrics: rawMetrics,
+    rom_metrics: romMetrics
+  };
+}
+
 export function submitAnalysisReview(review, { submitted_at } = {}) {
   if (!review.caution_acknowledged) {
     throw new Error("caution_acknowledged is required before user review submission");

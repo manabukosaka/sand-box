@@ -42,6 +42,31 @@ type PhaseCorrection = {
   createdAt: string;
 };
 
+type ShareVideoPayload = {
+  source: VideoSource;
+  fileName: string;
+  uri: string;
+  width: number | null;
+  height: number | null;
+  durationLabel: string;
+  capturedAt: string;
+};
+
+type ShareOverlaysPayload = {
+  phaseSummary: string;
+  corrections: Array<{
+    eventName: CorrectionEvent;
+    frame: number;
+    timeMs: number;
+    note: string;
+  }>;
+};
+
+type ShareEvidencePayload = {
+  rawTracking: Array<{ name: string; value: string }>;
+  romAdjusted: Array<{ name: string; value: string }>;
+};
+
 const copy = {
   en: {
     title: "Sports Motion",
@@ -122,6 +147,11 @@ const copy = {
     excludeComments: "Exclude comments",
     commentsExcluded: "Comments excluded from shared payload",
     commentsIncluded: "Comments included in shared payload",
+    shareScope: "Share scope",
+    shareScopeDefault: "Defaults stay off until you switch them on.",
+    shareVideo: "Include video",
+    shareOverlays: "Include overlays",
+    shareEvidence: "Include evidence notes",
     payloadPreview: "Local share payload preview",
     payloadNote: "The preview stays local and shows exactly what would be exported.",
     payloadComments: "Share comments",
@@ -213,6 +243,11 @@ const copy = {
     excludeComments: "コメントを含めない",
     commentsExcluded: "共有ペイロードからコメントを除外",
     commentsIncluded: "共有ペイロードにコメントを含める",
+    shareScope: "共有範囲",
+    shareScopeDefault: "初期値はオフです。必要な範囲だけ有効にします。",
+    shareVideo: "動画を含める",
+    shareOverlays: "オーバーレイを含める",
+    shareEvidence: "エビデンスメモを含める",
     payloadPreview: "ローカル共有ペイロードのプレビュー",
     payloadNote: "プレビューは端末内にとどまり、出力内容をそのまま確認できます。",
     payloadComments: "共有コメント",
@@ -270,6 +305,9 @@ export default function App() {
   const [reviewStatus, setReviewStatus] = useState<ReviewStatus>("draft");
   const [reviewSubmittedAt, setReviewSubmittedAt] = useState<string | null>(null);
   const [includeReviewComments, setIncludeReviewComments] = useState(false);
+  const [shareVideoEnabled, setShareVideoEnabled] = useState(false);
+  const [shareOverlaysEnabled, setShareOverlaysEnabled] = useState(false);
+  const [shareEvidenceEnabled, setShareEvidenceEnabled] = useState(false);
   const [hydrated, setHydrated] = useState(false);
   const text = copy[language];
 
@@ -310,6 +348,9 @@ export default function App() {
           setReviewStatus(draft.reviewStatus || "draft");
           setReviewSubmittedAt(draft.reviewSubmittedAt || null);
           setIncludeReviewComments(Boolean(draft.includeReviewComments));
+          setShareVideoEnabled(Boolean(draft.shareVideoEnabled));
+          setShareOverlaysEnabled(Boolean(draft.shareOverlaysEnabled));
+          setShareEvidenceEnabled(Boolean(draft.shareEvidenceEnabled));
           setDraftStatus("restored");
         } else {
           setDraftStatus("saved");
@@ -348,7 +389,10 @@ export default function App() {
       cautionAcknowledged,
       reviewStatus,
       reviewSubmittedAt,
-      includeReviewComments
+      includeReviewComments,
+      shareVideoEnabled,
+      shareOverlaysEnabled,
+      shareEvidenceEnabled
     });
     AsyncStorage.setItem(draftStorageKey, draft)
       .then(() => setDraftStatus("saved"))
@@ -367,6 +411,9 @@ export default function App() {
     reviewSummary,
     selectedVideo,
     session,
+    shareEvidenceEnabled,
+    shareOverlaysEnabled,
+    shareVideoEnabled,
     team,
     uploadStatus
   ]);
@@ -431,6 +478,9 @@ export default function App() {
     setReviewStatus("draft");
     setReviewSubmittedAt(null);
     setIncludeReviewComments(false);
+    setShareVideoEnabled(false);
+    setShareOverlaysEnabled(false);
+    setShareEvidenceEnabled(false);
     try {
       await AsyncStorage.removeItem(draftStorageKey);
       setDraftStatus("saved");
@@ -463,6 +513,40 @@ export default function App() {
     }
     setReviewStatus("ready_for_user_review");
     setReviewSubmittedAt(new Date().toISOString());
+  }
+
+  function markReviewDraftAfterEdit() {
+    setReviewStatus((current) =>
+      current === "ready_for_user_review" || current === "reviewed" ? "draft" : current
+    );
+    setReviewSubmittedAt((current) =>
+      reviewStatus === "ready_for_user_review" || reviewStatus === "reviewed" ? null : current
+    );
+  }
+
+  function updateReviewerRole(value: ReviewerRole) {
+    markReviewDraftAfterEdit();
+    setReviewerRole(value);
+  }
+
+  function updateReviewerName(value: string) {
+    markReviewDraftAfterEdit();
+    setReviewerName(value);
+  }
+
+  function updateReviewSummary(value: string) {
+    markReviewDraftAfterEdit();
+    setReviewSummary(value);
+  }
+
+  function updateReviewActionItems(value: string) {
+    markReviewDraftAfterEdit();
+    setReviewActionItems(value);
+  }
+
+  function toggleCautionAcknowledgement() {
+    markReviewDraftAfterEdit();
+    setCautionAcknowledged((current) => !current);
   }
 
   return (
@@ -590,11 +674,11 @@ export default function App() {
               cautionAcknowledged={cautionAcknowledged}
               reviewStatus={reviewStatus}
               submittedAt={reviewSubmittedAt}
-              onReviewerRoleChange={setReviewerRole}
-              onReviewerNameChange={setReviewerName}
-              onSummaryChange={setReviewSummary}
-              onActionItemsChange={setReviewActionItems}
-              onCautionToggle={() => setCautionAcknowledged((current) => !current)}
+              onReviewerRoleChange={updateReviewerRole}
+              onReviewerNameChange={updateReviewerName}
+              onSummaryChange={updateReviewSummary}
+              onActionItemsChange={updateReviewActionItems}
+              onCautionToggle={toggleCautionAcknowledgement}
               onSubmit={submitReviewPacket}
             />
           </View>
@@ -604,9 +688,15 @@ export default function App() {
           <View style={styles.panel}>
             <Text style={styles.heading}>{text.share}</Text>
             <Text style={styles.muted}>{text.shareNote}</Text>
-            <ShareComments
+            <ShareScopeControls
               text={text}
               includeReviewComments={includeReviewComments}
+              shareVideoEnabled={shareVideoEnabled}
+              shareOverlaysEnabled={shareOverlaysEnabled}
+              shareEvidenceEnabled={shareEvidenceEnabled}
+              selectedVideo={selectedVideo}
+              phaseCorrections={phaseCorrections}
+              phaseSummary={phaseSummary}
               reviewStatus={reviewStatus}
               reviewerRole={reviewerRole}
               reviewerName={reviewerName}
@@ -614,6 +704,9 @@ export default function App() {
               summary={reviewSummary}
               actionItems={reviewActionItems}
               onToggle={() => setIncludeReviewComments((current) => !current)}
+              onVideoToggle={() => setShareVideoEnabled((current) => !current)}
+              onOverlaysToggle={() => setShareOverlaysEnabled((current) => !current)}
+              onEvidenceToggle={() => setShareEvidenceEnabled((current) => !current)}
             />
           </View>
         )}
@@ -899,19 +992,34 @@ function RoleSelector({
   );
 }
 
-function ShareComments({
+function ShareScopeControls({
   text,
   includeReviewComments,
+  shareVideoEnabled,
+  shareOverlaysEnabled,
+  shareEvidenceEnabled,
+  selectedVideo,
+  phaseCorrections,
+  phaseSummary,
   reviewStatus,
   reviewerRole,
   reviewerName,
   reviewSubmittedAt,
   summary,
   actionItems,
-  onToggle
+  onToggle,
+  onVideoToggle,
+  onOverlaysToggle,
+  onEvidenceToggle
 }: {
   text: (typeof copy)[Language];
   includeReviewComments: boolean;
+  shareVideoEnabled: boolean;
+  shareOverlaysEnabled: boolean;
+  shareEvidenceEnabled: boolean;
+  selectedVideo: StoredVideoAsset | null;
+  phaseCorrections: PhaseCorrection[];
+  phaseSummary: string;
   reviewStatus: ReviewStatus;
   reviewerRole: ReviewerRole;
   reviewerName: string;
@@ -919,11 +1027,20 @@ function ShareComments({
   summary: string;
   actionItems: string;
   onToggle: () => void;
+  onVideoToggle: () => void;
+  onOverlaysToggle: () => void;
+  onEvidenceToggle: () => void;
 }) {
   const sharePayload = useMemo(
     () =>
       buildSharePayload({
         includeReviewComments,
+        shareVideoEnabled,
+        shareOverlaysEnabled,
+        shareEvidenceEnabled,
+        selectedVideo,
+        phaseCorrections,
+        phaseSummary,
         reviewStatus,
         reviewerRole,
         reviewerName,
@@ -934,6 +1051,12 @@ function ShareComments({
     [
       actionItems,
       includeReviewComments,
+      shareEvidenceEnabled,
+      shareOverlaysEnabled,
+      shareVideoEnabled,
+      selectedVideo,
+      phaseCorrections,
+      phaseSummary,
       reviewStatus,
       reviewSubmittedAt,
       reviewerName,
@@ -943,6 +1066,19 @@ function ShareComments({
   );
   return (
     <View style={styles.reviewBox}>
+      <Text style={styles.headingSmall}>{text.shareScope}</Text>
+      <Text style={styles.muted}>{text.shareScopeDefault}</Text>
+      <ShareScopeSwitch label={text.shareVideo} enabled={shareVideoEnabled} onToggle={onVideoToggle} />
+      <ShareScopeSwitch
+        label={text.shareOverlays}
+        enabled={shareOverlaysEnabled}
+        onToggle={onOverlaysToggle}
+      />
+      <ShareScopeSwitch
+        label={text.shareEvidence}
+        enabled={shareEvidenceEnabled}
+        onToggle={onEvidenceToggle}
+      />
       <Text style={styles.headingSmall}>{text.comments}</Text>
       <Pressable
         accessibilityRole="switch"
@@ -960,6 +1096,28 @@ function ShareComments({
       </Text>
       <SharePayloadPreview text={text} payload={sharePayload} />
     </View>
+  );
+}
+
+function ShareScopeSwitch({
+  label,
+  enabled,
+  onToggle
+}: {
+  label: string;
+  enabled: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <Pressable
+      accessibilityRole="switch"
+      accessibilityState={{ checked: enabled }}
+      style={[styles.checkRow, enabled && styles.checkRowActive]}
+      onPress={onToggle}
+    >
+      <View style={[styles.switchKnob, enabled && styles.switchKnobActive]} />
+      <Text style={styles.checkText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -1007,12 +1165,67 @@ function SharePayloadPreview({
       />
       <InfoRow label="analysis_run_id" value={payload.analysisRunId} />
       <InfoRow label={text.payloadComments} value={commentStatus} />
-      <InfoRow label={text.payloadVideo} value={payload.video === null ? text.payloadOmitted : text.includeComments} />
-      <InfoRow label={text.payloadOverlays} value={payload.overlays === null ? text.payloadOmitted : text.includeComments} />
-      <InfoRow label={text.payloadEvidence} value={payload.evidence === null ? text.payloadOmitted : text.includeComments} />
+      <InfoRow
+        label={text.payloadVideo}
+        value={payload.video === null ? text.payloadOmitted : text.payloadIncluded}
+      />
+      <InfoRow
+        label={text.payloadOverlays}
+        value={payload.overlays === null ? text.payloadOmitted : text.payloadIncluded}
+      />
+      <InfoRow
+        label={text.payloadEvidence}
+        value={payload.evidence === null ? text.payloadOmitted : text.payloadIncluded}
+      />
       <View style={styles.payloadBlock}>
         <Text style={styles.payloadKey}>analysis_run_id</Text>
         <Text style={styles.payloadValue}>{payload.analysisRunId}</Text>
+        <Text style={styles.payloadKey}>video</Text>
+        {payload.video ? (
+          <>
+            <Text style={styles.payloadValue}>source: {payload.video.source}</Text>
+            <Text style={styles.payloadValue}>fileName: {payload.video.fileName}</Text>
+            <Text style={styles.payloadValue}>uri: {payload.video.uri}</Text>
+            <Text style={styles.payloadValue}>
+              resolution: {payload.video.width && payload.video.height ? `${payload.video.width} x ${payload.video.height}` : "N/A"}
+            </Text>
+            <Text style={styles.payloadValue}>durationLabel: {payload.video.durationLabel}</Text>
+          </>
+        ) : (
+          <Text style={styles.payloadValue}>null</Text>
+        )}
+        <Text style={styles.payloadKey}>overlays</Text>
+        {payload.overlays ? (
+          <>
+            <Text style={styles.payloadValue}>phaseSummary: {payload.overlays.phaseSummary}</Text>
+            {payload.overlays.corrections.map((correction) => (
+              <Text key={`${correction.eventName}-${correction.frame}`} style={styles.payloadValue}>
+                {correction.eventName}: frame {correction.frame} · {(correction.timeMs / 1000).toFixed(2)}s
+              </Text>
+            ))}
+          </>
+        ) : (
+          <Text style={styles.payloadValue}>null</Text>
+        )}
+        <Text style={styles.payloadKey}>evidence</Text>
+        {payload.evidence ? (
+          <>
+            <Text style={styles.payloadValue}>rawTracking</Text>
+            {payload.evidence.rawTracking.map((metric) => (
+              <Text key={`evidence-raw-${metric.name}`} style={styles.payloadValue}>
+                {metric.name}: {metric.value}
+              </Text>
+            ))}
+            <Text style={styles.payloadValue}>romAdjusted</Text>
+            {payload.evidence.romAdjusted.map((metric) => (
+              <Text key={`evidence-rom-${metric.name}`} style={styles.payloadValue}>
+                {metric.name}: {metric.value}
+              </Text>
+            ))}
+          </>
+        ) : (
+          <Text style={styles.payloadValue}>null</Text>
+        )}
         <Text style={styles.payloadKey}>metrics.raw</Text>
         {payload.metrics.raw.map((metric) => (
           <Text key={`raw-${metric.name}`} style={styles.payloadValue}>
@@ -1121,9 +1334,9 @@ function TrackingSummary({ text, phaseSummary }: { text: (typeof copy)[Language]
 
 type SharePayload = {
   analysisRunId: string;
-  video: null;
-  overlays: null;
-  evidence: null;
+  video: ShareVideoPayload | null;
+  overlays: ShareOverlaysPayload | null;
+  evidence: ShareEvidencePayload | null;
   reviewStatus: ReviewStatus;
   reviewerRole: ReviewerRole;
   reviewerName: string;
@@ -1140,6 +1353,12 @@ type SharePayload = {
 
 function buildSharePayload({
   includeReviewComments,
+  shareVideoEnabled,
+  shareOverlaysEnabled,
+  shareEvidenceEnabled,
+  selectedVideo,
+  phaseCorrections,
+  phaseSummary,
   reviewStatus,
   reviewerRole,
   reviewerName,
@@ -1148,6 +1367,12 @@ function buildSharePayload({
   actionItems
 }: {
   includeReviewComments: boolean;
+  shareVideoEnabled: boolean;
+  shareOverlaysEnabled: boolean;
+  shareEvidenceEnabled: boolean;
+  selectedVideo: StoredVideoAsset | null;
+  phaseCorrections: PhaseCorrection[];
+  phaseSummary: string;
   reviewStatus: ReviewStatus;
   reviewerRole: ReviewerRole;
   reviewerName: string;
@@ -1157,9 +1382,35 @@ function buildSharePayload({
 }): SharePayload {
   return {
     analysisRunId: seed.analysisRunId,
-    video: null,
-    overlays: null,
-    evidence: null,
+    video:
+      shareVideoEnabled && selectedVideo
+        ? {
+            source: selectedVideo.source,
+            fileName: selectedVideo.fileName,
+            uri: selectedVideo.uri,
+            width: selectedVideo.width,
+            height: selectedVideo.height,
+            durationLabel: selectedVideo.durationLabel,
+            capturedAt: selectedVideo.capturedAt
+          }
+        : null,
+    overlays: shareOverlaysEnabled
+      ? {
+          phaseSummary,
+          corrections: phaseCorrections.map((correction) => ({
+            eventName: correction.eventName,
+            frame: correction.frame,
+            timeMs: correction.timeMs,
+            note: correction.note
+          }))
+        }
+      : null,
+    evidence: shareEvidenceEnabled
+      ? {
+          rawTracking: seed.metrics.map((metric) => ({ name: metric.name, value: metric.raw })),
+          romAdjusted: seed.metrics.map((metric) => ({ name: metric.name, value: metric.adjusted }))
+        }
+      : null,
     reviewStatus,
     reviewerRole,
     reviewerName,

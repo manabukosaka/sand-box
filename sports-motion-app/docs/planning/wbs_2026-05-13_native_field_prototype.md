@@ -36,11 +36,11 @@ Priority order:
 | 5.1 | Physical Android | Android physical result | Blocked | capture/import, metadata, persistence, and overlay review are recorded |
 | 5.2 | Physical iPhone | iPhone physical result | Blocked | capture/import, metadata, persistence, and overlay review are recorded |
 | 6.0 | Mobile Stack ADR Decision | ADR 0002 decision | Pending | evidence supports Accepted, Conditional, or No-Go |
-| 7.0 | AI Tracking Feasibility Prep | sample readiness evidence | Blocked | approved sample set and consent/usage metadata exist |
+| 7.0 | AI Tracking Feasibility Prep | sample readiness evidence | Blocked; actionable blocker note dated 2026-05-15 | approved sample set, consent/usage metadata, and local model inventory exist |
 | 7.1 | Local Model Asset Readiness | local model readiness note | Partial | local MediaPipe bundle, wasm, and model files are verified |
-| 7.2 | Baseline Run Matrix | dated AI baseline results | Pending | good, low-quality, and expected-failure sample runs are recorded |
+| 7.2 | Baseline Run Matrix | dated AI baseline results | Pending; blocked on 7.0 sample approval | good, low-quality, and expected-failure sample runs are recorded with versioned candidate/model metadata |
 | 8.0 | Metric / Review Gate | Milestone 2 gate packet | Partial; code-level native review/share scope aligned | raw tracking, ROM metrics, comments, corrections, review packet, and share-comment scope remain separated |
-| 9.0 | Backend / Security Planning | backend/security plan or ADR | Pending | API, auth, object storage, share access control, and audit boundaries are ready before implementation |
+| 9.0 | Backend / Security Planning | post-gate backend/security plan or ADR | Draft; post-gate, not implementation-ready | Plan/ADR is reviewed after mobile and tracking gates; see `wbs_2026-05-15_backend_security_post_gate_plan.md` |
 
 ## Next Execution Order
 

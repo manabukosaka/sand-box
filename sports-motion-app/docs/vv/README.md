@@ -15,6 +15,10 @@ Current templates:
 
 Current evidence notes:
 
+- `tracking_feasibility_results_2026-05-15_sample_readiness.md`: current
+  actionable sample-readiness blocker note for WBS 7.0 / 7.2, including the
+  required case rows, usage-rights constraints, capture metadata, and local
+  model matrix.
 - `mobile_test_results_2026-05-07_native_scaffold.md`: initial Expo scaffold
   evidence and Node runtime blocker note.
 - `mobile_test_results_2026-05-09_runtime_gate.md`: current Node runtime gate
@@ -22,7 +26,7 @@ Current evidence notes:
 - `mobile_test_results_2026-05-14_native_review_packet_blocked.md`: native
   review packet, default-excluded share scope, and share-comment scope
   code-level check; runtime smoke remains blocked.
-- `tracking_feasibility_results_2026-05-09_sample_readiness.md`: current sample
+- `tracking_feasibility_results_2026-05-09_sample_readiness.md`: prior sample
   coverage readiness check confirming candidate tracking runs remain blocked.
 
 Use `docs/vuv_checklist.md` as the checklist source of truth and link completed

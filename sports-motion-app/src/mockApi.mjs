@@ -37,6 +37,19 @@ const DEFAULT_RAW_METRICS = Object.freeze([
   }
 ]);
 
+const ALLOWED_VIDEO_STATUSES = new Set([
+  "draft",
+  "upload_session_created",
+  "uploading",
+  "uploaded",
+  "processing",
+  "analyzed",
+  "failed_retryable",
+  "failed_unusable",
+  "archived",
+  "deleted"
+]);
+
 function clone(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -542,6 +555,9 @@ export function createSportsMotionMockApi({
     },
 
     updateVideoStatus({ video_id, status }) {
+      if (!ALLOWED_VIDEO_STATUSES.has(status)) {
+        throw new Error(`unsupported video status: ${status}`);
+      }
       const currentVideo = state.videos.find((video) => video.id === video_id);
       if (!currentVideo) {
         throw new Error(`unknown video: ${video_id}`);

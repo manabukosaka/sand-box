@@ -401,9 +401,14 @@ test("managed videos can move through processing and failed prototype states", (
   assert.equal(processing.videos.find((video) => video.id === videoId).status, "processing");
   assert.equal(processing.videos.find((video) => video.id === videoId).analysis_available, false);
 
-  const failed = api.updateVideoStatus({ video_id: videoId, status: "failed" });
+  assert.throws(
+    () => api.updateVideoStatus({ video_id: videoId, status: "failed" }),
+    /unsupported video status/
+  );
 
-  assert.equal(failed.videos.find((video) => video.id === videoId).status, "failed");
+  const failed = api.updateVideoStatus({ video_id: videoId, status: "failed_retryable" });
+
+  assert.equal(failed.videos.find((video) => video.id === videoId).status, "failed_retryable");
   assert.equal(failed.analysisRun.id, saved.analysisRun.id);
 });
 

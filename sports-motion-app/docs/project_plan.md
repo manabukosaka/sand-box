@@ -74,7 +74,10 @@ Implemented prototype capabilities:
 - Draft sample acquisition protocol in
   `sports-motion-app/docs/sample_acquisition_protocol.md`.
 - Tracking feasibility sample readiness is blocked because the manifest contains
-  only placeholder rows and no approved private sample set yet.
+  only placeholder rows and no approved private sample set yet; see
+  `sports-motion-app/docs/vv/tracking_feasibility_results_2026-05-15_sample_readiness.md`
+  for the required good, low-quality, and expected-failure rows plus rights and
+  capture metadata.
 - Draft metric tracking support matrix in
   `sports-motion-app/docs/metric_tracking_support_matrix.md`.
 - Tracking feasibility sample-run execution checklist in
@@ -114,6 +117,10 @@ Not yet implemented:
 - Production mobile stack.
 - Production backend API, authentication, object storage, or real resumable
   upload transport.
+- Post-gate production backend/security planning is now documented in
+  `sports-motion-app/docs/planning/wbs_2026-05-15_backend_security_post_gate_plan.md`,
+  but implementation remains deferred until the relevant mobile and tracking
+  gates close.
 - Real AI markerless tracking pipeline.
 - Production-approved AI tracking provider/model. The browser MediaPipe baseline
   is an executable feasibility harness, not a formal production provider.
